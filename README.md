@@ -1,33 +1,33 @@
-# SO‘FI OLLOHYOR O‘QUV MARKAZI — Glassmorphism v2
+# SO‘FI OLLOHYOR O‘QUV MARKAZI — Glassmorphism + Admin
 
-Zamonaviy, yorqin va shaffof glassmorphism dizaynidagi statik sayt.
+## Sayt
+`index.html` — asosiy sayt.
 
-## Qo‘shilgan effektlar
-- Oq/shaffof glassmorphism interfeys
-- Yorqin gradientlar va futuristik aurora fon
-- Harakatlanuvchi particle effektlari
-- Mouse cursor glow
-- Scroll reveal animatsiyalari
-- Hover/float/scan-line animatsiyalari
-- Interaktiv tugmalar uchun Web Audio ovoz effektlari
-- 🔊/🔇 ovoz boshqaruvi (tanlov brauzerda saqlanadi)
-- Ariza va savol formasi WhatsApp’ga yuboradi
-- Responsive: telefon, planshet va kompyuter
+## Admin panel
+`admin.html` — demo boshqaruv paneli.
 
-## Ishga tushirish
+Login: `Davron`  
+Parol: `Davron2004`
 
-### GitHub Pages
-1. Fayllarni repository root qismiga joylang.
-2. GitHub → **Settings → Pages**.
-3. **Deploy from a branch** ni tanlang.
-4. Branch: `main`, Folder: `/ (root)`.
-5. Save bosing.
+Admin panel orqali:
+- o‘quvchi qo‘shish/o‘chirish
+- o‘qituvchi qo‘shish/o‘chirish
+- fan qo‘shish/o‘chirish
+- dars jadvali qo‘shish/o‘chirish
+- o‘quvchilar reytingini o‘zgartirish uchun qayta qo‘shish
+- fan bosilganda jadval va reytingni saytda ko‘rsatish
 
-### Codespaces / lokal
-```bash
-python3 -m http.server 5500
-```
-So‘ng Codespaces’da **Ports → 5500 → Open in Browser** ni bosing.
+### Muhim
+Bu versiya GitHub Pages uchun **demo admin**. Ma’lumotlar `localStorage`da saqlanadi. Login/parol ham front-end ichida bo‘ladi, shuning uchun bu haqiqiy xavfsiz admin tizimi hisoblanmaydi.
 
-## Muhim
-Ovoz effektlari alohida mp3/wav talab qilmaydi — `script.js` ichidagi Web Audio API orqali brauzerda yaratiladi. Brauzer autoplay cheklovi sabab ovoz foydalanuvchi birinchi marta bosgandan keyin ishlaydi.
+Keyingi bosqichda Supabase/Firebase kabi backend orqali:
+- haqiqiy login
+- o‘qituvchi va o‘quvchi akkauntlari
+- serverda saqlanadigan ma’lumotlar
+- ruxsatlar (admin/teacher/student)
+qilish mumkin.
+
+## GitHub Pages
+Repository rootida `index.html` bo‘lsin.
+
+Settings → Pages → Deploy from a branch → `main` → `/ (root)` → Save.

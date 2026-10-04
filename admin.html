@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#eef7f8">
+  <title>Admin panel | SO‘FI OLLOHYOR</title>
+  <link rel="icon" href="assets/favicon.png">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .admin-page{min-height:100vh;padding:30px 0 70px}
+    .admin-shell{max-width:1180px;margin:auto;padding:0 18px}
+    .admin-top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px}
+    .admin-brand{display:flex;align-items:center;gap:14px}
+    .admin-brand img{width:180px;max-width:45vw}
+    .admin-user{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .admin-grid{display:grid;grid-template-columns:240px 1fr;gap:18px}
+    .admin-nav,.admin-content,.login-card{background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.85);box-shadow:0 20px 60px rgba(31,80,100,.12);backdrop-filter:blur(20px);border-radius:26px}
+    .admin-nav{padding:12px;align-self:start;position:sticky;top:18px}
+    .admin-tab{width:100%;border:0;background:transparent;padding:14px 15px;text-align:left;border-radius:15px;cursor:pointer;color:#123c5a;font-weight:700}
+    .admin-tab.active,.admin-tab:hover{background:rgba(24,145,111,.12)}
+    .admin-content{padding:24px}
+    .admin-section{display:none}.admin-section.active{display:block}
+    .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
+    .stat{padding:18px;border-radius:20px;background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.85)}
+    .stat strong{display:block;font-size:28px;color:#0f5576}.stat span{font-size:13px;color:#60788a}
+    .admin-table-wrap{overflow:auto;border-radius:18px;border:1px solid rgba(80,120,140,.12)}
+    .admin-table{width:100%;border-collapse:collapse;min-width:720px;background:rgba(255,255,255,.5)}
+    .admin-table th,.admin-table td{padding:12px 13px;border-bottom:1px solid rgba(80,120,140,.1);text-align:left;font-size:14px}
+    .admin-table th{color:#164b6d;background:rgba(240,248,250,.72)}
+    .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .form-grid .full{grid-column:1/-1}
+    .admin-form input,.admin-form select,.admin-form textarea{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid rgba(45,100,120,.18);border-radius:14px;background:rgba(255,255,255,.75);outline:none}
+    .admin-form textarea{min-height:90px;resize:vertical}
+    .form-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+    .danger{border:0;background:#fff0f0;color:#a42323;padding:8px 10px;border-radius:10px;cursor:pointer}
+    .edit{border:0;background:#edf8ff;color:#12618b;padding:8px 10px;border-radius:10px;cursor:pointer}
+    .login-screen{min-height:100vh;display:grid;place-items:center;padding:20px}
+    .login-card{width:min(430px,100%);padding:30px}
+    .login-card img{width:210px;max-width:80%;display:block;margin:0 auto 20px}
+    .login-card h1{text-align:center;color:#123d5b;margin:0 0 8px}
+    .login-card p{text-align:center;color:#668094;margin:0 0 22px}
+    .login-form{display:grid;gap:12px}.login-form input{padding:14px;border-radius:14px;border:1px solid #cddde4;background:#fff}
+    .login-error{display:none;color:#a42323;background:#fff0f0;border-radius:12px;padding:10px;font-size:13px}
+    .login-error.show{display:block}
+    .hint{font-size:12px;color:#718797;margin-top:12px;line-height:1.5}
+    @media(max-width:850px){.admin-grid{grid-template-columns:1fr}.admin-nav{position:static;display:flex;overflow:auto}.admin-tab{min-width:max-content}.stat-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:600px){.form-grid{grid-template-columns:1fr}.stat-grid{grid-template-columns:1fr 1fr}.admin-content{padding:16px}}
+  </style>
+</head>
+<body>
+  <div class="aurora aurora-a"></div><div class="aurora aurora-b"></div><div class="grid-bg"></div>
+  <main class="admin-page" id="loginScreen">
+    <div class="login-screen">
+      <div class="login-card">
+        <img src="assets/logo.png" alt="SO‘FI OLLOHYOR">
+        <h1>Admin panel</h1>
+        <p>O‘quv markazini boshqarish</p>
+        <form class="login-form" id="loginForm">
+          <input id="loginName" autocomplete="username" placeholder="Login" required>
+          <input id="loginPass" type="password" autocomplete="current-password" placeholder="Parol" required>
+          <div class="login-error" id="loginError">Login yoki parol noto‘g‘ri.</div>
+          <button class="btn btn-fire btn-lg" type="submit">Kirish →</button>
+        </form>
+        <div class="hint">Bu GitHub Pages uchun demo boshqaruv paneli. Ma’lumotlar brauzerning localStorage xotirasida saqlanadi. Haqiqiy xavfsiz admin tizimi uchun keyin backend/auth ulash kerak.</div>
+      </div>
+    </div>
+  </main>
+
+  <main class="admin-page" id="adminApp" style="display:none">
+    <div class="admin-shell">
+      <div class="admin-top">
+        <div class="admin-brand"><img src="assets/logo.png" alt="SO‘FI OLLOHYOR"><div><strong>Admin boshqaruv</strong><div class="hint">Saytdagi fanlar, ustozlar va o‘quvchilar</div></div></div>
+        <div class="admin-user"><a class="btn btn-ghost btn-small" href="index.html">Saytni ko‘rish</a><button class="btn btn-fire btn-small" id="logoutBtn">Chiqish</button></div>
+      </div>
+
+      <div class="admin-grid">
+        <aside class="admin-nav">
+          <button class="admin-tab active" data-tab="dashboard">📊 Dashboard</button>
+          <button class="admin-tab" data-tab="students">👨‍🎓 O‘quvchilar</button>
+          <button class="admin-tab" data-tab="teachers">👨‍🏫 O‘qituvchilar</button>
+          <button class="admin-tab" data-tab="courses">📚 Fanlar</button>
+          <button class="admin-tab" data-tab="schedule">📅 Dars jadvali</button>
+        </aside>
+
+        <section class="admin-content">
+          <div class="admin-section active" id="tab-dashboard">
+            <h2>Dashboard</h2>
+            <p class="hint">Bu yerda markazdagi asosiy ko‘rsatkichlarni ko‘rasiz.</p>
+            <div class="stat-grid">
+              <div class="stat"><strong id="statStudents">0</strong><span>O‘quvchilar</span></div>
+              <div class="stat"><strong id="statTeachers">0</strong><span>O‘qituvchilar</span></div>
+              <div class="stat"><strong id="statCourses">0</strong><span>Fanlar</span></div>
+              <div class="stat"><strong id="statSchedules">0</strong><span>Darslar</span></div>
+            </div>
+            <div class="detail-box"><h3>Tezkor boshqaruv</h3><p>O‘quvchi yoki o‘qituvchi qo‘shing, fan jadvalini o‘zgartiring. Barcha o‘zgarishlar shu brauzerda darhol saytga chiqadi.</p></div>
+          </div>
+
+          <div class="admin-section" id="tab-students">
+            <h2>O‘quvchilar</h2>
+            <form class="admin-form" id="studentForm">
+              <div class="form-grid">
+                <input name="name" placeholder="O‘quvchi F.I.Sh." required>
+                <select name="course" id="studentCourse" required></select>
+                <input name="score" type="number" min="0" max="100" placeholder="Reyting (0–100)" required>
+                <input name="phone" placeholder="Telefon">
+              </div>
+              <div class="form-actions"><button class="btn btn-fire" type="submit">+ O‘quvchi qo‘shish</button></div>
+            </form>
+            <br><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>F.I.Sh.</th><th>Fan</th><th>Reyting</th><th>Telefon</th><th></th></tr></thead><tbody id="studentsTable"></tbody></table></div>
+          </div>
+
+          <div class="admin-section" id="tab-teachers">
+            <h2>O‘qituvchilar</h2>
+            <form class="admin-form" id="teacherForm">
+              <div class="form-grid">
+                <input name="name" placeholder="O‘qituvchi F.I.Sh." required>
+                <select name="course" id="teacherCourse" required></select>
+                <input name="phone" placeholder="Telefon">
+                <input name="experience" placeholder="Tajriba, masalan: 5 yil">
+              </div>
+              <div class="form-actions"><button class="btn btn-fire" type="submit">+ O‘qituvchi qo‘shish</button></div>
+            </form>
+            <br><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>F.I.Sh.</th><th>Fan</th><th>Tajriba</th><th>Telefon</th><th></th></tr></thead><tbody id="teachersTable"></tbody></table></div>
+          </div>
+
+          <div class="admin-section" id="tab-courses">
+            <h2>Fanlar</h2>
+            <form class="admin-form" id="courseForm">
+              <div class="form-grid">
+                <input name="name" placeholder="Fan nomi" required>
+                <input name="icon" placeholder="Emoji, masalan: 📐" value="📚">
+                <input name="description" class="full" placeholder="Qisqa tavsif">
+              </div>
+              <div class="form-actions"><button class="btn btn-fire" type="submit">+ Fan qo‘shish</button></div>
+            </form>
+            <br><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Fan</th><th>Tavsif</th><th></th></tr></thead><tbody id="coursesTable"></tbody></table></div>
+          </div>
+
+          <div class="admin-section" id="tab-schedule">
+            <h2>Dars jadvali</h2>
+            <form class="admin-form" id="scheduleForm">
+              <div class="form-grid">
+                <select name="course" id="scheduleCourse" required></select>
+                <select name="day" required><option>Dushanba</option><option>Seshanba</option><option>Chorshanba</option><option>Payshanba</option><option>Juma</option><option>Shanba</option><option>Yakshanba</option></select>
+                <input name="time" placeholder="Masalan: 15:00–16:30" required>
+                <input name="room" placeholder="Xona">
+              </div>
+              <div class="form-actions"><button class="btn btn-fire" type="submit">+ Jadvalga qo‘shish</button></div>
+            </form>
+            <br><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Fan</th><th>Kun</th><th>Vaqt</th><th>Xona</th><th></th></tr></thead><tbody id="scheduleTable"></tbody></table></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+<script>
+const ADMIN_LOGIN="Davron", ADMIN_PASSWORD="Davron2004";
+const KEY="sofiAdminDataV1";
+const defaultData={
+  courses:[
+    {id:"math",name:"Matematika",icon:"📐",description:"Mantiq, algebra, geometriya va testlarga tayyorgarlik."},
+    {id:"english",name:"Ingliz tili",icon:"🇬🇧",description:"Grammar, speaking, vocabulary va imtihon tayyorgarligi."},
+    {id:"physics",name:"Fizika",icon:"⚛️",description:"Nazariya va masalalarni amaliy usulda o‘rganish."},
+    {id:"biology",name:"Biologiya",icon:"🌿",description:"Biologik jarayonlar va imtihon savollari."},
+    {id:"chemistry",name:"Kimyo",icon:"🧪",description:"Kimyoviy reaksiyalar, formulalar va amaliy mashqlar."},
+    {id:"it",name:"IT",icon:"💻",description:"Kompyuter savodxonligi va zamonaviy texnologiyalar."},
+    {id:"programming",name:"Dasturlash",icon:"</>",description:"Web, dasturlash asoslari va loyihalar."}
+  ],
+  teachers:[
+    {id:"t1",name:"Azizbek Karimov",course:"math",phone:"+998 90 123 45 67",experience:"7 yil"},
+    {id:"t2",name:"Madina Aliyeva",course:"english",phone:"+998 91 234 56 78",experience:"5 yil"},
+    {id:"t3",name:"Jasur Rahimov",course:"physics",phone:"+998 93 345 67 89",experience:"6 yil"}
+  ],
+  students:[
+    {id:"s1",name:"Muhammadali Xasanov",course:"math",score:98,phone:""},
+    {id:"s2",name:"Aziza Karimova",course:"math",score:95,phone:""},
+    {id:"s3",name:"Sardorbek Aliyev",course:"math",score:91,phone:""},
+    {id:"s4",name:"Malika Sobirova",course:"english",score:97,phone:""},
+    {id:"s5",name:"Abdulloh Ergashev",course:"english",score:93,phone:""},
+    {id:"s6",name:"Zuhra Tursunova",course:"physics",score:96,phone:""}
+  ],
+  schedules:[
+    {id:"d1",course:"math",day:"Dushanba",time:"15:00–16:30",room:"1-xona"},
+    {id:"d2",course:"math",day:"Chorshanba",time:"15:00–16:30",room:"1-xona"},
+    {id:"d3",course:"english",day:"Seshanba",time:"14:00–15:30",room:"2-xona"},
+    {id:"d4",course:"english",day:"Payshanba",time:"14:00–15:30",room:"2-xona"},
+    {id:"d5",course:"physics",day:"Juma",time:"16:00–17:30",room:"3-xona"}
+  ]
+};
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||defaultData}catch(e){return defaultData}}
+function save(){localStorage.setItem(KEY,JSON.stringify(data));render()}
+let data=load();
+const $=s=>document.querySelector(s);
+function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function courseName(cid){return data.courses.find(x=>x.id===cid)?.name||cid}
+function fillSelect(elId, placeholder="Fan tanlang"){const el=$("#"+elId);if(!el)return;el.innerHTML='<option value="" disabled selected>'+placeholder+'</option>'+data.courses.map(c=>`<option value="${c.id}">${c.icon} ${c.name}</option>`).join("")}
+function render(){
+  $("#statStudents").textContent=data.students.length;$("#statTeachers").textContent=data.teachers.length;$("#statCourses").textContent=data.courses.length;$("#statSchedules").textContent=data.schedules.length;
+  fillSelect("studentCourse");fillSelect("teacherCourse");fillSelect("scheduleCourse");
+  $("#studentsTable").innerHTML=data.students.map(s=>`<tr><td>${s.name}</td><td>${courseName(s.course)}</td><td><strong>${s.score}</strong>/100</td><td>${s.phone||"—"}</td><td><button class="danger" onclick="removeItem('students','${s.id}')">O‘chirish</button></td></tr>`).join("")||'<tr><td colspan="5">Hozircha o‘quvchi yo‘q.</td></tr>';
+  $("#teachersTable").innerHTML=data.teachers.map(t=>`<tr><td>${t.name}</td><td>${courseName(t.course)}</td><td>${t.experience||"—"}</td><td>${t.phone||"—"}</td><td><button class="danger" onclick="removeItem('teachers','${t.id}')">O‘chirish</button></td></tr>`).join("")||'<tr><td colspan="5">Hozircha o‘qituvchi yo‘q.</td></tr>';
+  $("#coursesTable").innerHTML=data.courses.map(c=>`<tr><td>${c.icon} <strong>${c.name}</strong></td><td>${c.description||"—"}</td><td><button class="danger" onclick="removeItem('courses','${c.id}')">O‘chirish</button></td></tr>`).join("");
+  $("#scheduleTable").innerHTML=data.schedules.map(s=>`<tr><td>${courseName(s.course)}</td><td>${s.day}</td><td>${s.time}</td><td>${s.room||"—"}</td><td><button class="danger" onclick="removeItem('schedules','${s.id}')">O‘chirish</button></td></tr>`).join("")||'<tr><td colspan="5">Jadval bo‘sh.</td></tr>';
+}
+window.removeItem=(type,itemId)=>{if(!confirm("O‘chirishni tasdiqlaysizmi?"))return;data[type]=data[type].filter(x=>x.id!==itemId);save()}
+$("#loginForm").addEventListener("submit",e=>{e.preventDefault();if($("#loginName").value===ADMIN_LOGIN&&$("#loginPass").value===ADMIN_PASSWORD){sessionStorage.setItem("sofiAdmin","1");$("#loginScreen").style.display="none";$("#adminApp").style.display="block";render()}else $("#loginError").classList.add("show")});
+function boot(){if(sessionStorage.getItem("sofiAdmin")==="1"){$("#loginScreen").style.display="none";$("#adminApp").style.display="block";render()}}
+$("#logoutBtn").addEventListener("click",()=>{sessionStorage.removeItem("sofiAdmin");location.reload()});
+document.querySelectorAll(".admin-tab").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".admin-tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".admin-section").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#tab-"+b.dataset.tab).classList.add("active")}));
+$("#studentForm").addEventListener("submit",e=>{e.preventDefault();const f=new FormData(e.currentTarget);data.students.push({id:id(),name:f.get("name"),course:f.get("course"),score:Number(f.get("score")),phone:f.get("phone")});e.currentTarget.reset();save()});
+$("#teacherForm").addEventListener("submit",e=>{e.preventDefault();const f=new FormData(e.currentTarget);data.teachers.push({id:id(),name:f.get("name"),course:f.get("course"),phone:f.get("phone"),experience:f.get("experience")});e.currentTarget.reset();save()});
+$("#courseForm").addEventListener("submit",e=>{e.preventDefault();const f=new FormData(e.currentTarget);data.courses.push({id:id(),name:f.get("name"),icon:f.get("icon")||"📚",description:f.get("description")});e.currentTarget.reset();save()});
+$("#scheduleForm").addEventListener("submit",e=>{e.preventDefault();const f=new FormData(e.currentTarget);data.schedules.push({id:id(),course:f.get("course"),day:f.get("day"),time:f.get("time"),room:f.get("room")});e.currentTarget.reset();save()});
+boot();
+</script>
+</body>
+</html>

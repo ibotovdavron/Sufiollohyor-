@@ -3,13 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#07090d" />
+  <meta name="theme-color" content="#eef7f8" />
   <meta name="description" content="SO‘FI OLLOHYOR O‘QUV MARKAZI — matematika, ingliz tili, tabiiy fanlar va zamonaviy IT yo‘nalishlari." />
   <title>SO‘FI OLLOHYOR | O‘quv Markazi</title>
   <link rel="icon" href="assets/favicon.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -37,6 +34,7 @@
       <div class="nav-actions">
         <a class="phone-mini" href="tel:+998990616472">+998 99 061 64 72</a>
         <button class="sound-btn" id="soundToggle" aria-label="Ovoz effektlarini yoqish">🔊</button>
+        <a class="btn btn-glass btn-small admin-link" href="admin.html">Admin panel</a>
         <button class="btn btn-fire btn-small" data-open-apply>Ariza berish</button>
         <button class="menu-btn" id="menuBtn" aria-label="Menyu"><span></span><span></span><span></span></button>
       </div>
@@ -249,6 +247,36 @@
 
   <div class="toast" id="toast">WhatsApp ochilmoqda…</div>
   <div class="sound-note" id="soundNote">Interaktiv ovozlar yoqildi</div>
-  <script src="script.js"></script>
+  <script src="script.js" defer></script>
+
+  <!-- Course detail modal -->
+  <div class="modal" id="courseModal" aria-hidden="true">
+    <div class="modal-card course-detail-card">
+      <button class="modal-close" data-close aria-label="Yopish">×</button>
+      <div class="course-detail-head">
+        <div class="course-icon-large" id="courseIcon">📚</div>
+        <div>
+          <div class="eyebrow" id="courseLabel">YO‘NALISH</div>
+          <h2 id="courseTitle">Fan</h2>
+          <p id="courseDesc">Dars jadvali va reyting.</p>
+        </div>
+      </div>
+      <div class="course-detail-grid">
+        <div class="detail-box">
+          <h3>📅 Dars jadvali</h3>
+          <div id="courseSchedule" class="schedule-list"></div>
+        </div>
+        <div class="detail-box">
+          <h3>🏆 O‘quvchilar reytingi</h3>
+          <div id="courseRanking" class="ranking-list"></div>
+        </div>
+      </div>
+      <div class="course-detail-actions">
+        <button class="btn btn-fire" id="courseApplyBtn">Shu fanga ariza berish ↗</button>
+        <a class="btn btn-ghost" href="admin.html">Admin panel</a>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
