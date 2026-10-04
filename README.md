@@ -1,33 +1,29 @@
-# SO‘FI OLLOHYOR O‘QUV MARKAZI — Glassmorphism + Admin
+# SO‘FI OLLOHYOR — Glassmorphism + Admin
 
-## Sayt
-`index.html` — asosiy sayt.
+## GitHub'ga yuklash juda oson
+**`assets` papkasi kerak emas.** Barcha fayllar repository rootida turadi:
 
-## Admin panel
-`admin.html` — demo boshqaruv paneli.
+- `index.html`
+- `admin.html`
+- `style.css`
+- `script.js`
+- `logo.png`
+- `hero-banner.png`
+- `favicon.png`
+- `.nojekyll`
 
-Login: `Davron`  
+GitHub → **Add file → Upload files** qilib shu fayllarning barchasini birgalikda yuklang.
+
+## Admin
+Login: `Davron`
 Parol: `Davron2004`
 
-Admin panel orqali:
-- o‘quvchi qo‘shish/o‘chirish
-- o‘qituvchi qo‘shish/o‘chirish
-- fan qo‘shish/o‘chirish
-- dars jadvali qo‘shish/o‘chirish
-- o‘quvchilar reytingini o‘zgartirish uchun qayta qo‘shish
-- fan bosilganda jadval va reytingni saytda ko‘rsatish
+Admin panel orqali o‘quvchilar, o‘qituvchilar, fanlar va dars jadvalini boshqarish mumkin.
 
-### Muhim
-Bu versiya GitHub Pages uchun **demo admin**. Ma’lumotlar `localStorage`da saqlanadi. Login/parol ham front-end ichida bo‘ladi, shuning uchun bu haqiqiy xavfsiz admin tizimi hisoblanmaydi.
+## Ovoz
+- Tugmalarda yumshoq suv/shisha effekti bor.
+- “Ariza berish” bosilganda brauzer ovozi bilan **“Ariza”** deyiladi.
+- Agar telefon/brauzer ovozli sintezni qo‘llasa ishlaydi; birinchi tegishda audio ruxsati talab qilinishi mumkin.
 
-Keyingi bosqichda Supabase/Firebase kabi backend orqali:
-- haqiqiy login
-- o‘qituvchi va o‘quvchi akkauntlari
-- serverda saqlanadigan ma’lumotlar
-- ruxsatlar (admin/teacher/student)
-qilish mumkin.
-
-## GitHub Pages
-Repository rootida `index.html` bo‘lsin.
-
-Settings → Pages → Deploy from a branch → `main` → `/ (root)` → Save.
+## Muhim
+Bu GitHub Pages uchun front-end demo admin. Ma’lumotlar localStorage’da saqlanadi. Haqiqiy xavfsiz admin va o‘qituvchi/o‘quvchi akkauntlari uchun keyin backend ulash kerak.

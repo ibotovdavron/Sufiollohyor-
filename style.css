@@ -61,3 +61,38 @@ footer{border-top:1px solid rgba(255,255,255,.75);padding:25px 0;background:rgba
 .empty-detail{padding:15px;text-align:center;color:#78909e}
 .course-detail-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
 @media(max-width:700px){.course-detail-grid{grid-template-columns:1fr}.admin-link{display:none}}
+
+/* ===== SOFT DARK GLASS THEME ===== */
+body{
+  background:
+    radial-gradient(circle at 12% 10%, rgba(69,177,196,.18), transparent 30%),
+    radial-gradient(circle at 88% 18%, rgba(61,133,189,.16), transparent 30%),
+    linear-gradient(135deg,#dce8ec 0%,#c8d9de 48%,#b9cbd1 100%);
+  color:#12394d;
+}
+body::before{
+  opacity:.16;
+}
+.glass,.nav,.hero-card,.course-card,.feature-card,.contact-card,.modal-card,
+.admin-nav,.admin-content,.login-card,.detail-box,.stat{
+  background:rgba(235,244,246,.30) !important;
+  border:1px solid rgba(255,255,255,.46) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.42),0 18px 55px rgba(35,75,90,.14) !important;
+  backdrop-filter:blur(24px) saturate(125%);
+  -webkit-backdrop-filter:blur(24px) saturate(125%);
+}
+.nav{background:rgba(225,238,241,.34) !important}
+.course-card:hover,.feature-card:hover{
+  background:rgba(244,250,251,.42) !important;
+}
+.btn-glass,.btn-ghost{
+  background:rgba(245,251,252,.28) !important;
+  border-color:rgba(255,255,255,.48) !important;
+  backdrop-filter:blur(14px);
+}
+.modal{background:rgba(20,47,58,.30) !important;backdrop-filter:blur(9px)}
+.modal-card{
+  background:rgba(226,238,241,.72) !important;
+}
+.aurora{opacity:.28}
+.grid-bg{opacity:.10}

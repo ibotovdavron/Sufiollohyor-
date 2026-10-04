@@ -130,3 +130,47 @@ $$("[data-course]").forEach(btn=>btn.addEventListener("click",()=>{
   const map={"matematika":"math","ingliz tili":"english","fizika":"physics","biologiya":"biology","kimyo":"chemistry","it":"it","dasturlash":"programming"};
   openCourseDetails(map[raw]||raw);
 }));
+
+
+// ===== Soft water / glass UI sounds =====
+let audioCtx;
+function audioReady(){
+  if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==="suspended") audioCtx.resume();
+}
+function waterSound(){
+  try{
+    audioReady();
+    const now=audioCtx.currentTime;
+    const gain=audioCtx.createGain();
+    const osc=audioCtx.createOscillator();
+    const filter=audioCtx.createBiquadFilter();
+    osc.type="sine";
+    osc.frequency.setValueAtTime(420,now);
+    osc.frequency.exponentialRampToValueAtTime(1150,now+.11);
+    osc.frequency.exponentialRampToValueAtTime(560,now+.34);
+    filter.type="lowpass"; filter.frequency.value=1800;
+    gain.gain.setValueAtTime(.0001,now);
+    gain.gain.exponentialRampToValueAtTime(.08,now+.025);
+    gain.gain.exponentialRampToValueAtTime(.0001,now+.38);
+    osc.connect(filter);filter.connect(gain);gain.connect(audioCtx.destination);
+    osc.start(now);osc.stop(now+.4);
+  }catch(e){}
+}
+function speakUzbek(text){
+  try{
+    if(!("speechSynthesis" in window)) return;
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang="uz-UZ"; u.rate=.88; u.pitch=1.02; u.volume=.75;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+document.addEventListener("click",(e)=>{
+  const el=e.target.closest("button,a,[data-open-apply],[data-course]");
+  if(!el) return;
+  waterSound();
+  if(el.matches("[data-open-apply], .btn-fire") || el.textContent.trim().toLowerCase().includes("ariza")){
+    setTimeout(()=>speakUzbek("Ariza"),60);
+  }
+},{capture:true});
