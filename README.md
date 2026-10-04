@@ -1,2 +1,2 @@
-# SOFI OLLOH YOR Premium V4
-Static multi-page GitHub Pages site.
+# So‘fi Ollohyor Premium V5
+Ko‘p sahifali, ochiq glassmorphism dizayn va haqiqiy sahifa transition.
