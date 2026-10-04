@@ -1,1 +1,2 @@
-SO‘FI OLLOHYOR V3. GitHub Pages uchun statik sayt. Admin: Davron / Davron2004. GitHub Pages server-side PHP/Python ishlatmaydi, shu sabab admin ma’lumotlari hozir brauzerda saqlanadi.
+# SOFI OLLOH YOR Premium V4
+Static multi-page GitHub Pages site.
