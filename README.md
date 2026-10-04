@@ -1,38 +1,33 @@
-# SO‘FI OLLOHYOR O‘QUV MARKAZI
+# SO‘FI OLLOHYOR O‘QUV MARKAZI — Glassmorphism v2
 
-Zamonaviy, responsive landing page. HTML + CSS + JavaScript asosida.
+Zamonaviy, yorqin va shaffof glassmorphism dizaynidagi statik sayt.
 
-## Fayllar
+## Qo‘shilgan effektlar
+- Oq/shaffof glassmorphism interfeys
+- Yorqin gradientlar va futuristik aurora fon
+- Harakatlanuvchi particle effektlari
+- Mouse cursor glow
+- Scroll reveal animatsiyalari
+- Hover/float/scan-line animatsiyalari
+- Interaktiv tugmalar uchun Web Audio ovoz effektlari
+- 🔊/🔇 ovoz boshqaruvi (tanlov brauzerda saqlanadi)
+- Ariza va savol formasi WhatsApp’ga yuboradi
+- Responsive: telefon, planshet va kompyuter
 
-- `index.html` — asosiy sahifa
-- `style.css` — dizayn
-- `script.js` — barcha interaktiv funksiyalar
-- `assets/logo.png` — siz yuborgan logo
-- `assets/hero-banner.png` — siz yuborgan reklama/banner
+## Ishga tushirish
 
-## Codespaces'da ishga tushirish
+### GitHub Pages
+1. Fayllarni repository root qismiga joylang.
+2. GitHub → **Settings → Pages**.
+3. **Deploy from a branch** ni tanlang.
+4. Branch: `main`, Folder: `/ (root)`.
+5. Save bosing.
 
-1. Repository'ni GitHub'ga yuklang.
-2. GitHub'da **Code → Codespaces → Create codespace** ni tanlang.
-3. Terminalda:
-   ```bash
-   python3 -m http.server 5500
-   ```
-4. Codespaces chiqargan **Forwarded Address / Open in Browser** tugmasini bosing.
-
-## Ariza va savol yuborish
-
-Formalar backend talab qilmasdan WhatsApp orqali ishlaydi. `script.js` ichidagi:
-
-```js
-const WHATSAPP = "998990616472";
+### Codespaces / lokal
+```bash
+python3 -m http.server 5500
 ```
+So‘ng Codespaces’da **Ports → 5500 → Open in Browser** ni bosing.
 
-raqamini kerak bo‘lsa o‘zgartiring.
-
-## GitHub Pages
-
-Repository'da:
-**Settings → Pages → Deploy from a branch → main → / (root) → Save**
-
-Shundan keyin GitHub Pages sizga sayt manzilini beradi.
+## Muhim
+Ovoz effektlari alohida mp3/wav talab qilmaydi — `script.js` ichidagi Web Audio API orqali brauzerda yaratiladi. Brauzer autoplay cheklovi sabab ovoz foydalanuvchi birinchi marta bosgandan keyin ishlaydi.

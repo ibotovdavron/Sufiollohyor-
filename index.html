@@ -13,6 +13,11 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="aurora aurora-a"></div>
+  <div class="aurora aurora-b"></div>
+  <div class="grid-bg"></div>
+  <div class="cursor-glow" id="cursorGlow"></div>
+  <div class="particles" id="particles"></div>
   <div class="noise"></div>
 
   <header class="header" id="top">
@@ -31,6 +36,7 @@
 
       <div class="nav-actions">
         <a class="phone-mini" href="tel:+998990616472">+998 99 061 64 72</a>
+        <button class="sound-btn" id="soundToggle" aria-label="Ovoz effektlarini yoqish">🔊</button>
         <button class="btn btn-fire btn-small" data-open-apply>Ariza berish</button>
         <button class="menu-btn" id="menuBtn" aria-label="Menyu"><span></span><span></span><span></span></button>
       </div>
@@ -52,8 +58,9 @@
       <div class="hero-glow glow-2"></div>
       <div class="container hero-grid">
         <div class="hero-copy">
-          <div class="eyebrow"><span class="pulse"></span> Qabul davom etmoqda</div>
+          <div class="eyebrow"><span class="pulse"></span> Kelajak shu yerdan boshlanadi</div>
           <h1>Bilim bilan <span>buyuk kelajak</span> sari.</h1>
+          <div class="hero-orbit"><span></span><span></span><span></span></div>
           <p class="hero-text">
             SO‘FI OLLOHYOR O‘QUV MARKAZI — kuchli ustozlar, zamonaviy ta’lim va natijaga yo‘naltirilgan muhit.
           </p>
@@ -73,7 +80,7 @@
         <div class="hero-visual">
           <div class="image-frame">
             <img src="assets/hero-banner.png" alt="SO‘FI OLLOHYOR O‘QUV MARKAZI reklama banneri">
-            <div class="image-overlay"></div>
+            <div class="image-overlay"></div><div class="scan-line"></div><div class="glass-chip chip-one">✦ AI / DIGITAL</div><div class="glass-chip chip-two">● LIVE TA’LIM</div>
           </div>
           <div class="floating-card card-top"><span class="icon">✦</span><div><b>Sifatli ta’lim</b><small>Kelajak kafolati</small></div></div>
           <div class="floating-card card-bottom"><span class="icon">✓</span><div><b>Qabul ochiq</b><small>Joyingizni hozir band qiling</small></div></div>
@@ -88,7 +95,7 @@
       </div>
     </section>
 
-    <section class="section" id="about">
+    <section class="section reveal" id="about">
       <div class="container split">
         <div>
           <div class="section-label">01 / BIZ HAQIMIZDA</div>
@@ -102,7 +109,7 @@
       </div>
     </section>
 
-    <section class="section courses-section" id="courses">
+    <section class="section courses-section reveal" id="courses">
       <div class="container">
         <div class="section-head">
           <div>
@@ -147,7 +154,7 @@
       </div>
     </section>
 
-    <section class="section why-section" id="why">
+    <section class="section why-section reveal" id="why">
       <div class="container">
         <div class="section-label">03 / NIMA UCHUN BIZ?</div>
         <h2 class="wide-title">Ta’limni oddiy emas, <span>natijali</span> qiling.</h2>
@@ -167,7 +174,7 @@
       </div>
     </section>
 
-    <section class="section faq-section" id="faq">
+    <section class="section faq-section reveal" id="faq">
       <div class="container faq-grid">
         <div>
           <div class="section-label">04 / SAVOL-JAVOB</div>
@@ -184,7 +191,7 @@
       </div>
     </section>
 
-    <section class="contact-section" id="contact">
+    <section class="contact-section reveal" id="contact">
       <div class="container contact-card">
         <div>
           <div class="section-label">05 / ALOQA</div>
@@ -241,6 +248,7 @@
   </div>
 
   <div class="toast" id="toast">WhatsApp ochilmoqda…</div>
+  <div class="sound-note" id="soundNote">Interaktiv ovozlar yoqildi</div>
   <script src="script.js"></script>
 </body>
 </html>
