@@ -1,2 +1,5 @@
-# So‘fi Ollohyor Premium V5
-Ko‘p sahifali, ochiq glassmorphism dizayn va haqiqiy sahifa transition.
+# SO‘FI OLLOH YOR — Online ta’lim platformasi v1
+
+Admin demo: Davron / Davron2004
+
+Arizalar hozircha browser localStorage'ida demo sifatida saqlanadi. GitHub Pages static hosting bo‘lgani sababli haqiqiy ko‘p-qurilmali database va xavfsiz authentication uchun backend/database kerak.
