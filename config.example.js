@@ -1,5 +1,6 @@
-// config.js faylini o'zingiz yarating. Faqat Supabase publishable key ishlating.
-window.SUFIOLLOHYOR_CONFIG = {
-  SUPABASE_URL: "https://YOUR_PROJECT_ID.supabase.co",
-  SUPABASE_ANON_KEY: "sb_publishable_YOUR_PUBLIC_KEY"
+// Nusxa olib config.js nomini bering. Faqat Supabase publishable/anon key ishlating.
+// Hech qachon sb_secret_... yoki service_role kalitini brauzerga/GitHub'ga joylamang.
+window.SUPABASE_CONFIG = {
+  url: "https://YOUR_PROJECT_ID.supabase.co",
+  publishableKey: "YOUR_SUPABASE_PUBLISHABLE_KEY"
 };
