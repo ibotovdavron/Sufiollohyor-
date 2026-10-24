@@ -1,42 +1,32 @@
-
-const cfg=window.SUPABASE_CONFIG||{};
-let supabaseClient=null;
-if(cfg.url && cfg.anonKey && window.supabase){supabaseClient=window.supabase.createClient(cfg.url,cfg.anonKey)}
-
-const $=(s,p=document)=>p.querySelector(s);
-const $$=(s,p=document)=>[...p.querySelectorAll(s)];
-function toast(msg){let t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';t.className='toast';document.body.appendChild(t)}t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
-function speak(text){try{if('speechSynthesis'in window){speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(text);u.lang='uz-UZ';u.rate=.95;speechSynthesis.speak(u)}}catch(e){}}
-function waterClick(){try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;let c=new A(),o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(420,c.currentTime);o.frequency.exponentialRampToValueAtTime(180,c.currentTime+.16);g.gain.setValueAtTime(.045,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.18);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.19)}catch(e){}}
-function pageName(){let p=(location.pathname.split('/').pop()||'index.html').replace('.html','');let map={index:'Bosh menyu',courses:'Kurslar',teachers:'Ustozlar',schedule:'Jadval',ranking:'Reyting',about:'Markaz haqida',apply:'Ariza',online:'Online ta’lim',admin:'Admin panel'};return map[p]||''}
-function navInit(){const tog=$('.mobile-toggle');if(tog)tog.onclick=()=>$('.nav-links')?.classList.toggle('open');$$('[data-speak]').forEach(a=>a.addEventListener('click',()=>{waterClick();speak(a.dataset.speak)}));}
-async function currentUser(){if(!supabaseClient)return null;let {data}=await supabaseClient.auth.getUser();return data?.user||null}
-async function signOut(){if(supabaseClient)await supabaseClient.auth.signOut();localStorage.removeItem('soy_user');location.href='index.html'}
-async function db(table,queryFn){if(!supabaseClient)return null;let q=supabaseClient.from(table);return await queryFn(q)}
-function demoApplications(){return JSON.parse(localStorage.getItem('soy_applications')||'[]')}
-async function submitApplication(data){
- data.application_no='SOY-'+new Date().getFullYear()+'-'+String(Date.now()).slice(-6);
- data.created_at=new Date().toISOString();data.status='new';
- if(supabaseClient){let {error}=await supabaseClient.from('applications').insert(data);if(error)throw error}
- let a=demoApplications();a.unshift(data);localStorage.setItem('soy_applications',JSON.stringify(a));return data
-}
-async function loadCourses(container){
- let rows=[];
- if(supabaseClient){let {data,error}=await supabaseClient.from('courses').select('*').order('created_at',{ascending:false});if(!error)rows=data||[]}
- if(!rows.length)rows=[
- {title:'Arab tili',slug:'arab-tili',short_description:'Arab tilini bosqichma-bosqich o‘rganish',level:'Boshlang‘ich',duration:'6 oy',price:450000},
- {title:'Ingliz tili',slug:'ingliz-tili',short_description:'Speaking, Grammar va imtihon tayyorgarligi',level:'Boshlang‘ich–Yuqori',duration:'6 oy',price:450000},
- {title:'Matematika',slug:'matematika',short_description:'Maktab va imtihonlarga puxta tayyorgarlik',level:'O‘rta',duration:'8 oy',price:400000},
- {title:'IT va dasturlash',slug:'it-dasturlash',short_description:'Zamonaviy dasturlash asoslari',level:'Boshlang‘ich',duration:'6 oy',price:500000}
+(() => {
+ const D=window.CENTER_DATA||{};
+ const pages=[["index.html","🏠","Bosh sahifa"],["competitions.html","🏆","Musobaqalar"],["teachers.html","👨‍🏫","Ustozlar"],["ranking.html","⭐","Reyting"],["results.html","📊","Natijalar"],["about.html","ℹ️","Haqimizda"],["contact.html","📞","Bog‘lanish"]];
+ const path=location.pathname.split("/").pop()||"index.html";
+ const nav=document.getElementById("bottomNav");
+ if(nav){nav.innerHTML=pages.map(([url,icon,label])=>`<a class="navitem ${path===url?'active':''}" href="${url}"><span class="navicon">${icon}</span><span>${label}</span></a>`).join("");}
+ document.querySelectorAll("[data-center]").forEach(el=>{const k=el.dataset.center;if(D[k]!==undefined)el.textContent=D[k]});
+ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const subjectCards=(D.subjects||[]).map(s=>`<div class="subject"><span class="emoji">${s.icon}</span><div><b>${esc(s.name)}</b><small>${esc(s.caption)}</small></div></div>`).join("");
+ const featureCards=[
+  ["competitions.html","🏆","Musobaqalar","Bilimdonlar bellashuvi"],
+  ["ranking.html","🥇","Reyting","O‘quvchilar natijalari"],
+  ["teachers.html","👨‍🏫","Ustozlar","Tajribali va malakali"],
+  ["results.html","📝","Natijalar","Bilimingizni sinang"]
  ];
- container.innerHTML=rows.map(c=>`<article class="card"><div class="course-cover">📚</div><span class="tag">${c.level||'Kurs'}</span><h3>${c.title}</h3><p class="muted">${c.short_description||c.description||''}</p><p><b>${c.duration||''}</b> · ${Number(c.price||0).toLocaleString('uz-UZ')} so‘m</p><div class="actions"><a class="btn btn-primary" data-speak="Kurslar" href="course.html?slug=${encodeURIComponent(c.slug||'')}">Batafsil</a><a class="btn" href="apply.html?course=${encodeURIComponent(c.title)}">Yozilish</a></div></article>`).join('');
-}
-async function init(){
- navInit();
- const c=$('#coursesGrid');if(c)await loadCourses(c);
- const form=$('#applicationForm');if(form)form.addEventListener('submit',async e=>{e.preventDefault();let fd=new FormData(form),data=Object.fromEntries(fd.entries());try{let r=await submitApplication(data);form.reset();$('#applicationSuccess').innerHTML=`<div class="notice">Arizangiz qabul qilindi. Raqam: <b>${r.application_no}</b>. Administrator tez orada bog‘lanadi.</div>`;toast('Ariza yuborildi');}catch(err){toast('Xatolik: '+err.message)}})
- const login=$('#loginForm');if(login)login.addEventListener('submit',async e=>{e.preventDefault();let fd=new FormData(login);let email=fd.get('email'),password=fd.get('password');if(!supabaseClient){toast('Demo: Supabase sozlanmagan');location.href='online.html';return}let {error}=await supabaseClient.auth.signInWithPassword({email,password});if(error){toast(error.message);return}location.href='online.html'});
- const signup=$('#signupForm');if(signup)signup.addEventListener('submit',async e=>{e.preventDefault();let fd=new FormData(signup);if(!supabaseClient){toast('Avval Supabase sozlang');return}let {data,error}=await supabaseClient.auth.signUp({email:fd.get('email'),password:fd.get('password'),options:{data:{full_name:fd.get('full_name')}}});if(error)toast(error.message);else toast('Ro‘yxatdan o‘tish muvaffaqiyatli')});
- const out=$('[data-signout]');if(out)out.onclick=signOut;
-}
-document.addEventListener('DOMContentLoaded',init);
+ const feat=featureCards.map(([href,icon,title,desc])=>`<a class="card" href="${href}"><div class="card-visual">${icon}</div><div class="card-body"><h3>${title}</h3><p>${desc}</p><span class="green">Batafsil →</span></div></a>`).join("");
+ const homeSubjects=document.getElementById("homeSubjects");if(homeSubjects)homeSubjects.innerHTML=subjectCards;
+ const homeFeatures=document.getElementById("homeFeatures");if(homeFeatures)homeFeatures.innerHTML=feat;
+ const rankPreview=document.getElementById("rankPreview");if(rankPreview)rankPreview.innerHTML=(D.students||[]).slice().sort((a,b)=>b.stars-a.stars).slice(0,5).map((s,i)=>`<div class="result-row"><div><b><span class="ranknum">${i+1}.</span> ${esc(s.name)}</b><div class="smallprint">${esc(s.group)}</div></div><strong class="stars">⭐ ${s.stars}</strong></div>`).join("");
+ const comps=document.getElementById("competitionGrid");if(comps)comps.innerHTML=(D.competitions||[]).map(c=>`<article class="competition-card"><div class="avatar">${c.icon}</div><span class="tag">${esc(c.status)}</span><h3>${esc(c.name)}</h3><b>${esc(c.type)}</b><p class="muted">${esc(c.description)}</p></article>`).join("");
+ const teachers=document.getElementById("teacherGrid");if(teachers)teachers.innerHTML=(D.teachers||[]).map(t=>`<article class="teacher-card"><div class="avatar">${t.icon||"👨‍🏫"}</div><span class="tag">${esc(t.subject)}</span><h3>${esc(t.name)}</h3><p class="muted">${esc(t.bio)}</p></article>`).join("");
+ const ranking=document.getElementById("rankingRows");if(ranking)ranking.innerHTML=(D.students||[]).slice().sort((a,b)=>b.stars-a.stars).map((s,i)=>`<tr><td class="ranknum">${i+1}</td><td>${esc(s.name)}</td><td>${esc(s.group)}</td><td class="stars">⭐ ${s.stars}</td><td>${esc(s.result)}</td></tr>`).join("");
+ const results=document.getElementById("resultsList");if(results)results.innerHTML=(D.students||[]).slice().sort((a,b)=>b.stars-a.stars).map((s,i)=>`<div class="result-row"><div><b>${esc(s.name)}</b><div class="smallprint">${esc(s.group)} · ${esc(s.result)}</div></div><strong class="stars">⭐ ${s.stars}</strong></div>`).join("");
+ const rules=document.getElementById("starRules");if(rules)rules.innerHTML=(D.starRules||[]).map(r=>`<div class="result-row"><span>${esc(r.title)}</span><b class="stars">+${r.stars} ⭐</b></div>`).join("");
+ const search=document.getElementById("studentSearch");if(search&&ranking){search.addEventListener("input",()=>{const q=search.value.toLowerCase();[...ranking.querySelectorAll("tr")].forEach(row=>row.classList.toggle("hidden",!row.textContent.toLowerCase().includes(q)));});}
+ const compSearch=document.getElementById("competitionSearch");if(compSearch&&comps){compSearch.addEventListener("input",()=>[...comps.children].forEach(card=>card.classList.toggle("hidden",!card.textContent.toLowerCase().includes(compSearch.value.toLowerCase()))));}
+ const teacherSearch=document.getElementById("teacherSearch");if(teacherSearch&&teachers){teacherSearch.addEventListener("input",()=>[...teachers.children].forEach(card=>card.classList.toggle("hidden",!card.textContent.toLowerCase().includes(teacherSearch.value.toLowerCase()))));}
+ const contactPhone=document.querySelectorAll("[data-phone]");contactPhone.forEach(a=>a.href="tel:"+String(D.phone||"").replace(/\s/g,""));
+ const tg=document.querySelectorAll("[data-telegram]");tg.forEach(a=>a.href=D.telegram||"#");
+ const ig=document.querySelectorAll("[data-instagram]");ig.forEach(a=>a.href=D.instagram||"#");
+ const math=document.querySelectorAll("[data-math-telegram]");math.forEach(a=>a.href=D.mathTelegram||"#");
+})();
