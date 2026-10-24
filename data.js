@@ -17,7 +17,7 @@ window.CENTER_DATA = {
     {name:"Ona tili", icon:"📚", caption:"So‘z va tafakkur"}
   ],
   students: [
-    {name:"Abdinazarova Shabnam", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Abdinazarova Shabnam", group:"5-sinf", stars:10, result:"Natija hali kiritilmagan"},
     {name:"Abdujalilov Adhambek", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
     {name:"Ilxomjonov Kamronbek", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
     {name:"Ismatullayev Samandarbek", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
