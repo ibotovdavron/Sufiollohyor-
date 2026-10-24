@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#020b09"><meta name="description" content="So‘fi Ollohyor o‘quv markazi do‘koni">
+<title>Do‘kon | So‘fi Ollohyor</title><link rel="stylesheet" href="style.css">
+</head><body>
+<header class="topbar"><div class="wrap topinner">
+<a class="brand" href="index.html"><span class="brand-mark">S<span class="green">O</span></span><span>SO‘FI OLLOHYOR<small>O‘QUV MARKAZI</small></span></a>
+<div class="social"><a data-telegram href="https://t.me/sufi_ollohyor_uquv_markaz">✈️ Telegram</a><a data-instagram href="https://www.instagram.com/sufiollohyor?dlrf=MWhkc3luMGN4NnVuNQ==">📸</a></div>
+</div></header>
+<main class="wrap">
+<section class="pagehead"><span class="eyebrow">🛍️ O‘quv qurollari</span><h1>Bilim <span class="green">do‘koni</span></h1><p>Kitoblar, daftarlar, ruchkalar va o‘qish uchun kerakli jihozlar. Narxlar hozircha namunaviy — haqiqiy narxlarni keyin kod ichidan o‘zgartirish mumkin.</p></section>
+<section class="panel">
+<div class="toolbar"><input id="productSearch" placeholder="🔎 Mahsulot qidirish..."><select id="categoryFilter"><option value="all">Barcha mahsulotlar</option><option value="Kitob">Kitoblar</option><option value="Daftar">Daftarlar</option><option value="Ruchka">Ruchkalar</option><option value="Jihoz">Boshqa jihozlar</option></select></div>
+<div class="shop-grid" id="shopGrid"></div>
+<p class="smallprint">Narxlar namunaviy. Xarid va to‘lov tizimi hozircha ulanmagan; buyurtma berish uchun markaz bilan bog‘laning.</p>
+</section>
+<section class="panel"><h2>🧺 Buyurtma haqida</h2><p class="muted">Kerakli mahsulot bo‘yicha ma’lumot olish uchun markazga qo‘ng‘iroq qiling yoki Telegram orqali yozing.</p><a class="btn" data-phone href="tel:+998990616472">📞 Qo‘ng‘iroq qilish</a><a class="btn secondary" data-telegram href="https://t.me/sufi_ollohyor_uquv_markaz">✈️ Telegram orqali yozish</a></section>
+</main>
+<footer class="footer wrap">© 2026 So‘fi Ollohyor o‘quv markazi · Oltinsoy tumani</footer>
+<nav class="bottom-nav" id="bottomNav" aria-label="Asosiy menyu"></nav>
+<script src="data.js"></script><script src="app.js"></script>
+<script>
+(() => {
+ const D = window.CENTER_DATA || {};
+ const grid = document.getElementById('shopGrid');
+ const search = document.getElementById('productSearch');
+ const filter = document.getElementById('categoryFilter');
+ const products = D.products || [];
+ const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ function render(){
+   const q = search.value.toLowerCase();
+   const cat = filter.value;
+   const found = products.filter(p => (cat==='all'||p.category===cat) && (p.name+' '+p.description+' '+p.category).toLowerCase().includes(q));
+   grid.innerHTML = found.map(p=>`<article class="shop-card"><div class="shop-visual">${p.icon}</div><div class="shop-body"><span class="tag">${esc(p.category)}</span><h3>${esc(p.name)}</h3><p class="muted">${esc(p.description)}</p><div class="shop-bottom"><strong class="shop-price">${Number(p.price).toLocaleString('uz-UZ')} so‘m</strong><a class="btn shop-btn" data-telegram href="${D.telegram}">So‘rash</a></div></div></article>`).join('') || '<p class="muted">Mahsulot topilmadi.</p>';
+ }
+ search.addEventListener('input',render); filter.addEventListener('change',render); render();
+})();
+</script>
+</body></html>

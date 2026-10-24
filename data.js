@@ -6,9 +6,9 @@ window.CENTER_DATA = {
   telegram: "https://t.me/sufi_ollohyor_uquv_markaz",
   instagram: "https://www.instagram.com/sufiollohyor?dlrf=MWhkc3luMGN4NnVuNQ==",
   mathTelegram: "https://t.me/matematika144",
-  studentsCount: 60,
-  groupsCount: 1,
-  groupName: "Matematika 144",
+  studentsCount: 60, // Markazdagi jami o‘quvchilar; quyida hozircha 32 nafar 5- va 6-sinf o‘quvchisi kiritilgan
+  groupsCount: 2,
+  groupName: "5- va 6-sinflar · Matematika 144",
   teachersCount: 5,
   subjects: [
     {name:"Matematika", icon:"🧮", caption:"Mantiq va natija"},
@@ -17,15 +17,38 @@ window.CENTER_DATA = {
     {name:"Ona tili", icon:"📚", caption:"So‘z va tafakkur"}
   ],
   students: [
-    {name:"Aliyev Behruz", group:"Matematika 144", stars:120, result:"Faol o‘quvchi"},
-    {name:"Karimova Dilnura", group:"Matematika 144", stars:115, result:"Yuqori natija"},
-    {name:"To‘rayev Azizbek", group:"Matematika 144", stars:110, result:"Musobaqa ishtirokchisi"},
-    {name:"Mirzayeva Sarvinoz", group:"Matematika 144", stars:102, result:"Barqaror o‘sish"},
-    {name:"Abdullayev Davron", group:"Matematika 144", stars:98, result:"Faol ishtirokchi"},
-    {name:"Namuna o‘quvchi 6", group:"Matematika 144", stars:90, result:"Namuna ma’lumoti"},
-    {name:"Namuna o‘quvchi 7", group:"Matematika 144", stars:86, result:"Namuna ma’lumoti"},
-    {name:"Namuna o‘quvchi 8", group:"Matematika 144", stars:82, result:"Namuna ma’lumoti"},
-    {name:"Namuna o‘quvchi 9", group:"Matematika 144", stars:75, result:"Namuna ma’lumoti"}
+    {name:"Abdinazarova Shabnam", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Abdujalilov Adhambek", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Ilxomjonov Kamronbek", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Ismatullayev Samandarbek", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Jo‘rayeva Shoira", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Jumayev Behro‘zbek", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Narmamatov Murodbek", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Qurbonov Javlon", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Raxmatov Abubakr", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Saydullayev Alibek", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Uroqova Shahzoda", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Xikmatullayev Nodir", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Xursanov Samariddin", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Shamsullayev Sardor", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Shaymardonov Komronbek", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Chorshanbiyev Otabek", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Abdusodiqova Marjona", group:"6-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Absamatova Mubina", group:"6-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Atayev Kamronbek", group:"6-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Haqnazarova Muxlisa", group:"6-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Murodullayev Islombek", group:"6-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"O‘rolova Zilola", group:"6-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Qosimova Shahlo", group:"6-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Qurbonov Davlat", group:"6-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Salomov Sardor", group:"6-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Xidayatullayev Sardorbek", group:"6-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Xolmurodov Javlonbek", group:"6-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Xursanova Moxinur", group:"6-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Xusanov Rishodbek", group:"6-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Charshanbiyev Muxammadfozil", group:"6-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Chorshanbiyev Turg‘unbek", group:"6-sinf", stars:0, result:"Natija hali kiritilmagan"},
+    {name:"Chorshanbiyeva Maknuna", group:"6-sinf", stars:0, result:"Natija hali kiritilmagan"}
   ],
   teachers: [
     {name:"Ustoz 1", subject:"Matematika", bio:"Ustoz haqida ma’lumot keyin qo‘shiladi.", icon:"👨‍🏫"},
@@ -47,5 +70,17 @@ window.CENTER_DATA = {
     {title:"Musobaqada 1-o‘rin", stars:5},
     {title:"Musobaqada 2-o‘rin", stars:3},
     {title:"Musobaqada 3-o‘rin", stars:2}
+  ]
+
+  ,
+  products: [
+    {name:"Matematika masalalar kitobi", category:"Kitob", icon:"📘", description:"Mashq va masalalar to‘plami", price:25000},
+    {name:"Ingliz tili lug‘ati", category:"Kitob", icon:"📗", description:"So‘z boyligini oshirish uchun", price:30000},
+    {name:"Katak daftar", category:"Daftar", icon:"📒", description:"Matematika uchun qulay daftar", price:5000},
+    {name:"Chiziqli daftar", category:"Daftar", icon:"📓", description:"Kundalik yozuvlar uchun", price:5000},
+    {name:"Ko‘k ruchka", category:"Ruchka", icon:"🖊️", description:"Kundalik yozish uchun", price:3000},
+    {name:"Qalam va o‘chirg‘ich", category:"Jihoz", icon:"✏️", description:"Dars uchun kerakli to‘plam", price:7000},
+    {name:"Chizg‘ich", category:"Jihoz", icon:"📏", description:"Geometriya mashg‘ulotlari uchun", price:4000},
+    {name:"Rangli markerlar", category:"Jihoz", icon:"🖍️", description:"Muhim joylarni belgilash uchun", price:12000}
   ]
 };

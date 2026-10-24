@@ -1,6 +1,6 @@
 (() => {
  const D=window.CENTER_DATA||{};
- const pages=[["index.html","🏠","Bosh sahifa"],["competitions.html","🏆","Musobaqalar"],["teachers.html","👨‍🏫","Ustozlar"],["ranking.html","⭐","Reyting"],["results.html","📊","Natijalar"],["about.html","ℹ️","Haqimizda"],["contact.html","📞","Bog‘lanish"]];
+ const pages=[["index.html","🏠","Bosh sahifa"],["competitions.html","🏆","Musobaqalar"],["teachers.html","👨‍🏫","Ustozlar"],["ranking.html","⭐","Reyting"],["results.html","📊","Natijalar"],["about.html","ℹ️","Haqimizda"],["shop.html","🛍️","Do‘kon"],["contact.html","📞","Bog‘lanish"]];
  const path=location.pathname.split("/").pop()||"index.html";
  const nav=document.getElementById("bottomNav");
  if(nav){nav.innerHTML=pages.map(([url,icon,label])=>`<a class="navitem ${path===url?'active':''}" href="${url}"><span class="navicon">${icon}</span><span>${label}</span></a>`).join("");}
