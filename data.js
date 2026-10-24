@@ -1,23 +1,23 @@
-/* Ommaviy namunaviy ma'lumotlar. Haqiqiy o'quvchi ma'lumotlarini rozilik bilan almashtiring. */
+/* Ommaviy sayt ma'lumotlari. O'zgartirishlar shu faylda qilinadi. */
 window.CENTER_DATA = {
   centerName: "So‘fi Ollohyor",
   location: "Oltinsoy tumani",
   phone: "+998990616472",
   telegram: "https://t.me/sufi_ollohyor_uquv_markaz",
-  instagram: "https://www.instagram.com/sufiollohyor?dlrf=MWhkc3luMGN4NnVuNQ==",
+  instagram: "https://www.instagram.com/sufiollohyor/",
   mathTelegram: "https://t.me/matematika144",
-  studentsCount: 60, // Markazdagi jami o‘quvchilar; quyida hozircha 32 nafar 5- va 6-sinf o‘quvchisi kiritilgan
+  studentsCount: 60,
   groupsCount: 2,
-  groupName: "5- va 6-sinflar · Matematika 144",
+  groupName: "Matematika 144",
   teachersCount: 5,
   subjects: [
     {name:"Matematika", icon:"🧮", caption:"Mantiq va natija"},
-    {name:"Fizika", icon:"⚛️", caption:"Kashfiyot sari"},
-    {name:"Ingliz tili", icon:"🗣️", caption:"Dunyo sari"},
-    {name:"Ona tili", icon:"📚", caption:"So‘z va tafakkur"}
+    {name:"Fizika", icon:"⚛️", caption:"Nazariya va amaliyot"},
+    {name:"Ona tili", icon:"📚", caption:"Nutq va tafakkur"},
+    {name:"Ingliz tili", icon:"🇬🇧", caption:"Kelajak uchun til"}
   ],
   students: [
-    {name:"Abdinazarova Shabnam", group:"5-sinf", stars:10, result:"Natija hali kiritilmagan"},
+    {name:"Abdinazarova Shabnam", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
     {name:"Abdujalilov Adhambek", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
     {name:"Ilxomjonov Kamronbek", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
     {name:"Ismatullayev Samandarbek", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
@@ -61,7 +61,7 @@ window.CENTER_DATA = {
     {name:"Zakovat musobaqasi", type:"Bilimlar bellashuvi", description:"Mantiqiy fikrlash va jamoaviy bilimni sinovdan o‘tkazish.", icon:"🏆", status:"Reja / e’lon"},
     {name:"Matematika bellashuvi", type:"Matematik tafakkur", description:"Misol va masalalar orqali bilimlarni mustahkamlash.", icon:"🧠", status:"Reja / e’lon"},
     {name:"Haftalik test sinovi", type:"Bilimni tekshirish", description:"O‘quvchilarning o‘zlashtirish darajasini kuzatish.", icon:"📝", status:"Reja / e’lon"},
-    {name:"Yutuqlar haftaligi", type:"Rag‘batlantirish", description:"Faol qatnashchilar va yutuqlarni e’tirof etish.", icon:"🌟", status:"Reja / e’lon'}
+    {name:"Yutuqlar haftaligi", type:"Rag‘batlantirish", description:"Faol qatnashchilar va yutuqlarni e’tirof etish.", icon:"🌟", status:"Reja / e’lon"}
   ],
   starRules: [
     {title:"Uy vazifasini to‘liq bajarish", stars:1},
@@ -70,9 +70,7 @@ window.CENTER_DATA = {
     {title:"Musobaqada 1-o‘rin", stars:5},
     {title:"Musobaqada 2-o‘rin", stars:3},
     {title:"Musobaqada 3-o‘rin", stars:2}
-  ]
-
-  ,
+  ],
   products: [
     {name:"Matematika masalalar kitobi", category:"Kitob", icon:"📘", description:"Mashq va masalalar to‘plami", price:25000},
     {name:"Ingliz tili lug‘ati", category:"Kitob", icon:"📗", description:"So‘z boyligini oshirish uchun", price:30000},
