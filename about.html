@@ -1,4 +1,240 @@
 <!doctype html>
-<html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#020b09"><meta name="description" content="So‘fi Ollohyor o‘quv markazi — Oltinsoy tumani"><title>Markaz haqida | So‘fi Ollohyor</title><link rel="stylesheet" href="style.css"></head>
-<body><header class="topbar"><div class="wrap topinner"><a class="brand" href="index.html"><img src="assets/markaz-logo.png" alt="So‘fi Ollohyor logotipi" onerror="this.style.display='none'"><span class="brand-mark">S<span class="green">O</span></span><span class="brand-name">SO‘FI OLLOHYOR<small>O‘QUV MARKAZI</small></span></a><div class="social"><a data-telegram href="https://t.me/sufi_ollohyor_uquv_markaz">✈️ Telegram</a><a data-instagram href="https://www.instagram.com/sufiollohyor/" aria-label="Instagram">📸</a></div></div></header>
-<main class="wrap"><section class="pagehead"><span class="eyebrow">ℹ️ Biz haqimizda</span><h1>Bilim · Tarbiya · <span class="green">Natija</span></h1><p>So‘fi Ollohyor o‘quv markazi — Oltinsoy tumanida o‘quvchilarning bilimini mustahkamlash va kelajakdagi maqsadlariga erishishiga ko‘maklashishga intiluvchi ta’lim maskani.</p></section><section class="panel"><h2>Markazimiz haqida</h2><p>Markazda matematika, fizika, ingliz tili va ona tili fanlari bo‘yicha mashg‘ulotlar tashkil etiladi. Biz bilim olish, muntazam izlanish, sog‘lom raqobat va o‘quvchilar yutuqlarini rag‘batlantirishga alohida e’tibor qaratamiz.</p><p>Hozircha markazda 60 nafar o‘quvchi va 5 nafar ustoz bor. Sayt orqali musobaqalar, reytinglar, natijalar va o‘quv qurollari do‘koni bilan tanishish mumkin.</p></section><section class="panel"><h2>Bizning qadriyatlar</h2><div class="feature-grid"><div class="card"><div class="card-visual">📘</div><div class="card-body"><h3>Bilim</h3><p>Mustahkam bilim va izlanish.</p></div></div><div class="card"><div class="card-visual">🤝</div><div class="card-body"><h3>Tarbiya</h3><p>Hurmat va mas’uliyat.</p></div></div><div class="card"><div class="card-visual">🌟</div><div class="card-body"><h3>Rag‘bat</h3><p>Har bir yutuqni qadrlash.</p></div></div><div class="card"><div class="card-visual">🎯</div><div class="card-body"><h3>Natija</h3><p>Maqsad sari izchil harakat.</p></div></div></div></section></main><footer class="footer wrap">© 2026 So‘fi Ollohyor o‘quv markazi · Oltinsoy tumani<br><span class="smallprint">Bilim · Tarbiya · Natija</span></footer><nav class="bottom-nav" id="bottomNav" aria-label="Asosiy menyu"></nav><script src="data.js"></script><script src="app.js"></script></body></html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#020b09">
+  <meta name="description" content="So‘fi Ollohyor o‘quv markazi — kunlik savol va yulduzlar">
+  <title>Kunlik savol | So‘fi Ollohyor</title>
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    .daily-page {
+      max-width: 850px;
+      margin: 35px auto;
+    }
+
+    .daily-intro {
+      text-align: center;
+      padding: 25px 12px;
+    }
+
+    .daily-intro .big-icon {
+      font-size: 60px;
+    }
+
+    .daily-intro h1 {
+      font-size: clamp(30px, 6vw, 46px);
+      margin: 14px 0;
+    }
+
+    .daily-intro p,
+    .daily-muted {
+      color: #b7cebf;
+      line-height: 1.8;
+    }
+
+    .daily-card {
+      padding: 24px;
+      border-radius: 24px;
+      border: 1px solid rgba(0,255,128,.28);
+      background: linear-gradient(145deg,#09251a,#020b09);
+      color: #f4fff8;
+      box-shadow: 0 10px 35px rgba(0,0,0,.18);
+    }
+
+    #dailyQuestionText {
+      font-size: 21px;
+      line-height: 1.7;
+      font-weight: 700;
+      margin: 18px 0;
+    }
+
+    .daily-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 22px 0;
+    }
+
+    .daily-option {
+      padding: 15px;
+      min-height: 54px;
+      text-align: left;
+      border-radius: 13px;
+      border: 1px solid #286343;
+      background: #0b2b1d;
+      color: white;
+      cursor: pointer;
+    }
+
+    .daily-option.selected {
+      border: 2px solid #38ed91;
+      background: #123e29;
+    }
+
+    .daily-option:disabled {
+      opacity: .7;
+      cursor: default;
+    }
+
+    .daily-green {
+      color: #38ed91;
+    }
+
+    .daily-feedback {
+      margin-top: 18px;
+      line-height: 1.8;
+    }
+
+    .daily-winner {
+      margin-top: 18px;
+      padding: 15px;
+      border-radius: 14px;
+      background: rgba(56,237,145,.08);
+    }
+
+    .daily-winner:empty {
+      display: none;
+    }
+
+    .daily-student-select {
+      display: block;
+      width: 100%;
+      padding: 13px;
+      margin: 15px 0;
+      border-radius: 10px;
+    }
+
+    .daily-rules {
+      margin-top: 20px;
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(0,255,128,.15);
+    }
+
+    .daily-rules li {
+      margin: 10px 0;
+      line-height: 1.6;
+    }
+
+    @media(max-width:520px) {
+      .daily-card {
+        padding: 17px;
+      }
+
+      .daily-options {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="wrap topinner">
+    <a class="brand" href="index.html">
+      <img src="assets/markaz-logo.png"
+           alt="So‘fi Ollohyor logotipi"
+           onerror="this.style.display='none'">
+
+      <span class="brand-mark">S<span class="green">O</span></span>
+
+      <span class="brand-name">
+        SO‘FI OLLOHYOR
+        <small>O‘QUV MARKAZI</small>
+      </span>
+    </a>
+
+    <div class="social">
+      <a data-telegram
+         href="https://t.me/sufi_ollohyor_uquv_markaz"
+         target="_blank"
+         rel="noopener noreferrer">✈️ Telegram</a>
+
+      <a data-instagram
+         href="https://www.instagram.com/sufiollohyor/"
+         target="_blank"
+         rel="noopener noreferrer">📸 Instagram</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap daily-page">
+
+  <!-- BIZ HAQIMIZDA O‘RNIGA KUNLIK SAVOL -->
+  <section class="daily-intro">
+    <div class="big-icon">🧠</div>
+
+    <span class="eyebrow">SO‘FI OLLOHYOR O‘QUV MARKAZI</span>
+
+    <h1>Kunlik <span class="daily-green">savol</span></h1>
+
+    <p>
+      Bilimingizni sinang! Savolga to‘g‘ri javob bering,
+      o‘z ismingizni tanlang va 2 ta yulduz yutish imkoniyatiga ega bo‘ling.
+    </p>
+  </section>
+
+  <section class="daily-card" id="dailyQuestionSection">
+
+    <span class="tag">⭐ G‘OLIB UCHUN 2 YULDUZ</span>
+
+    <h2>📌 Bugungi topshiriq</h2>
+
+    <div id="dailyQuestionText">
+      Savol yuklanmoqda...
+    </div>
+
+    <div id="dailyOptions" class="daily-options"></div>
+
+    <button type="button" id="dailyCheck" class="btn">
+      Javobni tekshirish
+    </button>
+
+    <div id="dailyFeedback"
+         class="daily-feedback"
+         aria-live="polite"></div>
+
+    <div id="dailyWinner"
+         class="daily-winner"
+         aria-live="polite"></div>
+  </section>
+
+  <section class="daily-rules panel">
+    <h2>📋 Qanday ishlaydi?</h2>
+
+    <ul>
+      <li>Savol va javob variantlarini administrator joylashtiradi.</li>
+      <li>Birinchi to‘g‘ri javob bergan o‘quvchi o‘z ismini ro‘yxatdan tanlaydi.</li>
+      <li>Har bir savol uchun faqat bitta g‘olib qabul qilinadi.</li>
+      <li>G‘olibning ismi va 2 yulduzi shu bo‘limda ko‘rsatiladi.</li>
+      <li>Yulduzlar reytingga qo‘shilishi uchun tizim bazaga xavfsiz ulangan bo‘lishi kerak.</li>
+    </ul>
+  </section>
+
+  <section class="panel">
+    <h2>🏆 Barcha o‘quvchilar reytingi</h2>
+    <p class="daily-muted">
+      Natijalaringizni boshqa o‘quvchilar bilan taqqoslang.
+    </p>
+    <a class="btn" href="ranking.html">Reytingni ko‘rish →</a>
+  </section>
+
+</main>
+
+<footer class="footer wrap">
+  © 2026 So‘fi Ollohyor o‘quv markazi · Oltinsoy tumani
+  <br>
+  <span class="smallprint">Bilim · Tarbiya · Natija</span>
+</footer>
+
+<nav class="bottom-nav" id="bottomNav" aria-label="Asosiy menyu"></nav>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script src="daily-question.js"></script>
+
+</body>
+</html>
