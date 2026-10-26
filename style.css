@@ -1,21 +1,18 @@
-
-/* ==========================================
-   SO'FI OLLOHYOR — PREMIUM GREEN DESIGN
-   Mos: index.html, app.js, data.js
-   ========================================== */
+/* =========================================
+   SO‘FI OLLOHYOR — PREMIUM GREEN DESIGN
+   index.html bilan moslangan
+========================================= */
 
 :root {
   --bg: #020907;
   --panel: #061810;
-  --panel2: #09251a;
   --green: #00f59b;
-  --green2: #00bd73;
+  --green-dark: #00bd73;
   --mint: #b9ffe0;
   --white: #f4fff8;
   --muted: #b1c7bc;
-  --line: rgba(0, 255, 145, .30);
-  --glow: 0 0 28px rgba(0, 255, 145, .12);
-  --radius: 22px;
+  --line: rgba(0, 255, 145, 0.30);
+  --glow: 0 0 28px rgba(0, 255, 145, 0.12);
 }
 
 * {
@@ -35,14 +32,21 @@ body {
   padding-bottom: 110px;
   color: var(--white);
   background:
-    radial-gradient(ellipse at 80% 0%, rgba(0, 255, 145, .13), transparent 35%),
-    radial-gradient(ellipse at 0% 55%, rgba(0, 170, 95, .11), transparent 38%),
+    radial-gradient(
+      ellipse at 80% 0%,
+      rgba(0, 255, 145, 0.13),
+      transparent 35%
+    ),
+    radial-gradient(
+      ellipse at 0% 55%,
+      rgba(0, 170, 95, 0.11),
+      transparent 38%
+    ),
     var(--bg);
-  font: 500 15px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
-}
-
-body, button, input, select, textarea {
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  font-weight: 500;
 }
 
 a {
@@ -50,8 +54,11 @@ a {
   text-decoration: none;
 }
 
-button, input, select, textarea {
-  font-size: inherit;
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }
 
 button {
@@ -61,6 +68,10 @@ button {
 img {
   display: block;
   max-width: 100%;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 .wrap {
@@ -78,38 +89,27 @@ img {
 }
 
 .smallprint {
-  font-size: .8rem;
   color: var(--muted);
+  font-size: 0.8rem;
 }
 
-h1, h2, h3, p {
-  overflow-wrap: anywhere;
-}
-
-h1, h2, h3 {
-  color: var(--white);
-  line-height: 1.25;
-}
-
-p {
-  color: #d0e2d7;
-}
-
-/* HEADER */
+/* =========================================
+   HEADER
+========================================= */
 
 .topbar {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(1, 12, 8, .94);
+  background: rgba(1, 12, 8, 0.94);
   border-bottom: 1px solid var(--line);
-  box-shadow: 0 5px 25px rgba(0, 0, 0, .22);
+  box-shadow: 0 5px 25px #0004;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 }
 
 .topinner {
-  min-height: 74px;
+  min-height: 72px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -117,49 +117,47 @@ p {
 }
 
 .brand {
-  min-width: 0;
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
   color: var(--white);
   font-weight: 900;
 }
 
-.brand img {
-  width: 48px;
-  height: 48px;
-  flex: 0 0 48px;
+.brand-image {
+  width: 47px;
+  height: 47px;
+  flex: 0 0 47px;
   object-fit: contain;
-  border: 1px solid rgba(0, 255, 145, .25);
+  border: 1px solid var(--line);
   border-radius: 50%;
   background: #fff;
 }
 
 .brand-mark {
-  width: 42px;
-  height: 42px;
-  flex: 0 0 42px;
-  display: grid;
+  width: 43px;
+  height: 43px;
+  flex: 0 0 43px;
   place-items: center;
   border: 2px solid var(--green);
   border-radius: 50%;
   color: var(--green);
   font-size: 19px;
-  box-shadow: 0 0 15px rgba(0, 255, 145, .18);
 }
 
 .brand-name {
-  font-size: .88rem;
+  font-size: 0.88rem;
   line-height: 1.25;
-  letter-spacing: .025em;
+  letter-spacing: 0.025em;
 }
 
 .brand-name small {
   display: block;
   margin-top: 4px;
   color: var(--green);
-  font-size: .59rem;
-  letter-spacing: .13em;
+  font-size: 0.59rem;
+  letter-spacing: 0.13em;
 }
 
 .social {
@@ -177,23 +175,25 @@ p {
   padding: 8px 10px;
   white-space: nowrap;
   color: var(--white);
-  background: rgba(0, 255, 145, .045);
+  background: #00ff7809;
   border: 1px solid var(--line);
   border-radius: 99px;
-  font-size: .75rem;
-  transition: .2s ease;
+  font-size: 0.75rem;
+  transition: 0.2s;
 }
 
 .social a:hover {
   border-color: var(--green);
-  box-shadow: 0 0 15px rgba(0, 255, 145, .18);
+  box-shadow: 0 0 15px #00f07830;
 }
 
-/* HERO */
+/* =========================================
+   HERO / BOSH SAHIFA
+========================================= */
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, .9fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
   align-items: stretch;
   gap: 18px;
   padding: 25px 0 18px;
@@ -212,7 +212,11 @@ p {
 .hero-copy {
   padding: clamp(20px, 3.5vw, 38px);
   background:
-    radial-gradient(ellipse at 100% 0%, rgba(0, 255, 145, .12), transparent 55%),
+    radial-gradient(
+      ellipse at 100% 0%,
+      #00ff781a,
+      transparent 55%
+    ),
     linear-gradient(145deg, #08271b, #020c08);
 }
 
@@ -222,10 +226,10 @@ p {
   gap: 7px;
   padding: 6px 11px;
   color: var(--mint);
-  background: rgba(0, 255, 145, .055);
+  background: #00ff780e;
   border: 1px solid var(--line);
   border-radius: 99px;
-  font-size: .75rem;
+  font-size: 0.75rem;
   font-weight: 750;
 }
 
@@ -233,11 +237,12 @@ p {
   margin: 17px 0 7px;
   font-size: clamp(2.2rem, 5vw, 4.4rem);
   line-height: 1.04;
-  letter-spacing: -.045em;
+  letter-spacing: -0.045em;
 }
 
-.hero h2 {
+.hero-subtitle {
   margin: 0;
+  color: var(--green);
   font-size: 1rem;
 }
 
@@ -251,7 +256,16 @@ p {
   max-width: 58ch;
   margin-bottom: 20px;
   line-height: 1.75;
+  color: #d0e2d7;
 }
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* BUTTONS */
 
 .btn {
   min-height: 42px;
@@ -262,27 +276,42 @@ p {
   margin: 6px 6px 0 0;
   padding: 11px 15px;
   color: #00180b;
-  background: linear-gradient(110deg, #00f59b, #00bd73);
-  border: 1px solid rgba(0, 255, 145, .6);
+  background: linear-gradient(
+    110deg,
+    var(--green),
+    var(--green-dark)
+  );
+  border: 1px solid #00f59b99;
   border-radius: 13px;
-  font-size: .85rem;
+  font-size: 0.85rem;
   font-weight: 850;
   text-align: center;
-  box-shadow: 0 5px 18px rgba(0, 255, 145, .12);
-  transition: transform .2s, box-shadow .2s;
+  box-shadow: 0 5px 18px #00f07820;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s,
+    opacity 0.2s;
 }
 
 .btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 23px rgba(0, 255, 145, .24);
+  box-shadow: 0 0 23px #00f07840;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
 }
 
 .btn.secondary {
   color: var(--white);
-  background: rgba(0, 0, 0, .12);
+  background: #0002;
   border-color: var(--line);
   box-shadow: none;
 }
+
+/* HERO LOGO */
 
 .hero-art {
   min-height: 310px;
@@ -291,7 +320,11 @@ p {
   justify-content: center;
   padding: 24px;
   background:
-    radial-gradient(circle at 50% 45%, rgba(0, 255, 145, .22), transparent 58%),
+    radial-gradient(
+      circle at 50% 45%,
+      #00ff7838,
+      transparent 58%
+    ),
     linear-gradient(145deg, #063421, #020907);
 }
 
@@ -299,7 +332,7 @@ p {
   content: "";
   position: absolute;
   inset: 14px;
-  border: 1px solid rgba(0, 255, 145, .45);
+  border: 1px solid #00ff7877;
   border-radius: 18px;
   transform: rotate(-2deg);
   pointer-events: none;
@@ -316,7 +349,7 @@ p {
   background: #fff;
   border: 2px solid var(--green);
   border-radius: 50%;
-  box-shadow: 0 0 30px rgba(0, 255, 145, .24);
+  box-shadow: 0 0 30px #00f07840;
 }
 
 .hero-logo img {
@@ -330,12 +363,46 @@ p {
 .hero-logo .sub {
   margin-top: 5px;
   color: #087c43;
-  font-size: clamp(.55rem, 1.5vw, .78rem);
+  font-size: clamp(0.55rem, 1.5vw, 0.78rem);
   font-weight: 950;
-  letter-spacing: .06em;
+  letter-spacing: 0.06em;
 }
 
-/* STATS */
+.hero-logo-fallback {
+  padding: 35px 0;
+  color: #053b25;
+  font-size: 2rem;
+  line-height: 1.2;
+  font-weight: 950;
+}
+
+.hero-logo-fallback span {
+  color: #087c43;
+}
+
+.orb {
+  position: absolute;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  filter: blur(35px);
+  pointer-events: none;
+  background: #00f07825;
+}
+
+.orb-one {
+  top: 15px;
+  right: 15px;
+}
+
+.orb-two {
+  bottom: 10px;
+  left: 15px;
+}
+
+/* =========================================
+   STATISTIKA
+========================================= */
 
 .stats {
   display: grid;
@@ -370,10 +437,16 @@ p {
 .stat span:not(.emoji) {
   display: block;
   color: var(--muted);
-  font-size: .75rem;
+  font-size: 0.75rem;
 }
 
-/* SECTION HEADINGS */
+/* =========================================
+   SECTION TITLES
+========================================= */
+
+.content-section {
+  margin: 26px 0;
+}
 
 .section-head {
   display: flex;
@@ -384,17 +457,26 @@ p {
 }
 
 .section-head h2 {
-  margin: 0;
+  margin: 4px 0 0;
   font-size: clamp(1.3rem, 3vw, 2rem);
 }
 
 .section-head p {
   margin: 5px 0 0;
   color: var(--muted);
-  font-size: .88rem;
+  font-size: 0.88rem;
 }
 
-/* SUBJECT CARDS */
+.section-kicker {
+  color: var(--green);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.13em;
+}
+
+/* =========================================
+   FANLAR
+========================================= */
 
 .subjects {
   display: grid;
@@ -410,12 +492,16 @@ p {
   gap: 11px;
   padding: 16px;
   background:
-    radial-gradient(circle at 100% 0%, rgba(0, 255, 145, .09), transparent 60%),
+    radial-gradient(
+      circle at 100% 0%,
+      #00ff7817,
+      transparent 60%
+    ),
     linear-gradient(145deg, #07251a, #020d08);
   border: 1px solid var(--line);
   border-radius: 18px;
   box-shadow: var(--glow);
-  transition: transform .2s, border-color .2s;
+  transition: transform 0.2s, border-color 0.2s;
 }
 
 .subject:hover {
@@ -436,24 +522,47 @@ p {
 .subject small {
   display: block;
   color: var(--muted);
-  font-size: .75rem;
+  font-size: 0.75rem;
 }
 
-/* PANELS AND FEATURE CARDS */
+/* =========================================
+   PANELS / BO‘LIMLAR
+========================================= */
 
 .panel {
   min-width: 0;
   margin: 20px 0;
   padding: clamp(16px, 3vw, 26px);
-  background: linear-gradient(145deg, rgba(5, 32, 22, .97), rgba(2, 12, 8, .97));
+  background: linear-gradient(
+    145deg,
+    #052016f7,
+    #020c08f7
+  );
   border: 1px solid var(--line);
   border-radius: 22px;
   box-shadow: var(--glow);
-  transition: border-color .2s, box-shadow .2s;
+  transition: border-color 0.2s;
 }
 
 .panel:hover {
-  border-color: rgba(0, 255, 145, .55);
+  border-color: #00ff7888;
+}
+
+.math-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.math-panel h2 {
+  margin: 9px 0;
+  font-size: clamp(1.25rem, 3vw, 1.8rem);
+}
+
+.math-panel p {
+  margin: 0;
 }
 
 .tag {
@@ -462,9 +571,11 @@ p {
   color: var(--mint);
   border: 1px solid var(--line);
   border-radius: 99px;
-  font-size: .72rem;
+  font-size: 0.72rem;
   font-weight: 750;
 }
+
+/* FEATURE CARDS */
 
 .feature-grid {
   display: grid;
@@ -479,7 +590,7 @@ p {
   background: linear-gradient(145deg, #062219, #020c08);
   border: 1px solid var(--line);
   border-radius: 19px;
-  transition: transform .2s, border-color .2s;
+  transition: transform 0.2s, border-color 0.2s;
 }
 
 .card:hover {
@@ -491,7 +602,11 @@ p {
   min-height: 100px;
   display: grid;
   place-items: center;
-  background: radial-gradient(circle, #0b4b30, #03140d 72%);
+  background: radial-gradient(
+    circle,
+    #0b4b30,
+    #03140d 72%
+  );
   border-bottom: 1px solid var(--line);
   font-size: 2.6rem;
 }
@@ -502,20 +617,28 @@ p {
 
 .card-body h3 {
   margin: 4px 0 7px;
-  font-size: .92rem;
+  font-size: 0.92rem;
 }
 
 .card-body p {
   margin: 5px 0 10px;
   color: var(--muted);
-  font-size: .79rem;
+  font-size: 0.79rem;
 }
 
 .card-body .green {
-  font-size: .8rem;
+  font-size: 0.8rem;
 }
 
-/* DAILY QUESTION */
+.text-link {
+  color: var(--green);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* =========================================
+   KUNLIK SAVOL
+========================================= */
 
 .daily-question {
   position: relative;
@@ -523,13 +646,16 @@ p {
   overflow: hidden;
   margin: 27px 0;
   padding: clamp(16px, 3vw, 29px);
-  color: var(--white);
   background:
-    radial-gradient(ellipse at 100% 0%, rgba(0, 255, 145, .12), transparent 48%),
+    radial-gradient(
+      ellipse at 100% 0%,
+      #00ff781f,
+      transparent 48%
+    ),
     linear-gradient(145deg, #06251a, #020a07);
-  border: 1px solid rgba(0, 255, 160, .5);
+  border: 1px solid #00ffa080;
   border-radius: 23px;
-  box-shadow: 0 0 28px rgba(0, 255, 145, .1);
+  box-shadow: 0 0 28px #00f0781a;
 }
 
 .daily-question h2 {
@@ -545,9 +671,17 @@ p {
   min-width: 0;
   margin-top: 18px;
   padding: clamp(13px, 3vw, 20px);
-  background: rgba(0, 8, 5, .5);
-  border: 1px solid rgba(0, 255, 145, .28);
+  background: #0008;
+  border: 1px solid #00ff7847;
   border-radius: 17px;
+}
+
+.question-label {
+  margin-bottom: 8px;
+  color: var(--green);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
 }
 
 .daily-card h3 {
@@ -572,7 +706,7 @@ p {
 
 #dailyAnswerInput:focus {
   border-color: var(--green);
-  box-shadow: 0 0 0 3px rgba(0, 245, 155, .13);
+  box-shadow: 0 0 0 3px #00f59b22;
 }
 
 .daily-feedback {
@@ -597,8 +731,8 @@ p {
 .daily-winner {
   margin-top: 14px;
   padding: 12px;
-  background: rgba(0, 255, 145, .07);
-  border: 1px solid rgba(0, 255, 145, .28);
+  background: #00ff7812;
+  border: 1px solid #00ff7847;
   border-radius: 12px;
   overflow-wrap: anywhere;
 }
@@ -607,11 +741,16 @@ p {
   display: none;
 }
 
-.daily-card button:disabled {
-  opacity: .55;
+.daily-note {
+  margin: 12px 2px 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.6;
 }
 
-/* RANKING TABLES */
+/* =========================================
+   REYTING JADVALI
+========================================= */
 
 .table-wrap {
   width: 100%;
@@ -630,7 +769,7 @@ p {
 .ranking-table td {
   padding: 12px 14px;
   text-align: left;
-  border-bottom: 1px solid rgba(0, 255, 120, .15);
+  border-bottom: 1px solid #00ff7826;
 }
 
 .ranking-table th {
@@ -652,7 +791,7 @@ p {
   white-space: nowrap;
 }
 
-/* OTHER COMMON COMPONENTS */
+/* OTHER PAGE CARDS */
 
 .teacher-grid,
 .competition-grid,
@@ -721,16 +860,38 @@ p {
   border-radius: 0 12px 12px 0;
 }
 
-/* FOOTER */
+/* =========================================
+   FOOTER
+========================================= */
 
 .footer {
-  padding: 28px 0 16px;
+  padding: 28px 0 18px;
   color: var(--muted);
   text-align: center;
-  font-size: .83rem;
+  font-size: 0.83rem;
 }
 
-/* BOTTOM NAVIGATION */
+.footer-brand {
+  margin-bottom: 8px;
+  color: var(--white);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.footer-brand span {
+  display: block;
+  color: var(--green);
+  font-size: 0.68rem;
+  letter-spacing: 0.15em;
+}
+
+.footer p {
+  margin: 5px 0;
+}
+
+/* =========================================
+   PASTKI NAVIGATSIYA — app.js
+========================================= */
 
 .bottom-nav {
   position: fixed;
@@ -743,10 +904,10 @@ p {
   grid-template-columns: repeat(9, minmax(0, 1fr));
   gap: 0;
   padding: 5px;
-  background: rgba(1, 15, 9, .97);
+  background: rgba(1, 15, 9, 0.97);
   border: 1px solid var(--green);
   border-radius: 19px;
-  box-shadow: 0 0 24px rgba(0, 255, 145, .2);
+  box-shadow: 0 0 24px #00f07833;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }
@@ -760,12 +921,12 @@ p {
   gap: 3px;
   padding: 8px 2px;
   color: #d9eee1;
-  border-right: 1px solid rgba(0, 255, 120, .13);
-  font-size: .65rem;
+  border-right: 1px solid #00ff7821;
+  font-size: 0.65rem;
   font-weight: 750;
   line-height: 1.15;
   text-align: center;
-  transition: .18s;
+  transition: 0.18s;
 }
 
 .navitem:last-child {
@@ -788,18 +949,32 @@ p {
   color: #00190a;
   background: linear-gradient(140deg, #00f59b, #07984b);
   border-radius: 12px;
-  box-shadow: 0 0 17px rgba(0, 255, 145, .3);
+  box-shadow: 0 0 17px #00f07855;
 }
 
 .hidden {
   display: none !important;
 }
 
-/* RESPONSIVE TABLET */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =========================================
+   TABLET
+========================================= */
 
 @media (max-width: 850px) {
   .hero {
-    grid-template-columns: minmax(0, 1fr) minmax(0, .9fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
     gap: 12px;
   }
 
@@ -826,7 +1001,9 @@ p {
   }
 }
 
-/* RESPONSIVE PHONE */
+/* =========================================
+   MOBIL TELEFON
+========================================= */
 
 @media (max-width: 620px) {
   body {
@@ -847,10 +1024,10 @@ p {
     gap: 6px;
   }
 
-  .brand img {
-    width: 37px;
-    height: 37px;
-    flex-basis: 37px;
+  .brand-image {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
   }
 
   .brand-mark {
@@ -861,11 +1038,11 @@ p {
   }
 
   .brand-name {
-    font-size: .65rem;
+    font-size: 0.64rem;
   }
 
   .brand-name small {
-    font-size: .47rem;
+    font-size: 0.46rem;
   }
 
   .social {
@@ -874,7 +1051,7 @@ p {
 
   .social a {
     padding: 6px 7px;
-    font-size: .58rem;
+    font-size: 0.56rem;
   }
 
   .hero {
@@ -889,11 +1066,11 @@ p {
   }
 
   .hero h1 {
-    font-size: clamp(2.15rem, 9vw, 2.8rem);
+    font-size: clamp(2.1rem, 9vw, 2.8rem);
   }
 
   .hero-art {
-    min-height: 230px;
+    min-height: 225px;
     padding: 20px;
     border-radius: 20px;
   }
@@ -904,11 +1081,11 @@ p {
   }
 
   .hero-logo img {
-    max-height: 175px;
+    max-height: 165px;
   }
 
   .hero-logo .sub {
-    font-size: .6rem;
+    font-size: 0.58rem;
   }
 
   .stats {
@@ -922,15 +1099,15 @@ p {
   }
 
   .stat .emoji {
-    font-size: 1.35rem;
+    font-size: 1.3rem;
   }
 
   .stat strong {
-    font-size: 1.05rem;
+    font-size: 1.02rem;
   }
 
   .stat span:not(.emoji) {
-    font-size: .69rem;
+    font-size: 0.68rem;
   }
 
   .subjects {
@@ -942,23 +1119,23 @@ p {
     padding: 11px;
     gap: 7px;
     border-radius: 15px;
-    font-size: .8rem;
+    font-size: 0.8rem;
   }
 
   .subject .emoji {
-    font-size: 1.35rem;
+    font-size: 1.3rem;
   }
 
   .subject small {
-    font-size: .67rem;
+    font-size: 0.66rem;
   }
 
   .section-head {
-    align-items: start;
+    align-items: flex-start;
   }
 
   .section-head h2 {
-    font-size: 1.3rem;
+    font-size: 1.28rem;
   }
 
   .panel {
@@ -981,15 +1158,12 @@ p {
   }
 
   .card-body h3 {
-    font-size: .74rem;
+    font-size: 0.74rem;
   }
 
-  .card-body p {
-    font-size: .66rem;
-  }
-
+  .card-body p,
   .card-body .green {
-    font-size: .66rem;
+    font-size: 0.66rem;
   }
 
   .daily-question {
@@ -1002,7 +1176,7 @@ p {
   }
 
   .daily-card h3 {
-    font-size: .96rem;
+    font-size: 0.96rem;
   }
 
   .teacher-grid,
@@ -1023,15 +1197,15 @@ p {
   .navitem {
     padding: 7px 1px;
     gap: 3px;
-    font-size: clamp(.46rem, 1.75vw, .61rem);
+    font-size: clamp(0.46rem, 1.75vw, 0.61rem);
   }
 
   .navitem .navicon {
-    font-size: clamp(.9rem, 3.5vw, 1.15rem);
+    font-size: clamp(0.9rem, 3.5vw, 1.15rem);
   }
 
   .navitem .navlabel {
-    letter-spacing: -.035em;
+    letter-spacing: -0.035em;
   }
 
   .footer {
@@ -1039,20 +1213,22 @@ p {
   }
 }
 
+/* Juda kichik telefonlar */
+
 @media (max-width: 360px) {
   .social a {
-    font-size: .52rem;
+    font-size: 0.5rem;
     padding: 5px;
   }
 
   .brand-name {
-    font-size: .58rem;
+    font-size: 0.56rem;
   }
 
-  .brand img {
-    width: 32px;
-    height: 32px;
-    flex-basis: 32px;
+  .brand-image {
+    width: 31px;
+    height: 31px;
+    flex-basis: 31px;
   }
 
   .brand-mark {
@@ -1064,9 +1240,11 @@ p {
   }
 
   .navitem .navlabel {
-    font-size: .45rem;
+    font-size: 0.44rem;
   }
 }
+
+/* Harakatni kamaytiritanlagan foydalanuvchilar */
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -1076,4 +1254,4 @@ p {
     scroll-behavior: auto !important;
     transition: none !important;
   }
-  }
+}
