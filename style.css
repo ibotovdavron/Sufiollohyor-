@@ -1255,3 +1255,167 @@ img {
     transition: none !important;
   }
 }
+
+/* SO'FI OLLOHYOR — HEADER VA MOBIL DIZAYN TUZATISHI */
+
+.topbar {
+  width: 100%;
+  position: relative;
+  z-index: 20;
+  background: #03120d;
+  border-bottom: 1px solid #0c5139;
+}
+
+.topinner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.topinner .brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.topinner .brand img {
+  display: block;
+  width: 44px !important;
+  height: 44px !important;
+  max-width: 44px !important;
+  object-fit: contain;
+  flex: 0 0 44px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.topinner .brand-mark {
+  display: none;
+}
+
+.topinner .brand-name {
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.topinner .brand-name small {
+  display: block;
+  font-size: 9px;
+  letter-spacing: .08em;
+}
+
+.topinner .social {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.topinner .social a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid #145b42;
+  border-radius: 20px;
+  background: #06251a;
+  color: #eafff5;
+  font-size: 11px;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.topinner .social a:hover {
+  background: #087b50;
+}
+
+.pagehead {
+  min-width: 0;
+}
+
+.panel {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.result-row {
+  display: grid;
+  grid-template-columns: minmax(100px, 140px) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 18px 0;
+  border-bottom: 1px solid #14513b;
+}
+
+.result-row span {
+  min-width: 0;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.smallprint {
+  line-height: 1.8;
+}
+
+.bottom-nav {
+  max-width: 100%;
+}
+
+@media (max-width: 480px) {
+  .topinner {
+    gap: 6px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .topinner .brand {
+    gap: 6px;
+  }
+
+  .topinner .brand img {
+    width: 36px !important;
+    height: 36px !important;
+    max-width: 36px !important;
+    flex-basis: 36px;
+  }
+
+  .topinner .brand-name {
+    font-size: 10px;
+  }
+
+  .topinner .brand-name small {
+    font-size: 8px;
+  }
+
+  .topinner .social {
+    gap: 4px;
+  }
+
+  .topinner .social a {
+    min-height: 30px;
+    padding: 6px 7px;
+    font-size: 9px;
+  }
+
+  .result-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 14px 0;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+}
+
