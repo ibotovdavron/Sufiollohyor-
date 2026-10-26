@@ -1,12 +1,354 @@
 <!doctype html>
-<html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#020b09"><meta name="description" content="So‘fi Ollohyor o‘quv markazi — Oltinsoy tumani"><title>Bosh sahifa | So‘fi Ollohyor</title><link rel="stylesheet" href="style.css"></head>
-<body><header class="topbar"><div class="wrap topinner"><a class="brand" href="index.html"><img src="assets/markaz-logo.png" alt="So‘fi Ollohyor logotipi" onerror="this.style.display='none'"><span class="brand-mark">S<span class="green">O</span></span><span class="brand-name">SO‘FI OLLOHYOR<small>O‘QUV MARKAZI</small></span></a><div class="social"><a data-telegram href="https://t.me/sufi_ollohyor_uquv_markaz">✈️ Telegram</a><a data-instagram href="https://www.instagram.com/sufiollohyor/" aria-label="Instagram">📸</a></div></div></header>
-<main class="wrap"><section class="hero">
-<div class="hero-copy"><span class="eyebrow">📍 Oltinsoy tumani</span><h1>So‘fi <span class="green">Ollohyor</span></h1><h2 class="green">O‘QUV MARKAZI</h2><p class="lead">Bilim · Tarbiya · Natija</p><p>Matematika, fizika, ingliz tili va ona tili fanlari bo‘yicha sifatli ta’lim olishga intiluvchi zamonaviy o‘quv markazi.</p><a class="btn" href="about.html">Markaz haqida →</a><a class="btn secondary" data-telegram href="https://t.me/sufi_ollohyor_uquv_markaz">✈️ Telegram ↗</a></div>
-<div class="hero-art"><div class="hero-logo"><img src="assets/markaz-logo.png" alt="So‘fi Ollohyor o‘quv markazi logotipi"><div class="sub">BILIM · TARBIYA · NATIJA</div></div></div></section>
-<section class="stats"><div class="stat"><span class="emoji">👥</span><div><strong>60</strong><span>nafar o‘quvchi</span></div></div><div class="stat"><span class="emoji">🎓</span><div><strong>2</strong><span>5- va 6-sinflar</span></div></div><div class="stat"><span class="emoji">🧑‍🏫</span><div><strong>5</strong><span>nafar ustoz</span></div></div><div class="stat"><span class="emoji">📍</span><div><strong>Oltinsoy</strong><span>tumani</span></div></div></section>
-<div class="section-head"><div><h2>🟢 Bizning fanlar</h2><p>Bilim sari birgalikda intilamiz</p></div></div><section class="subjects" id="homeSubjects"></section>
-<a class="panel" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap" data-math-telegram href="https://t.me/matematika144"><div><span class="tag">MAXSUS GURUH</span><h2 style="margin:8px 0"><span class="green">Matematika 144</span> guruhi</h2><p class="muted" style="margin:0">Matematika bilan kuchli natijalarga!</p></div><span class="btn">Guruhga o‘tish →</span></a>
-<div class="section-head"><div><h2>Asosiy bo‘limlar</h2><p>Kerakli ma’lumotni tanlang</p></div></div><section class="feature-grid" id="homeFeatures"></section>
-<section class="panel"><div class="section-head"><div><h2>⭐ O‘quvchilar reytingi</h2><p>5- va 6-sinf o‘quvchilari</p></div><a class="green" href="ranking.html">Barchasi →</a></div><div id="rankPreview"></div></section>
-<section class="panel"><div class="section-head"><div><h2>📢 Yangiliklar</h2><p>Rasmiy Telegram kanalimizdan kuzatib boring</p></div></div><p class="muted">E’lonlar, dars jadvalidagi o‘zgarishlar va markaz yangiliklari Telegram kanalida joylanadi.</p><a class="btn" data-telegram href="https://t.me/sufi_ollohyor_uquv_markaz">Telegram kanaliga o‘tish ↗</a><a class="btn secondary" data-instagram href="https://www.instagram.com/sufiollohyor/">Instagram ↗</a></section></main><footer class="footer wrap">© 2026 So‘fi Ollohyor o‘quv markazi · Oltinsoy tumani<br><span class="smallprint">Bilim · Tarbiya · Natija</span></footer><nav class="bottom-nav" id="bottomNav" aria-label="Asosiy menyu"></nav><script src="data.js"></script><script src="app.js"></script></body></html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#020b09">
+  <meta name="description" content="So‘fi Ollohyor o‘quv markazi — Oltinsoy tumani">
+  <title>Bosh sahifa | So‘fi Ollohyor</title>
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    .daily-question {
+      margin: 28px 0;
+      padding: 22px;
+      border: 1px solid rgba(0,255,128,.25);
+      border-radius: 24px;
+      background: linear-gradient(145deg,#09251a,#020b09);
+      color: #f4fff8;
+    }
+    .daily-question h2 { margin: 12px 0; }
+    .daily-question .green { color: #38ed91; }
+    .daily-muted { color: #b7cebf; line-height: 1.6; }
+    .daily-card {
+      margin-top: 18px;
+      padding: 18px;
+      border: 1px solid #28543b;
+      border-radius: 18px;
+      background: rgba(0,0,0,.16);
+    }
+    .daily-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 18px 0;
+    }
+    .daily-option {
+      min-height: 48px;
+      padding: 12px;
+      text-align: left;
+      color: #fff;
+      background: #0b2b1d;
+      border: 1px solid #286343;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    .daily-option.selected {
+      border: 2px solid #38ed91;
+    }
+    .daily-option:disabled { opacity: .7; }
+    .daily-feedback { line-height: 1.6; margin-top: 14px; }
+    .daily-winner {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(56,237,145,.08);
+    }
+    .daily-winner:empty { display: none; }
+    .daily-student-select {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin: 12px 0;
+      border-radius: 10px;
+    }
+    @media(max-width:480px) {
+      .daily-question { padding: 15px; }
+      .daily-card { padding: 14px; }
+      .daily-options { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="wrap topinner">
+    <a class="brand" href="index.html">
+      <img src="assets/markaz-logo.png"
+           alt="So‘fi Ollohyor logotipi"
+           onerror="this.style.display='none'">
+      <span class="brand-mark">S<span class="green">O</span></span>
+      <span class="brand-name">
+        SO‘FI OLLOHYOR
+        <small>O‘QUV MARKAZI</small>
+      </span>
+    </a>
+
+    <div class="social">
+      <a data-telegram href="https://t.me/sufi_ollohyor_uquv_markaz"
+         target="_blank" rel="noopener noreferrer">✈️ Telegram</a>
+      <a data-instagram href="https://www.instagram.com/sufiollohyor/"
+         target="_blank" rel="noopener noreferrer">📸 Instagram</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- BOSH SAHIFA -->
+  <section class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow">📍 Oltinsoy tumani</span>
+      <h1>So‘fi <span class="green">Ollohyor</span></h1>
+      <h2 class="green">O‘QUV MARKAZI</h2>
+      <p class="lead">Bilim · Tarbiya · Natija</p>
+      <p>
+        Matematika, fizika, ingliz tili va ona tili fanlari
+        bo‘yicha sifatli ta’lim olishga intiluvchi zamonaviy o‘quv markazi.
+      </p>
+      <a class="btn" href="about.html">Markaz haqida →</a>
+      <a class="btn secondary" data-telegram
+         href="https://t.me/sufi_ollohyor_uquv_markaz">✈️ Telegram ↗</a>
+    </div>
+
+    <div class="hero-art">
+      <div class="hero-logo">
+        <img src="assets/markaz-logo.png" alt="So‘fi Ollohyor o‘quv markazi logotipi">
+        <div class="sub">BILIM · TARBIYA · NATIJA</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATISTIKA -->
+  <section class="stats">
+    <div class="stat"><span class="emoji">👥</span><div><strong>60</strong><span>nafar o‘quvchi</span></div></div>
+    <div class="stat"><span class="emoji">🎓</span><div><strong>2</strong><span>5- va 6-sinflar</span></div></div>
+    <div class="stat"><span class="emoji">🧑‍🏫</span><div><strong>5</strong><span>nafar ustoz</span></div></div>
+    <div class="stat"><span class="emoji">📍</span><div><strong>Oltinsoy</strong><span>tumani</span></div></div>
+  </section>
+
+  <!-- FANLAR -->
+  <div class="section-head">
+    <div>
+      <h2>🟢 Bizning fanlar</h2>
+      <p>Bilim sari birgalikda intilamiz</p>
+    </div>
+  </div>
+  <section class="subjects" id="homeSubjects"></section>
+
+  <!-- MATEMATIKA GURUHI -->
+  <a class="panel"
+     style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap"
+     data-math-telegram href="https://t.me/matematika144"
+     target="_blank" rel="noopener noreferrer">
+    <div>
+      <span class="tag">MAXSUS GURUH</span>
+      <h2 style="margin:8px 0"><span class="green">Matematika 144</span> guruhi</h2>
+      <p class="muted" style="margin:0">Matematika bilan kuchli natijalarga!</p>
+    </div>
+    <span class="btn">Guruhga o‘tish →</span>
+  </a>
+
+  <!-- KUNLIK SAVOL -->
+  <section class="daily-question" id="dailyQuestionSection">
+    <span class="eyebrow">🧠 BILIMINGIZNI SINANG</span>
+    <h2>Kunlik <span class="green">savol</span></h2>
+    <p class="daily-muted">
+      Savolga birinchi bo‘lib to‘g‘ri javob bering va 2 yulduz yuting!
+    </p>
+
+    <div class="daily-card">
+      <div style="font-size:40px;margin-bottom:12px">❓</div>
+      <div id="dailyQuestionText">Savol yuklanmoqda...</div>
+      <div id="dailyOptions" class="daily-options"></div>
+
+      <button type="button" id="dailyCheck" class="btn">
+        Javobni tekshirish
+      </button>
+
+      <div id="dailyFeedback" class="daily-feedback" aria-live="polite"></div>
+      <div id="dailyWinner" class="daily-winner" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- ASOSIY BO‘LIMLAR -->
+  <div class="section-head">
+    <div>
+      <h2>Asosiy bo‘limlar</h2>
+      <p>Kerakli ma’lumotni tanlang</p>
+    </div>
+  </div>
+  <section class="feature-grid" id="homeFeatures"></section>
+
+  <!-- REYTING -->
+  <section class="panel">
+    <div class="section-head">
+      <div>
+        <h2>⭐ O‘quvchilar reytingi</h2>
+        <p>5- va 6-sinf o‘quvchilari</p>
+      </div>
+      <a class="green" href="ranking.html">Barchasi →</a>
+    </div>
+    <div id="rankPreview"></div>
+  </section>
+
+  <!-- YANGILIKLAR -->
+  <section class="panel">
+    <div class="section-head">
+      <div>
+        <h2>📢 Yangiliklar</h2>
+        <p>Rasmiy kanallarimizdan kuzatib boring</p>
+      </div>
+    </div>
+    <p class="muted">
+      E’lonlar, dars jadvalidagi o‘zgarishlar va markaz yangiliklari
+      Telegram kanalida joylanadi.
+    </p>
+    <a class="btn" data-telegram
+       href="https://t.me/sufi_ollohyor_uquv_markaz"
+       target="_blank" rel="noopener noreferrer">Telegram kanaliga o‘tish ↗</a>
+    <a class="btn secondary" data-instagram
+       href="https://www.instagram.com/sufiollohyor/"
+       target="_blank" rel="noopener noreferrer">Instagram ↗</a>
+  </section>
+
+</main>
+
+<footer class="footer wrap">
+  © 2026 So‘fi Ollohyor o‘quv markazi · Oltinsoy tumani
+  <br>
+  <span class="smallprint">Bilim · Tarbiya · Natija</span>
+</footer>
+
+<nav class="bottom-nav" id="bottomNav" aria-label="Asosiy menyu"></nav>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+
+<script>
+(function () {
+  "use strict";
+
+  const question = window.DAILY_QUESTION;
+  const text = document.getElementById("dailyQuestionText");
+  const optionsBox = document.getElementById("dailyOptions");
+  const checkButton = document.getElementById("dailyCheck");
+  const feedback = document.getElementById("dailyFeedback");
+  const winnerBox = document.getElementById("dailyWinner");
+
+  function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, function (c) {
+      return {
+        "&": "&amp;", "<": "&lt;", ">": "&gt;",
+        '"': "&quot;", "'": "&#39;"
+      }[c];
+    });
+  }
+
+  if (!question || !question.text ||
+      !Array.isArray(question.options) || !question.options.length) {
+    text.textContent =
+      "Bugungi savol hali joylashtirilmagan. Yangi savol tez orada!";
+    optionsBox.innerHTML = "";
+    checkButton.hidden = true;
+    return;
+  }
+
+  text.textContent = question.text;
+
+  optionsBox.innerHTML = question.options.map(function (option, index) {
+    return '<button type="button" class="daily-option" data-index="' +
+      index + '">' + String.fromCharCode(65 + index) + ") " +
+      escapeHTML(option) + "</button>";
+  }).join("");
+
+  let selected = null;
+  let answered = false;
+
+  optionsBox.querySelectorAll(".daily-option").forEach(function (button) {
+    button.addEventListener("click", function () {
+      if (answered) return;
+
+      selected = Number(button.dataset.index);
+
+      optionsBox.querySelectorAll(".daily-option").forEach(function (item) {
+        item.classList.remove("selected");
+      });
+
+      button.classList.add("selected");
+      feedback.textContent = "";
+    });
+  });
+
+  checkButton.addEventListener("click", function () {
+    if (answered) return;
+
+    if (selected === null) {
+      feedback.textContent = "Avval javoblardan birini tanlang.";
+      return;
+    }
+
+    if (selected !== Number(question.correctIndex)) {
+      feedback.textContent =
+        "❌ Javob noto‘g‘ri. Qayta urinib ko‘rishingiz mumkin.";
+      return;
+    }
+
+    const data = window.CENTER_DATA || {};
+    const students = Array.isArray(data.students) ? data.students : [];
+
+    if (!students.length) {
+      feedback.textContent =
+        "O‘quvchilar ro‘yxati topilmadi. data.js faylini ulash kerak.";
+      return;
+    }
+
+    answered = true;
+    feedback.textContent =
+      "🎉 To‘g‘ri javob! Endi ro‘yxatdan o‘z ismingizni tanlang.";
+
+    const select = document.createElement("select");
+    select.className = "daily-student-select";
+    select.innerHTML =
+      '<option value="">O‘quvchini tanlang...</option>' +
+      students.map(function (student, index) {
+        const name = typeof student === "string"
+          ? student
+          : (student.name || student.full_name || "");
+
+        return '<option value="' + index + '">' +
+          escapeHTML(name) + "</option>";
+      }).join("");
+
+    const confirm = document.createElement("button");
+    confirm.type = "button";
+    confirm.className = "btn";
+    confirm.textContent = "O‘zimni tasdiqlayman";
+
+    winnerBox.replaceChildren(select, confirm);
+
+    confirm.addEventListener("click", function () {
+      if (!select.value) {
+        feedback.textContent = "Avval ismingizni tanlang.";
+        return;
+      }
+
+      const chosen = students[Number(select.value)];
+      const name = typeof chosen === "string"
+        ? chosen
+        : (chosen.name || chosen.full_name || "O‘quvchi");
+
+      feedback.textContent =
+        "Ism tanlandi: " + name +
+        ". Yulduz qo‘shish uchun Supabase tasdiqlash tizimi ulanishi kerak.";
+
+      confirm.disabled = true;
+      select.disabled = true;
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
