@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#020b09">
-  <meta name="description" content="So‘fi Ollohyor o‘quv markazi — kunlik savol va yulduzlar">
+  <meta name="description" content="So‘fi Ollohyor o‘quv markazi — kunlik savol">
   <title>Kunlik savol | So‘fi Ollohyor</title>
   <link rel="stylesheet" href="style.css">
 
@@ -50,36 +50,27 @@
       margin: 18px 0;
     }
 
-    .daily-options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin: 22px 0;
-    }
-
-    .daily-option {
+    .daily-answer-input {
+      display: block;
+      box-sizing: border-box;
+      width: 100%;
       padding: 15px;
-      min-height: 54px;
-      text-align: left;
-      border-radius: 13px;
+      margin: 16px 0;
+      border-radius: 12px;
       border: 1px solid #286343;
-      background: #0b2b1d;
-      color: white;
-      cursor: pointer;
+      background: #fff;
+      color: #111;
+      font-size: 16px;
     }
 
-    .daily-option.selected {
-      border: 2px solid #38ed91;
-      background: #123e29;
-    }
-
-    .daily-option:disabled {
-      opacity: .7;
-      cursor: default;
-    }
-
-    .daily-green {
-      color: #38ed91;
+    .daily-student-select {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 14px;
+      margin: 15px 0;
+      border-radius: 10px;
+      font-size: 16px;
     }
 
     .daily-feedback {
@@ -92,18 +83,12 @@
       padding: 15px;
       border-radius: 14px;
       background: rgba(56,237,145,.08);
+      border: 1px solid rgba(56,237,145,.22);
+      line-height: 1.7;
     }
 
     .daily-winner:empty {
       display: none;
-    }
-
-    .daily-student-select {
-      display: block;
-      width: 100%;
-      padding: 13px;
-      margin: 15px 0;
-      border-radius: 10px;
     }
 
     .daily-rules {
@@ -121,10 +106,6 @@
     @media(max-width:520px) {
       .daily-card {
         padding: 17px;
-      }
-
-      .daily-options {
-        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -163,39 +144,47 @@
 
 <main class="wrap daily-page">
 
-  <!-- BIZ HAQIMIZDA O‘RNIGA KUNLIK SAVOL -->
   <section class="daily-intro">
     <div class="big-icon">🧠</div>
-
     <span class="eyebrow">SO‘FI OLLOHYOR O‘QUV MARKAZI</span>
 
-    <h1>Kunlik <span class="daily-green">savol</span></h1>
+    <h1>Kunlik <span class="green">savol</span></h1>
 
     <p>
-      Bilimingizni sinang! Savolga to‘g‘ri javob bering,
-      o‘z ismingizni tanlang va 2 ta yulduz yutish imkoniyatiga ega bo‘ling.
+      Savolga to‘g‘ri javob bering, ismingizni tanlang
+      va bugungi g‘olib bo‘ling!
     </p>
   </section>
 
   <section class="daily-card" id="dailyQuestionSection">
+    <span class="tag">🏆 KUNLIK BILIMLAR BELLASHUVI</span>
 
-    <span class="tag">⭐ G‘OLIB UCHUN 2 YULDUZ</span>
+    <h2>📌 Bugungi savol</h2>
 
-    <h2>📌 Bugungi topshiriq</h2>
+    <div id="dailyQuestionText">Savol yuklanmoqda...</div>
 
-    <div id="dailyQuestionText">
-      Savol yuklanmoqda...
-    </div>
+    <form id="dailyAnswerForm">
+      <label for="dailyAnswerInput">Javobingiz:</label>
 
-    <div id="dailyOptions" class="daily-options"></div>
+      <input
+        id="dailyAnswerInput"
+        class="daily-answer-input"
+        type="text"
+        placeholder="Javobingizni yozing..."
+        autocomplete="off"
+        required
+      >
 
-    <button type="button" id="dailyCheck" class="btn">
-      Javobni tekshirish
-    </button>
+      <button type="submit" class="btn" id="dailyCheck">
+        Javobni tekshirish
+      </button>
+    </form>
 
     <div id="dailyFeedback"
          class="daily-feedback"
          aria-live="polite"></div>
+
+    <div id="dailyStudentBox"></div>
 
     <div id="dailyWinner"
          class="daily-winner"
@@ -206,18 +195,18 @@
     <h2>📋 Qanday ishlaydi?</h2>
 
     <ul>
-      <li>Savol va javob variantlarini administrator joylashtiradi.</li>
-      <li>Birinchi to‘g‘ri javob bergan o‘quvchi o‘z ismini ro‘yxatdan tanlaydi.</li>
-      <li>Har bir savol uchun faqat bitta g‘olib qabul qilinadi.</li>
-      <li>G‘olibning ismi va 2 yulduzi shu bo‘limda ko‘rsatiladi.</li>
-      <li>Yulduzlar reytingga qo‘shilishi uchun tizim bazaga xavfsiz ulangan bo‘lishi kerak.</li>
+      <li>Javob variantlari berilmaydi — javobni o‘zingiz yozasiz.</li>
+      <li>To‘g‘ri javobdan keyin ismingizni ro‘yxatdan tanlaysiz.</li>
+      <li>Ism tasdiqlangach, g‘olib ushbu brauzerda ko‘rinadi.</li>
+      <li>G‘olibga yulduzlarni administrator qo‘lda qo‘shadi.</li>
+      <li>Yulduzlar reytingi avtomatik o‘zgartirilmaydi.</li>
     </ul>
   </section>
 
   <section class="panel">
-    <h2>🏆 Barcha o‘quvchilar reytingi</h2>
+    <h2>🏆 O‘quvchilar reytingi</h2>
     <p class="daily-muted">
-      Natijalaringizni boshqa o‘quvchilar bilan taqqoslang.
+      O‘quvchilar natijalarini ko‘rish uchun reyting sahifasiga o‘ting.
     </p>
     <a class="btn" href="ranking.html">Reytingni ko‘rish →</a>
   </section>
@@ -234,7 +223,172 @@
 
 <script src="data.js"></script>
 <script src="app.js"></script>
-<script src="daily-question.js"></script>
+
+<script>
+(function () {
+  "use strict";
+
+  const q = window.DAILY_QUESTION;
+  const students = (window.CENTER_DATA || {}).students || [];
+
+  const text = document.getElementById("dailyQuestionText");
+  const form = document.getElementById("dailyAnswerForm");
+  const input = document.getElementById("dailyAnswerInput");
+  const check = document.getElementById("dailyCheck");
+  const feedback = document.getElementById("dailyFeedback");
+  const studentBox = document.getElementById("dailyStudentBox");
+  const winnerBox = document.getElementById("dailyWinner");
+
+  const winnerKey = "sofi_daily_winner_v1";
+  const questionKey = "sofi_daily_question_v1";
+
+  if (!q || !q.text || !q.answer) {
+    text.textContent =
+      "Hozircha savol joylashtirilmagan. Yangi savol tez orada!";
+    form.hidden = true;
+    return;
+  }
+
+  text.textContent = q.text;
+
+  const currentQuestion = String(q.text) + "|" + String(q.answer);
+
+  function normalize(value) {
+    return String(value || "")
+      .trim()
+      .toLocaleLowerCase("uz-UZ")
+      .replace(/[‘’ʻ`']/g, "")
+      .replace(/\s+/g, " ");
+  }
+
+  function showWinner(name) {
+    winnerBox.textContent = "🏆 Bugungi g‘olib — " + name + " 🎉";
+  }
+
+  function lockForm() {
+    input.disabled = true;
+    check.disabled = true;
+  }
+
+  try {
+    const previousQuestion = localStorage.getItem(questionKey);
+
+    if (previousQuestion !== currentQuestion) {
+      localStorage.setItem(questionKey, currentQuestion);
+      localStorage.removeItem(winnerKey);
+    }
+
+    const saved = JSON.parse(localStorage.getItem(winnerKey) || "null");
+
+    if (saved && saved.name && saved.question === currentQuestion) {
+      showWinner(saved.name);
+      feedback.textContent = "Bu savolning g‘olibi allaqachon e’lon qilingan.";
+      lockForm();
+    }
+  } catch (error) {
+    console.warn("Brauzer xotirasini o‘qib bo‘lmadi.", error);
+  }
+
+  form.addEventListener("submit", function (event) {
+    event.preventDefault();
+
+    if (normalize(input.value) !== normalize(q.answer)) {
+      feedback.textContent =
+        "❌ Javob noto‘g‘ri. Qayta urinib ko‘ring.";
+      return;
+    }
+
+    if (!Array.isArray(students) || students.length === 0) {
+      feedback.textContent =
+        "O‘quvchilar ro‘yxati topilmadi. data.js faylini tekshiring.";
+      return;
+    }
+
+    feedback.textContent = "✅ Javob to‘g‘ri! Siz kimsiz?";
+    studentBox.replaceChildren();
+
+    const label = document.createElement("label");
+    label.textContent = "O‘quvchilar ro‘yxatidan ismingizni tanlang:";
+    label.htmlFor = "dailyStudentSelect";
+
+    const select = document.createElement("select");
+    select.id = "dailyStudentSelect";
+    select.className = "daily-student-select";
+
+    const firstOption = document.createElement("option");
+    firstOption.value = "";
+    firstOption.textContent = "Ismingizni tanlang...";
+    select.appendChild(firstOption);
+
+    students.forEach(function (student, index) {
+      const name = typeof student === "string"
+        ? student
+        : (student.name || student.full_name || "");
+
+      if (!name) return;
+
+      const option = document.createElement("option");
+      option.value = String(index);
+      option.textContent = name;
+      select.appendChild(option);
+    });
+
+    const confirmButton = document.createElement("button");
+    confirmButton.type = "button";
+    confirmButton.className = "btn";
+    confirmButton.textContent = "Ismimni tasdiqlash";
+
+    studentBox.append(label, select, confirmButton);
+
+    confirmButton.addEventListener("click", function () {
+      if (select.value === "") {
+        feedback.textContent = "Avval ismingizni tanlang.";
+        return;
+      }
+
+      let saved;
+
+      try {
+        saved = JSON.parse(localStorage.getItem(winnerKey) || "null");
+      } catch (error) {
+        saved = null;
+      }
+
+      if (saved && saved.question === currentQuestion && saved.name) {
+        showWinner(saved.name);
+        feedback.textContent = "Bu savol uchun g‘olib allaqachon tanlangan.";
+        studentBox.replaceChildren();
+        lockForm();
+        return;
+      }
+
+      const student = students[Number(select.value)];
+      const name = typeof student === "string"
+        ? student
+        : (student.name || student.full_name || "O‘quvchi");
+
+      try {
+        localStorage.setItem(winnerKey, JSON.stringify({
+          name: name,
+          question: currentQuestion
+        }));
+        localStorage.setItem(questionKey, currentQuestion);
+      } catch (error) {
+        feedback.textContent =
+          "G‘olibni saqlab bo‘lmadi. Brauzer xotirasi sozlamalarini tekshiring.";
+        return;
+      }
+
+      showWinner(name);
+      feedback.textContent =
+        "🎉 G‘olib e’lon qilindi! Yulduzlarni administrator qo‘lda qo‘shadi.";
+
+      studentBox.replaceChildren();
+      lockForm();
+    });
+  });
+})();
+</script>
 
 </body>
 </html>
