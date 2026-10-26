@@ -72,13 +72,101 @@ window.CENTER_DATA = {
     {title:"Musobaqada 3-o‘rin", stars:2}
   ],
   products: [
-    {name:"Matematika masalalar kitobi", category:"Kitob", icon:"📘", description:"Mashq va masalalar to‘plami", price:25000},
-    {name:"Ingliz tili lug‘ati", category:"Kitob", icon:"📗", description:"So‘z boyligini oshirish uchun", price:30000},
-    {name:"Katak daftar", category:"Daftar", icon:"📒", description:"Matematika uchun qulay daftar", price:5000},
-    {name:"Chiziqli daftar", category:"Daftar", icon:"📓", description:"Kundalik yozuvlar uchun", price:5000},
-    {name:"Ko‘k ruchka", category:"Ruchka", icon:"🖊️", description:"Kundalik yozish uchun", price:3000},
-    {name:"Qalam va o‘chirg‘ich", category:"Jihoz", icon:"✏️", description:"Dars uchun kerakli to‘plam", price:7000},
-    {name:"Chizg‘ich", category:"Jihoz", icon:"📏", description:"Geometriya mashg‘ulotlari uchun", price:4000},
-    {name:"Rangli markerlar", category:"Jihoz", icon:"🖍️", description:"Muhim joylarni belgilash uchun", price:12000}
-  ]
+  {
+    name: "Ruchka",
+    category: "Ruchka",
+    icon: "🖊️",
+    description: "Sifatli yozuv ruchkasi",
+    price: 0,
+    stars: 30
+  },
+  {
+    name: "Chizg‘ich",
+    category: "Jihoz",
+    icon: "📏",
+    description: "Geometriya uchun",
+    price: 0,
+    stars: 30
+  },
+  {
+    name: "Qalam va o‘chirg‘ich",
+    category: "Jihoz",
+    icon: "✏️",
+    description: "Dars uchun to‘plam",
+    price: 0,
+    stars: 35
+  },
+  {
+    name: "Katak daftar",
+    category: "Daftar",
+    icon: "📒",
+    description: "Matematika uchun daftar",
+    price: 0,
+    stars: 40
+  },
+  {
+    name: "Chiziqli daftar",
+    category: "Daftar",
+    icon: "📓",
+    description: "Yozuvlar uchun daftar",
+    price: 0,
+    stars: 40
+  },
+  {
+    name: "Rangli markerlar",
+    category: "Jihoz",
+    icon: "🖍️",
+    description: "Rangli markerlar to‘plami",
+    price: 0,
+    stars: 50
+  },
+  {
+    name: "Maqtov yorlig‘i",
+    category: "Sovg‘a",
+    icon: "🏅",
+    description: "O‘quvchi yutug‘i uchun",
+    price: 0,
+    stars: 80
+  },
+  {
+    name: "Matematika kitobi",
+    category: "Kitob",
+    icon: "📘",
+    description: "Misol va masalalar to‘plami",
+    price: 0,
+    stars: 100
+  },
+  {
+    name: "Penal",
+    category: "Jihoz",
+    icon: "🧰",
+    description: "O‘quv qurollari uchun",
+    price: 0,
+    stars: 100
+  },
+  {
+    name: "Ingliz tili lug‘ati",
+    category: "Kitob",
+    icon: "📗",
+    description: "Inglizcha so‘zlarni o‘rganish uchun",
+    price: 0,
+    stars: 120
+  },
+  {
+    name: "Suv idishi",
+    category: "Sovg‘a",
+    icon: "🥤",
+    description: "Kundalik foydalanish uchun",
+    price: 0,
+    stars: 120
+  },
+  {
+    name: "Kichik sovg‘a",
+    category: "Sovg‘a",
+    icon: "🎁",
+    description: "Faol o‘quvchilar uchun",
+    price: 0,
+    stars: 150
+  }
+]
 };
