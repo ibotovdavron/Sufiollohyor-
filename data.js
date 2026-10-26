@@ -27,7 +27,7 @@ window.CENTER_DATA = {
     {name:"Qurbonov Javlon", group:"5-sinf", stars:15, result:"Natija hali kiritilmagan"},
     {name:"Raxmatov Abubakr", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
     {name:"Saydullayev Alibek", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
-    {name:"Uroqova Shahzoda", group:"5-sinf", stars:2, result:"Natija hali kiritilmagan"},
+    {name:"Uroqova Shahzoda", group:"5-sinf", stars:5, result:"Natija hali kiritilmagan"},
     {name:"Xikmatullayev Nodir", group:"5-sinf", stars:10, result:"Natija hali kiritilmagan"},
     {name:"Xursanov Samariddin", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
     {name:"Shamsullayev Sardor", group:"5-sinf", stars:0, result:"Natija hali kiritilmagan"},
