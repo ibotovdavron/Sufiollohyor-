@@ -150,27 +150,37 @@
     <span class="btn">Guruhga o‘tish →</span>
   </a>
 
-  <!-- KUNLIK SAVOL -->
-  <section class="daily-question" id="dailyQuestionSection">
-    <span class="eyebrow">🧠 BILIMINGIZNI SINANG</span>
-    <h2>Kunlik <span class="green">savol</span></h2>
-    <p class="daily-muted">
-      Savolga birinchi bo‘lib to‘g‘ri javob bering va 2 yulduz yuting!
-    </p>
+<!-- KUNLIK SAVOL -->
+<section class="daily-question" id="dailyQuestionSection">
+  <span class="eyebrow">🧠 BILIMINGIZNI SINANG</span>
+  <h2>Kunlik <span class="green">savol</span></h2>
+  <p class="daily-muted">
+    To‘g‘ri javob bering va bugungi g‘olib bo‘ling!
+  </p>
 
-    <div class="daily-card">
-      <div style="font-size:40px;margin-bottom:12px">❓</div>
-      <div id="dailyQuestionText">Savol yuklanmoqda...</div>
-      <div id="dailyOptions" class="daily-options"></div>
+  <div class="daily-card">
+    <h3 id="dailyQuestionText">Savol yuklanmoqda...</h3>
 
-      <button type="button" id="dailyCheck" class="btn">
-        Javobni tekshirish
-      </button>
+    <input
+      id="dailyAnswerInput"
+      type="text"
+      placeholder="Javobingizni yozing..."
+      autocomplete="off"
+      style="width:100%;padding:14px;border-radius:12px;margin:12px 0"
+    >
 
-      <div id="dailyFeedback" class="daily-feedback" aria-live="polite"></div>
-      <div id="dailyWinner" class="daily-winner" aria-live="polite"></div>
-    </div>
-  </section>
+    <button type="button" class="btn" id="dailyCheck">
+      Javobni tekshirish
+    </button>
+
+    <div id="dailyFeedback" class="daily-feedback"
+         aria-live="polite"></div>
+
+    <div id="dailyStudentBox"></div>
+    <div id="dailyWinner" class="daily-winner"></div>
+  </div>
+</section>
+
 
   <!-- ASOSIY BO‘LIMLAR -->
   <div class="section-head">
@@ -349,6 +359,119 @@
   });
 })();
 </script>
+  
+<script>
+(function () {
+  const q = window.DAILY_QUESTION;
+  const data = window.CENTER_DATA || {};
+  const text = document.getElementById("dailyQuestionText");
+  const input = document.getElementById("dailyAnswerInput");
+  const check = document.getElementById("dailyCheck");
+  const feedback = document.getElementById("dailyFeedback");
+  const studentBox = document.getElementById("dailyStudentBox");
+  const winnerBox = document.getElementById("dailyWinner");
+
+  if (!q || !q.text || !q.answer) {
+    text.textContent = "Hozircha savol joylashtirilmagan.";
+    check.disabled = true;
+    return;
+  }
+
+  text.textContent = q.text;
+
+  const key = "sofi_daily_winner_v1";
+  const questionKey = "sofi_daily_question_v1";
+  const currentQuestion = q.text + "|" + q.answer;
+
+  // Shu brauzerda avvalgi savol g‘olibini ko‘rsatish
+  try {
+    if (localStorage.getItem(questionKey) !== currentQuestion) {
+      localStorage.setItem(questionKey, currentQuestion);
+      localStorage.removeItem(key);
+    }
+
+    const saved = JSON.parse(localStorage.getItem(key) || "null");
+    if (saved && saved.name) showWinner(saved.name);
+  } catch (e) {}
+
+  function showWinner(name) {
+    winnerBox.textContent = "🏆 Bugungi g‘olib — " + name + " 🎉";
+  }
+
+  function normalize(s) {
+    return String(s || "")
+      .trim()
+      .toLocaleLowerCase("uz-UZ")
+      .replace(/[‘’ʻ`']/g, "")
+      .replace(/\s+/g, " ");
+  }
+
+  check.addEventListener("click", function () {
+    if (normalize(input.value) !== normalize(q.answer)) {
+      feedback.textContent = "❌ Javob noto‘g‘ri. Qayta urinib ko‘ring.";
+      return;
+    }
+
+    const students = Array.isArray(data.students) ? data.students : [];
+    if (!students.length) {
+      feedback.textContent = "O‘quvchilar ro‘yxati topilmadi.";
+      return;
+    }
+
+    feedback.textContent = "✅ Javob to‘g‘ri! Siz kimsiz?";
+    studentBox.replaceChildren();
+
+    const select = document.createElement("select");
+    select.style.cssText =
+      "width:100%;padding:13px;margin:12px 0;border-radius:10px";
+    const first = document.createElement("option");
+    first.value = "";
+    first.textContent = "O‘quvchini tanlang...";
+    select.appendChild(first);
+
+    students.forEach(function (s, i) {
+      const opt = document.createElement("option");
+      opt.value = String(i);
+      opt.textContent = typeof s === "string"
+        ? s : (s.name || s.full_name || "O‘quvchi");
+      select.appendChild(opt);
+    });
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "btn";
+    button.textContent = "Ismimni tasdiqlash";
+
+    studentBox.append(select, button);
+
+    button.addEventListener("click", function () {
+      if (select.value === "") {
+        feedback.textContent = "Avval ismingizni tanlang.";
+        return;
+      }
+
+      const s = students[Number(select.value)];
+      const name = typeof s === "string"
+        ? s : (s.name || s.full_name || "O‘quvchi");
+
+      try {
+        localStorage.setItem(key, JSON.stringify({
+          name: name,
+          question: currentQuestion
+        }));
+      } catch (e) {}
+
+      showWinner(name);
+      feedback.textContent = "🎉 G‘olib muvaffaqiyatli e’lon qilindi!";
+      input.disabled = true;
+      check.disabled = true;
+      select.disabled = true;
+      button.disabled = true;
+    });
+  });
+})();
+</script>
+  
 
 </body>
 </html>
