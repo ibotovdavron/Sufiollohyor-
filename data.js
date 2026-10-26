@@ -172,5 +172,5 @@ window.CENTER_DATA = {
 };
 window.DAILY_QUESTION = {
   text: "Tishlari ko‘p, lekin hech qachon tishlamaydi. Bu nima?",
-  answer: "taroq"
+  answer: "Taroq"
 };
