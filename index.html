@@ -9,18 +9,22 @@
   <title>Bosh sahifa | So‘fi Ollohyor</title>
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+
 <header class="topbar">
   <div class="wrap topinner">
     <a class="brand" href="index.html">
-      <img src="assets/markaz-logo.png" alt="Markaz logotipi"
-           onerror="this.style.display='none'">
-      <span class="brand-mark">S<span class="green">O</span></span>
-      <span class="brand-name">SO‘FI OLLOHYOR
+      <img class="brand-image"
+           src="assets/markaz-logo.png"
+           alt="Markaz logotipi"
+           onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+      <span class="brand-mark" hidden>SO</span>
+      <span class="brand-name">
+        SO‘FI OLLOHYOR
         <small>O‘QUV MARKAZI</small>
       </span>
     </a>
+
     <div class="social">
       <a href="https://t.me/sufi_ollohyor_uquv_markaz"
          target="_blank" rel="noopener noreferrer">✈️ Telegram</a>
@@ -31,50 +35,78 @@
 </header>
 
 <main class="wrap">
+
   <section class="hero">
     <div class="hero-copy">
       <span class="eyebrow">📍 Oltinsoy tumani</span>
       <h1>So‘fi <span class="green">Ollohyor</span></h1>
-      <h2 class="green">O‘QUV MARKAZI</h2>
+      <h2 class="hero-subtitle">O‘QUV MARKAZI</h2>
       <p class="lead">Bilim · Tarbiya · Natija</p>
-      <p>Matematika, fizika, ingliz tili va ona tili fanlari
-        bo‘yicha sifatli ta’lim va yangi imkoniyatlar.</p>
-      <a class="btn" href="about.html">Markaz haqida →</a>
-      <a class="btn secondary"
-         href="https://t.me/sufi_ollohyor_uquv_markaz">✈️ Telegram ↗</a>
+      <p>
+        Matematika, fizika, ingliz tili va ona tili
+        fanlari bo‘yicha sifatli ta’lim va yangi imkoniyatlar.
+      </p>
+
+      <div class="hero-actions">
+        <a class="btn" href="about.html">Markaz haqida →</a>
+        <a class="btn secondary"
+           href="https://t.me/sufi_ollohyor_uquv_markaz"
+           target="_blank" rel="noopener noreferrer">✈️ Telegram</a>
+      </div>
     </div>
 
     <div class="hero-art">
       <div class="hero-logo">
-        <img src="assets/markaz-logo.png" alt="So‘fi Ollohyor logotipi">
+        <img src="assets/markaz-logo.png"
+             alt="So‘fi Ollohyor logotipi"
+             onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+        <div class="hero-logo-fallback" hidden>
+          SO‘FI<br><span>OLLOHYOR</span>
+        </div>
         <div class="sub">BILIM · TARBIYA · NATIJA</div>
       </div>
+      <span class="orb orb-one"></span>
+      <span class="orb orb-two"></span>
     </div>
   </section>
 
-  <section class="stats">
-    <div class="stat"><span class="emoji">👥</span><div><strong>60</strong><span>nafar o‘quvchi</span></div></div>
-    <div class="stat"><span class="emoji">🎓</span><div><strong>2</strong><span>5- va 6-sinflar</span></div></div>
-    <div class="stat"><span class="emoji">🧑‍🏫</span><div><strong>5</strong><span>nafar ustoz</span></div></div>
-    <div class="stat"><span class="emoji">📍</span><div><strong>Oltinsoy</strong><span>tumani</span></div></div>
+  <section class="stats" aria-label="Markaz statistikasi">
+    <div class="stat">
+      <span class="emoji">👥</span>
+      <div><strong>60</strong><span>nafar o‘quvchi</span></div>
+    </div>
+    <div class="stat">
+      <span class="emoji">🎓</span>
+      <div><strong>2</strong><span>5- va 6-sinflar</span></div>
+    </div>
+    <div class="stat">
+      <span class="emoji">🧑‍🏫</span>
+      <div><strong>5</strong><span>nafar ustoz</span></div>
+    </div>
+    <div class="stat">
+      <span class="emoji">📍</span>
+      <div><strong>Oltinsoy</strong><span>tumani</span></div>
+    </div>
   </section>
 
-  <div class="section-head">
-    <div>
-      <h2>🟢 Bizning fanlar</h2>
-      <p>Bilim sari birgalikda intilamiz</p>
+  <section class="content-section">
+    <div class="section-head">
+      <div>
+        <span class="section-kicker">TA’LIM YO‘NALISHLARI</span>
+        <h2>🟢 Bizning fanlar</h2>
+        <p>Bilim sari birgalikda intilamiz</p>
+      </div>
     </div>
-  </div>
-  <section class="subjects" id="homeSubjects"></section>
+    <section class="subjects" id="homeSubjects"></section>
+  </section>
 
-  <a class="panel"
-     style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap"
+  <a class="panel math-panel"
      href="https://t.me/matematika144"
      target="_blank" rel="noopener noreferrer">
     <div>
       <span class="tag">MAXSUS GURUH</span>
-      <h2 style="margin:8px 0"><span class="green">Matematika 144</span> guruhi</h2>
-      <p class="muted" style="margin:0">Matematika bilan kuchli natijalarga!</p>
+      <h2><span class="green">Matematika 144</span> guruhi</h2>
+      <p class="muted">Matematika bilan kuchli natijalarga!</p>
     </div>
     <span class="btn">Guruhga o‘tish →</span>
   </a>
@@ -83,70 +115,121 @@
   <section class="daily-question" id="dailyQuestionSection">
     <span class="eyebrow">🧠 BILIMINGIZNI SINANG</span>
     <h2>Kunlik <span class="green">savol</span></h2>
-    <p class="daily-muted">To‘g‘ri javob bering va bugungi g‘olib bo‘ling!</p>
+    <p class="daily-muted">
+      To‘g‘ri javob bering va bugungi g‘olib bo‘lish
+      imkoniyatini qo‘lga kiriting.
+    </p>
 
     <div class="daily-card">
+      <div class="question-label">BUGUNGI TOPSHIRIQ</div>
+
       <h3 id="dailyQuestionText">Savol yuklanmoqda...</h3>
-      <input id="dailyAnswerInput" type="text"
+
+      <label class="visually-hidden" for="dailyAnswerInput">
+        Javobingiz
+      </label>
+      <input id="dailyAnswerInput"
+             type="text"
              placeholder="Javobingizni yozing..."
              autocomplete="off">
-      <button type="button" class="btn" id="dailyCheck">Javobni tekshirish</button>
-      <div id="dailyFeedback" class="daily-feedback" aria-live="polite"></div>
+
+      <button type="button" class="btn" id="dailyCheck">
+        Javobni tekshirish
+      </button>
+
+      <div id="dailyFeedback"
+           class="daily-feedback"
+           aria-live="polite"></div>
+
       <div id="dailyStudentBox"></div>
-      <div id="dailyWinner" class="daily-winner"></div>
+
+      <div id="dailyWinner"
+           class="daily-winner"
+           aria-live="polite"></div>
     </div>
+
+    <p class="daily-note">
+      Eslatma: g‘olib ushbu brauzerda saqlanadi.
+      Boshqa telefonlarga avtomatik sinxronlanmaydi.
+    </p>
   </section>
 
-  <div class="section-head">
-    <div>
-      <h2>Asosiy bo‘limlar</h2>
-      <p>Kerakli ma’lumotni tanlang</p>
-    </div>
-  </div>
-  <section class="feature-grid" id="homeFeatures"></section>
-
-  <section class="panel">
+  <section class="content-section">
     <div class="section-head">
       <div>
+        <span class="section-kicker">MARKAZ IMKONIYATLARI</span>
+        <h2>Asosiy bo‘limlar</h2>
+        <p>Kerakli ma’lumotni tanlang</p>
+      </div>
+    </div>
+    <section class="feature-grid" id="homeFeatures"></section>
+  </section>
+
+  <section class="panel ranking-panel">
+    <div class="section-head">
+      <div>
+        <span class="section-kicker">FAOLLAR</span>
         <h2>⭐ O‘quvchilar reytingi</h2>
         <p>O‘quvchilarning natijalari</p>
       </div>
-      <a class="green" href="ranking.html">Barchasi →</a>
+      <a class="text-link" href="ranking.html">Barchasi →</a>
     </div>
     <div id="rankPreview"></div>
   </section>
 
-  <section class="panel">
+  <section class="panel news-panel">
     <div class="section-head">
       <div>
-        <h2>📢 Yangiliklar</h2>
+        <span class="section-kicker">YANGILIKLAR</span>
+        <h2>📢 Markaz yangiliklari</h2>
         <p>Rasmiy kanallarimizdan kuzatib boring</p>
       </div>
     </div>
-    <p class="muted">E’lonlar, dars jadvali va markaz yangiliklari Telegram kanalida joylanadi.</p>
-    <a class="btn" href="https://t.me/sufi_ollohyor_uquv_markaz"
-       target="_blank" rel="noopener noreferrer">Telegram kanaliga o‘tish ↗</a>
-    <a class="btn secondary" href="https://www.instagram.com/sufiollohyor/"
-       target="_blank" rel="noopener noreferrer">Instagram ↗</a>
+
+    <p class="muted">
+      E’lonlar, dars jadvalidagi o‘zgarishlar va markaz
+      yangiliklari Telegram kanalida joylanadi.
+    </p>
+
+    <div class="hero-actions">
+      <a class="btn"
+         href="https://t.me/sufi_ollohyor_uquv_markaz"
+         target="_blank" rel="noopener noreferrer">
+        Telegram kanaliga o‘tish ↗
+      </a>
+      <a class="btn secondary"
+         href="https://www.instagram.com/sufiollohyor/"
+         target="_blank" rel="noopener noreferrer">
+        Instagram ↗
+      </a>
+    </div>
   </section>
+
 </main>
 
 <footer class="footer wrap">
-  © 2026 So‘fi Ollohyor o‘quv markazi · Oltinsoy tumani
-  <br><span class="smallprint">Bilim · Tarbiya · Natija</span>
+  <div class="footer-brand">
+    SO‘FI OLLOHYOR
+    <span>O‘QUV MARKAZI</span>
+  </div>
+  <p>© 2026 So‘fi Ollohyor o‘quv markazi · Oltinsoy tumani</p>
+  <p class="smallprint">Bilim · Tarbiya · Natija</p>
 </footer>
 
 <nav class="bottom-nav" id="bottomNav" aria-label="Asosiy menyu"></nav>
 
+<!-- Mavjud fayllar -->
 <script src="data.js"></script>
 <script src="app.js"></script>
 
+<!-- Kunlik savol: faqat bitta skript -->
 <script>
 (function () {
   "use strict";
 
   const q = window.DAILY_QUESTION;
   const data = window.CENTER_DATA || {};
+
   const text = document.getElementById("dailyQuestionText");
   const input = document.getElementById("dailyAnswerInput");
   const check = document.getElementById("dailyCheck");
@@ -154,9 +237,14 @@
   const studentBox = document.getElementById("dailyStudentBox");
   const winnerBox = document.getElementById("dailyWinner");
 
-  if (!q || !q.text || q.answer == null) {
+  if (!text || !input || !check || !feedback ||
+      !studentBox || !winnerBox) return;
+
+  if (!q || !q.text || q.answer == null ||
+      String(q.answer).trim() === "") {
     text.textContent = "Hozircha savol joylashtirilmagan.";
     check.disabled = true;
+    input.disabled = true;
     return;
   }
 
@@ -164,56 +252,76 @@
 
   const winnerKey = "sofi_daily_winner_v1";
   const questionKey = "sofi_daily_question_v1";
-  const currentQuestion = String(q.text) + "|" + String(q.answer);
+  const currentQuestion =
+    String(q.text).trim() + "|" + String(q.answer).trim();
 
   function normalize(value) {
-    return String(value ?? "")
+    return String(value == null ? "" : value)
       .trim()
       .toLocaleLowerCase("uz-UZ")
-      .replace(/[‘’ʻ`']/g, "")
+      .replace(/[‘’ʻ`´']/g, "")
       .replace(/\s+/g, " ");
   }
 
-  function showWinner(name) {
-    winnerBox.textContent = "🏆 Bugungi g‘olib — " + name + " 🎉";
+  function studentName(student) {
+    if (typeof student === "string") return student;
+    return student &&
+      (student.name || student.full_name || student.fullName)
+      || "O‘quvchi";
   }
 
-  // Savol yoki javob o‘zgarsa, eski g‘olibni tozalash
+  function showWinner(name) {
+    winnerBox.textContent =
+      "🏆 Bugungi g‘olib — " + name + " 🎉";
+  }
+
   try {
     if (localStorage.getItem(questionKey) !== currentQuestion) {
       localStorage.setItem(questionKey, currentQuestion);
       localStorage.removeItem(winnerKey);
     }
 
-    const saved = JSON.parse(localStorage.getItem(winnerKey) || "null");
-    if (saved && saved.name && saved.question === currentQuestion) {
+    const saved = JSON.parse(
+      localStorage.getItem(winnerKey) || "null"
+    );
+
+    if (saved && saved.name &&
+        saved.question === currentQuestion) {
       showWinner(saved.name);
-      feedback.textContent = "Bugungi g‘olib aniqlangan.";
+      feedback.textContent =
+        "Bugungi g‘olib ushbu brauzerda qayd etilgan.";
       input.disabled = true;
       check.disabled = true;
     }
-  } catch (e) {
-    // Brauzer xotirasi ishlamasa ham savolni yechishga ruxsat beriladi
-  }
+  } catch (e) {}
 
   check.addEventListener("click", function () {
+    if (check.disabled) return;
+
     if (normalize(input.value) !== normalize(q.answer)) {
-      feedback.textContent = "❌ Javob noto‘g‘ri. Qayta urinib ko‘ring.";
+      feedback.textContent =
+        "❌ Javob noto‘g‘ri. Qayta urinib ko‘ring.";
       studentBox.replaceChildren();
       return;
     }
 
-    const students = Array.isArray(data.students) ? data.students : [];
+    const students = Array.isArray(data.students)
+      ? data.students : [];
+
     if (!students.length) {
-      feedback.textContent = "O‘quvchilar ro‘yxati topilmadi. data.js faylini tekshiring.";
+      feedback.textContent =
+        "O‘quvchilar ro‘yxati topilmadi. data.js faylini tekshiring.";
       return;
     }
 
-    feedback.textContent = "✅ To‘g‘ri javob! Siz kimsiz?";
+    feedback.textContent =
+      "✅ Javob to‘g‘ri! Ro‘yxatdan ismingizni tanlang.";
+
     studentBox.replaceChildren();
 
     const select = document.createElement("select");
     select.className = "daily-student-select";
+    select.setAttribute("aria-label", "O‘quvchini tanlang");
 
     const first = document.createElement("option");
     first.value = "";
@@ -223,9 +331,7 @@
     students.forEach(function (student, index) {
       const option = document.createElement("option");
       option.value = String(index);
-      option.textContent = typeof student === "string"
-        ? student
-        : (student.name || student.full_name || "O‘quvchi");
+      option.textContent = studentName(student);
       select.appendChild(option);
     });
 
@@ -242,20 +348,21 @@
         return;
       }
 
-      const student = students[Number(select.value)];
-      const name = typeof student === "string"
-        ? student
-        : (student.name || student.full_name || "O‘quvchi");
+      const name = studentName(students[Number(select.value)]);
 
       try {
-        localStorage.setItem(winnerKey, JSON.stringify({
-          name: name,
-          question: currentQuestion
-        }));
+        localStorage.setItem(
+          winnerKey,
+          JSON.stringify({
+            name: name,
+            question: currentQuestion
+          })
+        );
       } catch (e) {}
 
       showWinner(name);
       feedback.textContent = "🎉 G‘olib e’lon qilindi!";
+
       input.disabled = true;
       check.disabled = true;
       select.disabled = true;
@@ -264,9 +371,12 @@
   });
 
   input.addEventListener("keydown", function (event) {
-    if (event.key === "Enter" && !check.disabled) check.click();
+    if (event.key === "Enter" && !check.disabled) {
+      check.click();
+    }
   });
 })();
 </script>
+
 </body>
 </html>
