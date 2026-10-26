@@ -8,7 +8,7 @@
   ["results.html","📄","Natijalar"],
   ["schedule.html","🗓️","Jadval"],
   ["shop.html","🛍️","Do‘kon"],
-  ["about.html","ℹ️","Haqimizda"],
+  ["about.html","❓","Kunlik savol"],
   ["contact.html","☎️","Aloqa"]
  ];
  const path=location.pathname.split("/").pop()||"index.html";
