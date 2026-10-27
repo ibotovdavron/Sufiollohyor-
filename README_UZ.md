@@ -1,8 +1,18 @@
-# So‘fi Ollohyor — yangi dizayn
+# Bilmasvoyga o‘rgat — 2D sarguzasht
 
-1) Avval eski GitHub repo: Code → Download ZIP orqali zaxiralang.
-2) Bu ZIP ichidagi fayllarni yuklang. Mavjud fayllarni darhol o‘chirmang.
-3) `config.js`ni o‘zingiz yarating: `config.example.js` namunasidan foydalaning va Supabase Project URL + faqat `sb_publishable_...` kalitini kiriting.
-4) `sb_secret_...` kalitini hech qachon brauzer fayliga qo‘ymang. Chatga yuborilgan secret kalitni Supabase’da bekor qiling/almashtiring.
-5) Administrator orqali Auth foydalanuvchi yaratish uchun ishonchli server-side Edge Function/backend kerak; secret kalit HTML/JS ichida ishlatilmasin.
-6) Supabase RLS siyosatlari ruxsat bermasa, jadvallar o‘qilmaydi yoki yozilmaydi. Bu paket dizayn va asosiy login/kabinet skeletini beradi; barcha modullarni mavjud jadval ustunlariga moslab keyingi bosqichlarda ulash kerak.
+## Ishga tushirish
+1. ZIP faylni oching.
+2. `bilmasvoy.html` faylini brauzerda tekshiring.
+3. GitHub repozitoriyingizga `bilmasvoy.html` faylini yuklang.
+4. GitHub Pages manzilingizda `/bilmasvoy.html` sahifasini oching.
+
+## Funksiyalar
+- O‘yinga kirishda animatsiyali kutib olish sahnasi.
+- Do‘ppi kiygan Bilmasvoy uslubidagi sho‘x bolakay (hozircha emoji qahramon).
+- O‘rmon xaritasi, 10 bosqich, yulduzlar va g‘alaba animatsiyasi.
+- Matematika, fizika, ingliz tili, ona tili va mantiq savollari.
+- To‘g‘ri javob uchun 2 yulduz; bir bosqichni qayta o‘tib yana yulduz olish cheklovi shu brauzer profilida ishlaydi.
+- Natijalar localStorage’da saqlanadi.
+
+## Eslatma
+Bu versiya hozircha mustaqil brauzer prototipi. Umumiy o‘quvchilar reytingi va turli qurilmalar orasida himoyalangan, ishonchli yulduz nazorati uchun Supabase backend’iga ulash kerak. `service_role` kalitini hech qachon front-end kodiga yozmang.

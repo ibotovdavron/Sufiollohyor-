@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bilmasvoy — Bilimlar sarguzashti</title>
+<style>
+:root{--green:#16834a;--green2:#35b86b;--lime:#c8f36a;--cream:#fff8df;--ink:#173d2a;--gold:#ffcc45}
+*{box-sizing:border-box}body{margin:0;background:#eaf8e9;color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+button,select,input{font:inherit}button{cursor:pointer;border:0}
+.top{background:linear-gradient(135deg,#0d6b3c,#31a65d);color:white;padding:16px 18px 20px;border-radius:0 0 26px 26px;box-shadow:0 5px 16px #175a3030}
+.topline{display:flex;justify-content:space-between;align-items:center;gap:12px}.brand{font-weight:900;font-size:1.15rem}.stars{background:#ffffff24;border:1px solid #ffffff45;border-radius:999px;padding:8px 12px;font-weight:800}
+.subtitle{opacity:.92;margin:8px 0 0;font-size:.92rem}.wrap{max-width:920px;margin:auto;padding:14px}
+.panel{background:white;border:1px solid #d8eed9;border-radius:20px;padding:15px;box-shadow:0 5px 16px #1d65300c;margin-bottom:14px}
+.profile{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field label{display:block;font-size:.82rem;font-weight:800;margin-bottom:5px}.field input,.field select{width:100%;padding:11px;border:1px solid #cfe5d0;border-radius:12px;background:#fbfffa;color:var(--ink)}
+.btn{background:var(--green);color:#fff;border-radius:13px;padding:11px 16px;font-weight:800;box-shadow:0 3px 0 #09552c}.btn.secondary{background:#e5f6e7;color:#146c3a;box-shadow:none;border:1px solid #bde4c3}.btn:active{transform:translateY(2px);box-shadow:none}
+.maphead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}.maphead h2{font-size:1.1rem;margin:0}.small{font-size:.82rem;color:#578065}
+.map{height:350px;position:relative;overflow:hidden;border-radius:18px;background:linear-gradient(#b8e9a2 0%,#80ce79 58%,#4da965 100%);border:2px solid #a7dca4}
+.map:before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 20% 15%,#e1f7a9 0 5%,transparent 6%),radial-gradient(ellipse at 83% 20%,#d5f29a 0 4%,transparent 5%),radial-gradient(ellipse at 80% 80%,#278f55 0 7%,transparent 8%),radial-gradient(ellipse at 15% 75%,#2b9959 0 8%,transparent 9%);opacity:.9}
+.bush{position:absolute;width:65px;height:34px;border-radius:50%;background:#2f9654;box-shadow:14px -9px 0 #43a75a,-13px -5px 0 #267c49;z-index:1}
+.tree{position:absolute;z-index:2;font-size:25px;filter:drop-shadow(0 2px 0 #277744)}
+.pathsvg{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
+.level{position:absolute;z-index:4;transform:translate(-50%,-50%);width:43px;height:43px;border-radius:50%;background:#fff7d5;border:3px solid #d6a72d;color:#805c0b;display:flex;align-items:center;justify-content:center;font-weight:900;box-shadow:0 3px 0 #b88721;transition:transform .3s,filter .3s}
+.level.locked{filter:grayscale(1);opacity:.65;background:#d6e0d4;border-color:#a6b7a6;box-shadow:0 3px 0 #8da08d}
+.level.done{background:#ffd84f;border-color:#f59d20;box-shadow:0 3px 0 #c77c12}
+.level.current{animation:pulse 1.3s infinite;border-color:#16834a;box-shadow:0 0 0 5px #fff9,0 3px 0 #b88721;transform:translate(-50%,-50%) scale(1.12)}
+@keyframes pulse{50%{box-shadow:0 0 0 9px #ffffff35,0 3px 0 #b88721}}
+.boy{position:absolute;z-index:6;transform:translate(-50%,-100%);font-size:39px;filter:drop-shadow(0 3px 1px #235c35);transition:left .85s cubic-bezier(.2,.8,.2,1),top .85s cubic-bezier(.2,.8,.2,1);animation:bob 1.1s infinite ease-in-out;pointer-events:none}
+@keyframes bob{50%{margin-top:-5px}}
+.mapcaption{display:flex;justify-content:space-between;gap:8px;font-size:.8rem;margin-top:8px;color:#477451}
+.tasktitle{display:flex;align-items:center;justify-content:space-between;gap:8px}.tag{background:#e5f6e7;color:#187443;border-radius:999px;padding:5px 9px;font-size:.78rem;font-weight:800}
+.question{font-size:1.12rem;font-weight:900;margin:13px 0}.answers{display:grid;grid-template-columns:1fr 1fr;gap:9px}.answer{background:#f5fbf3;border:2px solid #d5ebd5;border-radius:14px;padding:12px;text-align:left;font-weight:800;color:#234b31;min-height:48px}.answer:hover{border-color:#45af6c}.answer.correct{background:#dcf9df;border-color:#26a454}.answer.wrong{background:#fff0e9;border-color:#e77d5d}
+.feedback{margin-top:12px;border-radius:13px;padding:10px 12px;background:#f4f8ee;font-weight:750;min-height:42px}.feedback.good{background:#e1f8e4;color:#176e38}.feedback.bad{background:#fff0e8;color:#9b482b}
+.taskactions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}.progressline{height:9px;background:#e5f0e2;border-radius:99px;overflow:hidden;margin:9px 0}.progressline span{display:block;height:100%;width:0;background:linear-gradient(90deg,#2eaa5c,#b5e64c);transition:width .4s}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.stat{background:#f2faf0;border-radius:14px;padding:12px;text-align:center}.stat strong{display:block;font-size:1.25rem;color:#167342}.stat span{font-size:.75rem;color:#598064}
+.notice{font-size:.8rem;color:#64816b;line-height:1.45}.footer{text-align:center;color:#60816a;font-size:.8rem;padding:4px 10px 20px}
+.confetti{position:absolute;z-index:8;font-size:22px;pointer-events:none;animation:fly 1.1s ease-out forwards}@keyframes fly{to{transform:translate(var(--dx),-110px) rotate(260deg);opacity:0}}
+@media(max-width:540px){.wrap{padding:10px}.profile{grid-template-columns:1fr}.map{height:330px}.level{width:38px;height:38px;font-size:.88rem}.boy{font-size:35px}.answers{grid-template-columns:1fr 1fr}.panel{padding:12px}.maphead h2{font-size:1rem}}
+
+/* Immersive game entrance */
+.intro{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:18px;background:linear-gradient(180deg,#8bd8ff 0%,#c9f4b0 56%,#5eb96d 100%);overflow:hidden;transition:opacity .65s,visibility .65s}
+.intro.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.intro-sun{position:absolute;top:7%;right:12%;width:76px;height:76px;border-radius:50%;background:#ffe76b;box-shadow:0 0 0 15px #fff3a533,0 0 50px #fff4a7;animation:sunshine 3s ease-in-out infinite}
+@keyframes sunshine{50%{transform:scale(1.08);box-shadow:0 0 0 25px #fff3a522,0 0 70px #fff4a7}}
+.intro-cloud{position:absolute;font-size:clamp(40px,8vw,76px);opacity:.85;animation:cloudfloat 13s linear infinite}
+.cloud-a{top:12%;left:-15%;animation-duration:20s}.cloud-b{top:28%;right:-15%;animation-duration:25s}
+@keyframes cloudfloat{to{transform:translateX(125vw)}}
+.intro-hill{position:absolute;bottom:-8%;width:130%;height:36%;border-radius:50% 50% 0 0;background:#60b96b;left:-15%;box-shadow:0 -12px 0 #83d37b}
+.intro-hill.back{bottom:8%;left:-25%;height:25%;background:#8edb84;opacity:.85}
+.intro-tree{position:absolute;bottom:16%;font-size:clamp(32px,7vw,65px);animation:sway 3s ease-in-out infinite alternate;transform-origin:bottom}
+.tree-a{left:4%}.tree-b{right:5%;animation-delay:.7s}.tree-c{left:22%;bottom:13%;font-size:38px}
+@keyframes sway{to{transform:rotate(4deg)}}
+.intro-card{position:relative;z-index:5;width:min(100%,460px);text-align:center;padding:24px 20px 22px;border:2px solid #ffffffb0;border-radius:30px;background:#ffffffd9;box-shadow:0 18px 55px #13572e35;backdrop-filter:blur(8px);animation:cardpop .8s cubic-bezier(.2,1.3,.4,1)}
+@keyframes cardpop{from{transform:translateY(35px) scale(.88);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+.intro-book{font-size:44px;animation:bookbounce 2s infinite}
+@keyframes bookbounce{50%{transform:translateY(-7px) rotate(3deg)}}
+.intro-title{font-size:clamp(1.8rem,7vw,2.6rem);line-height:1.02;font-weight:1000;letter-spacing:-1px;color:#16834a;text-shadow:0 3px 0 #b9e96b;margin:8px 0}
+.intro-title span{display:block;color:#f2a51d;text-shadow:0 3px 0 #ffdf77}
+.intro-boy{font-size:clamp(84px,22vw,120px);line-height:1.2;display:block;filter:drop-shadow(0 8px 2px #26673c33);animation:boyhello 1.8s ease-in-out infinite}
+@keyframes boyhello{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-9px) rotate(2deg)}}
+.intro-speech{background:#f2ffe9;border:1px solid #c7e9b8;border-radius:17px;padding:11px 13px;margin:8px auto 15px;font-weight:800;color:#245d34}
+.enter-btn{width:100%;font-size:1.05rem;padding:15px 18px;border-radius:16px;background:linear-gradient(100deg,#138146,#39b85e);color:#fff;font-weight:950;box-shadow:0 5px 0 #0b5c32,0 9px 18px #13814630;animation:btnpulse 2s infinite}
+@keyframes btnpulse{50%{filter:brightness(1.1);transform:scale(1.015)}}
+.intro-note{font-size:.78rem;color:#56805f;margin:13px 0 0}
+.game-entering{animation:gameenter .75s ease both}
+@keyframes gameenter{from{opacity:0;transform:scale(1.05)}to{opacity:1;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.intro *, .game-entering{animation:none!important;transition:none!important}}
+
+</style>
+</head>
+<body>
+
+<div class="intro" id="introScreen" role="dialog" aria-label="Bilmasvoy o‘yiniga kirish">
+ <div class="intro-sun"></div><div class="intro-cloud cloud-a">☁️</div><div class="intro-cloud cloud-b">☁️</div>
+ <div class="intro-hill back"></div><div class="intro-hill"></div>
+ <div class="intro-tree tree-a">🌳</div><div class="intro-tree tree-b">🌲</div><div class="intro-tree tree-c">🌼</div>
+ <div class="intro-card">
+  <div class="intro-book">📖✨</div>
+  <div class="intro-title">BILMASVOYGA <span>O‘RGAT!</span></div>
+  <div class="intro-boy" aria-label="Do‘ppi kiygan Bilmasvoy">🧒🏻</div>
+  <div style="font-weight:900;color:#28613b">So‘fi Ollohyor o‘quv markazi</div>
+  <div class="intro-speech">“Salom, do‘stim! Menga bilim o‘rgatishga tayyormisan?”</div>
+  <button class="enter-btn" id="enterGameBtn">🚀 SARGUZASHTNI BOSHLASH</button>
+  <div class="intro-note">⭐ Savollarni yech · yulduz to‘pla · yangi olamlarni och!</div>
+ </div>
+</div>
+
+<header class="top">
+ <div class="topline"><div class="brand">🌿 SO‘FI OLLOHYOR · BILMASVOY</div><div class="stars">⭐ <span id="starTop">0</span></div></div>
+ <p class="subtitle">Bilmasvoyni o‘rgat, yo‘lni och va bilimlar xazinasiga yetib bor!</p>
+</header>
+<main class="wrap">
+ <section class="panel">
+  <div class="profile">
+   <div class="field"><label for="student">O‘quvchi ismi</label><input id="student" maxlength="40" placeholder="Ismingizni yozing"></div>
+   <div class="field"><label for="grade">Sinf</label><select id="grade"><option>5-sinf</option><option>6-sinf</option><option>7-sinf</option><option>8-sinf</option><option>9-sinf</option><option>10-sinf</option><option>11-sinf</option></select></div>
+   <div class="field"><label for="subject">Fan</label><select id="subject"><option value="math">Matematika</option><option value="physics">Fizika</option><option value="english">Ingliz tili</option><option value="native">Ona tili</option><option value="logic">Mantiq</option></select></div>
+   <div class="field" style="display:flex;align-items:end"><button class="btn" style="width:100%" id="saveProfile">Boshlash 🚀</button></div>
+  </div>
+ </section>
+ <section class="panel">
+  <div class="maphead"><h2>🗺️ Bilimlar sarguzashti</h2><span class="tag" id="stageTag">1-bosqich</span></div>
+  <div class="map" id="map">
+   <svg class="pathsvg" viewBox="0 0 600 350" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M40 285 C75 320 130 305 145 260 S110 205 165 190 S245 235 270 190 S240 120 320 130 S405 185 430 135 S485 65 555 80" fill="none" stroke="#d8c57a" stroke-width="35" stroke-linecap="round"/>
+    <path d="M40 285 C75 320 130 305 145 260 S110 205 165 190 S245 235 270 190 S240 120 320 130 S405 185 430 135 S485 65 555 80" fill="none" stroke="#fff0ad" stroke-width="27" stroke-linecap="round"/>
+    <path d="M40 285 C75 320 130 305 145 260 S110 205 165 190 S245 235 270 190 S240 120 320 130 S405 185 430 135 S485 65 555 80" fill="none" stroke="#f9e6a0" stroke-width="2" stroke-dasharray="4 10" stroke-linecap="round"/>
+   </svg>
+   <div class="tree" style="left:4%;top:8%">🌳</div><div class="tree" style="left:79%;top:7%">🌲</div><div class="tree" style="left:88%;top:64%">🌳</div><div class="tree" style="left:8%;top:70%">🌲</div><div class="tree" style="left:45%;top:10%">🌳</div><div class="tree" style="left:55%;top:75%">🌿</div>
+   <div class="bush" style="left:27%;top:18%"></div><div class="bush" style="left:69%;top:49%;transform:scale(.7)"></div><div class="bush" style="left:24%;top:77%;transform:scale(.7)"></div>
+   <div id="levels"></div><div class="boy" id="boy" style="left:7%;top:77%">🧒🏻</div>
+  </div>
+  <div class="mapcaption"><span>🏁 Start</span><span>Bilmasvoy yo‘l bo‘ylab yuradi</span><span>🏆 Xazina</span></div>
+ </section>
+ <section class="panel">
+  <div class="tasktitle"><h2 style="margin:0;font-size:1.1rem">🤔 Bilmasvoy adashib qoldi!</h2><span class="tag" id="subjectTag">Matematika</span></div>
+  <div class="progressline"><span id="progress"></span></div>
+  <div class="question" id="question">Boshlash tugmasini bosing — Bilmasvoy sizni kutmoqda!</div>
+  <div class="answers" id="answers"></div>
+  <div class="feedback" id="feedback">To‘g‘ri javob bersangiz, Bilmasvoy keyingi nuqtaga yuradi. ⭐</div>
+  <div class="taskactions"><button class="btn secondary" id="hintBtn">💡 Maslahat</button><button class="btn" id="nextBtn" hidden>Keyingi bosqich ➜</button></div>
+ </section>
+ <section class="panel">
+  <h2 style="margin:0 0 10px;font-size:1.1rem">🏅 Sarguzasht natijalari</h2>
+  <div class="stats"><div class="stat"><strong id="starStat">0</strong><span>Yulduz</span></div><div class="stat"><strong id="doneStat">0/10</strong><span>O‘tilgan bosqich</span></div><div class="stat"><strong id="badgeStat">0</strong><span>Nishon</span></div></div>
+  <p class="notice">Natijalar ushbu qurilmada saqlanadi. Supabase bilan umumiy reytingga ulash uchun keyingi bosqichda loyiha URL va publishable/anon kaliti konfiguratsiya qilinadi. Brauzer kodiga hech qachon service_role kalitini kiritmang.</p>
+ </section>
+ <div class="footer">So‘fi Ollohyor o‘quv markazi · O‘rganish — sarguzasht! 🌱</div>
+</main>
+<script>
+const points=[{x:7,y:81},{x:22,y:76},{x:28,y:56},{x:23,y:40},{x:34,y:54},{x:45,y:57},{x:46,y:40},{x:54,y:34},{x:69,y:39},{x:79,y:24}];
+const labels={math:"Matematika",physics:"Fizika",english:"Ingliz tili",native:"Ona tili",logic:"Mantiq"};
+const bank={
+ math:[
+  ["48 ÷ 6 + 7 = ?",["13","15","8","11"],0,"Avval bo‘lishni bajaramiz: 48 ÷ 6 = 8, so‘ng 8 + 7 = 15.","Bo‘lish amalidan boshlang."],
+  ["3/4 ning 20 ga teng qiymati nechaga teng?",["12","15","16","18"],1,"20 ÷ 4 × 3 = 15.","Avval 20 ni 4 ga bo‘ling."],
+  ["x + 17 = 42. x ni toping.",["25","59","24","26"],0,"42 − 17 = 25.","17 ni tenglikning ikkinchi tomoniga ayirish bilan o‘tkazing."],
+  ["To‘g‘ri to‘rtburchak: 8 sm va 5 sm. Perimetri?",["13 sm","26 sm","40 sm","20 sm"],1,"P = 2 × (8 + 5) = 26 sm.","Perimetr — barcha tomonlar yig‘indisi."],
+  ["0,6 + 0,25 = ?",["0,31","0,85","0,75","0,65"],1,"0,60 + 0,25 = 0,85.","Verguldan keyingi xonalarni tenglashtiring."],
+  ["72 sonining 25 foizi nechaga teng?",["18","24","12","20"],0,"25% — to‘rtdan bir qism. 72 ÷ 4 = 18.","25 foiz = 1/4."],
+  ["5² − 3² = ?",["16","4","8","34"],0,"25 − 9 = 16.","Darajalarni avval hisoblang."],
+  ["2 : 5 = x : 20. x = ?",["8","10","4","12"],0,"2/5 = x/20, demak x = 8.","20 ni 5 ga bo‘lib, 2 ga ko‘paytiring."],
+  ["Uchburchak burchaklari yig‘indisi?",["90°","180°","270°","360°"],1,"Har qanday uchburchak ichki burchaklari yig‘indisi 180°.","Bu geometriyaning asosiy qoidasidir."],
+  ["1,2 × 0,5 = ?",["0,6","6","0,06","1,7"],0,"1,2 ning yarmi 0,6.","0,5 ga ko‘paytirish — ikkiga bo‘lish."]
+ ],
+ physics:[
+  ["Tezlikni topish formulasi qaysi?",["v = s/t","s = v/t","t = s·v","v = s·t"],0,"Tezlik yo‘lni vaqtga bo‘lish bilan topiladi: v = s/t.","Yo‘lni vaqtga bo‘lamiz."],
+  ["Kuchning SI birligi?",["Joul","Nyuton","Vatt","Paskal"],1,"Kuch nyuton (N) bilan o‘lchanadi.","Isaak Nyuton nomi bilan atalgan."],
+  ["Suvning odatdagi bosimda qaynash harorati?",["0°C","50°C","100°C","120°C"],2,"Suv odatdagi atmosfera bosimida 100°C da qaynaydi.","Muzlash 0°C, qaynash esa…"],
+  ["Elektr toki kuchi birligi?",["Volt","Amper","Om","Vatt"],1,"Tok kuchi amper (A) bilan o‘lchanadi.","A harfi bilan belgilanadi."],
+  ["Massaning SI birligi?",["Kilogramm","Metr","Sekund","Nyuton"],0,"Massa kilogrammda o‘lchanadi.","Uzunlik emas, modda miqdorini ifodalovchi kattalik."],
+  ["Ish formulasi (kuch yo‘nalishi bo‘ylab)?",["A=F·s","A=F/s","A=s/F","A=F+t"],0,"Mexanik ish A = F·s.","Kuchni yo‘lga ko‘paytiring."]
+ ],
+ english:[
+  ["Choose the correct form: She ___ to school every day.",["go","goes","going","gone"],1,"With he/she/it in Present Simple, the verb usually takes -s/-es.","She bilan fe’lga -s yoki -es qo‘shiladi."],
+  ["What is the opposite of “hot”?",["warm","cold","high","fast"],1,"The opposite of hot is cold.","Issiqning teskarisi."],
+  ["Choose: I ___ a book now.",["read","reads","am reading","readed"],2,"Present Continuous: am/is/are + verb-ing.","Now — hozir, davom etayotgan ish."],
+  ["Plural of “child”?",["childs","children","childes","childrens"],1,"The irregular plural is children.","Bu istisno ko‘plik shakli."],
+  ["Translate “beautiful”.",["Chiroyli","Tez","Qimmat","Kichik"],0,"Beautiful — chiroyli, go‘zal.","Go‘zallikni tasvirlaydi."]
+ ],
+ native:[
+  ["Qaysi so‘z ot turkumiga kiradi?",["yugurdi","kitob","chiroyli","tez"],1,"“Kitob” narsa nomini bildiradi, demak ot.","Narsa nomini bildiradigan so‘zni toping."],
+  ["Qaysi biri sifat?",["oq","o‘qidi","daraxt","sekin"],0,"“Oq” predmetning belgisini bildiradi.","Qanday? so‘rog‘iga javob beradi."],
+  ["Gapning bosh bo‘laklari qaysilar?",["Aniqlovchi va to‘ldiruvchi","Ega va kesim","Hol va aniqlovchi","Faqat ega"],1,"Gapning bosh bo‘laklari — ega va kesim.","Kim? nima? va nima qildi?"],
+  ["“Tez” so‘zining ma’nodoshini toping.",["sekin","ildam","og‘ir","uzoq"],1,"“Ildam” so‘zi “tez” so‘ziga ma’nodosh.","Qarama-qarshi emas, bir xil ma’noli."],
+  ["Qaysi so‘z fe’l?",["yashil","yurdi","shirin","qalam"],1,"“Yurdi” harakatni bildiradi.","Nima qildi?"]
+ ],
+ logic:[
+  ["2, 4, 8, 16, … Keyingi son?",["18","24","30","32"],3,"Har safar 2 ga ko‘paymoqda: 16 × 2 = 32.","Har bir son oldingisidan ikki baravar."],
+  ["3 ta mushuk 3 daqiqada 3 ta sichqon tutsa, 1 mushuk 1 sichqonni necha daqiqada tutadi?",["1","3","6","9"],1,"Har bir mushuk bitta sichqonni 3 daqiqada tutadi.","Ular bir xil tezlikda ishlaydi."],
+  ["Bir haftada nechta kun bor?",["5","6","7","8"],2,"Bir haftada 7 kun bor.","Dushanbadan yakshanbagacha sanang."],
+  ["Qaysi son ortiqcha: 2, 4, 6, 9, 10?",["2","6","9","10"],2,"9 toq, qolganlari juft sonlar.","Juft-toqligiga qarang."],
+  ["Ota 40 yoshda, o‘g‘li 10 yoshda. Necha yildan keyin ota o‘g‘lidan 2 baravar katta bo‘ladi?",["10","15","20","25"],1,"40+x = 2(10+x), demak x = 20.","Tenglama tuzing: 40+x=2(10+x)."]
+ ]};
+let state={stars:0,done:[],badges:[],index:0,answered:false,active:false,profile:{name:"",grade:"5-sinf",subject:"math"},question:null,attempted:[]};
+const $=id=>document.getElementById(id);
+function key(){return "bilmasvoy2d:"+($("student").value.trim().toLowerCase()||"mehmon")+":"+$("grade").value+":"+$("subject").value}
+function save(){try{localStorage.setItem(key(),JSON.stringify(state))}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem(key())||"null");if(s)state={...state,...s}}catch(e){}}
+function renderStats(){$("starTop").textContent=state.stars;$("starStat").textContent=state.stars;$("doneStat").textContent=state.done.length+"/10";$("badgeStat").textContent=state.badges.length;$("progress").style.width=(state.done.length/10*100)+"%";$("stageTag").textContent=Math.min(10,state.done.length+1)+"-bosqich"}
+function renderMap(){
+ const el=$("levels");el.innerHTML="";
+ points.forEach((p,i)=>{let b=document.createElement("button");b.className="level"+(state.done.includes(i)?" done":"")+(i===state.done.length?" current":"")+(i>state.done.length?" locked":"");b.textContent=state.done.includes(i)?"★":i+1;b.title=i<state.done.length?"O‘tilgan bosqich":i===state.done.length?"Joriy bosqich":"Avval oldingi bosqichni o‘ting";b.style.left=p.x+"%";b.style.top=p.y+"%";b.disabled=i>state.done.length;b.onclick=()=>{if(i===state.done.length)loadQuestion()};el.appendChild(b)});
+ const pos=points[Math.min(state.done.length,9)];$("boy").style.left=pos.x+"%";$("boy").style.top=(pos.y-4)+"%";
+}
+function newQuestion(){let list=bank[state.profile.subject]||bank.math;let available=list.filter((q,i)=>!state.attempted.includes(q[0]));if(!available.length){state.attempted=[];available=list}return available[Math.floor(Math.random()*available.length)]}
+function loadQuestion(){state.active=true;state.answered=false;state.question=newQuestion();$("subjectTag").textContent=labels[state.profile.subject];$("question").textContent=state.question[0];$("answers").innerHTML="";state.question[1].forEach((ans,i)=>{let b=document.createElement("button");b.className="answer";b.textContent=String.fromCharCode(65+i)+". "+ans;b.onclick=()=>answer(i,b);$("answers").appendChild(b)});$("feedback").className="feedback";$("feedback").textContent="Bilmasvoy javobini kutmoqda 😅 To‘g‘ri javobni tanlang!";$("nextBtn").hidden=true;save()}
+function answer(i,btn){if(state.answered)return;state.answered=true;const q=state.question;[...$("answers").children].forEach((b,j)=>{b.disabled=true;if(j===q[2])b.classList.add("correct")});if(i===q[2]){btn.classList.add("correct");const level=state.done.length;state.stars+=2;if(!state.done.includes(level))state.done.push(level);state.attempted.push(q[0]);if(state.stars>=10&&!state.badges.includes("Bilimdon"))state.badges.push("Bilimdon");if(state.done.length===10&&!state.badges.includes("Xazina qahramoni"))state.badges.push("Xazina qahramoni");$("feedback").className="feedback good";$("feedback").textContent="🎉 Barakalla! Bilmasvoy: “Endi tushundim!” "+q[3];celebrate();$("nextBtn").hidden=false;renderMap();renderStats();save()}else{$("feedback").className="feedback bad";$("feedback").textContent="😵 Bilmasvoy ham shunday xato qildi! To‘g‘ri javob yashil rangda. "+q[4];state.attempted.push(q[0]);save()}}
+function celebrate(){const map=$("map");for(let i=0;i<14;i++){let c=document.createElement("span");c.className="confetti";c.textContent=["⭐","✨","🌟","🎉"][i%4];c.style.left=(35+Math.random()*30)+"%";c.style.top=(35+Math.random()*35)+"%";c.style.setProperty("--dx",(Math.random()*180-90)+"px");map.appendChild(c);setTimeout(()=>c.remove(),1200)}}
+$("saveProfile").onclick=()=>{const name=$("student").value.trim();if(!name){$("student").focus();$("student").placeholder="Avval ismingizni yozing!";return}state.profile={name,grade:$("grade").value,subject:$("subject").value};load();renderStats();renderMap();loadQuestion();$("feedback").textContent="Salom, "+name+"! Bilmasvoyni o‘rgatishga tayyormisiz?";save()};
+$("nextBtn").onclick=()=>{if(state.done.length>=10){$("question").textContent="🏆 Tabriklaymiz! Siz Bilimlar xazinasiga yetib keldingiz!";$("answers").innerHTML="";$("feedback").className="feedback good";$("feedback").textContent="Siz “Xazina qahramoni” nishonini qo‘lga kiritdingiz!";$("nextBtn").hidden=true;return}loadQuestion()};
+$("hintBtn").onclick=()=>{if(!state.question){$("feedback").textContent="Avval “Boshlash” tugmasini bosing.";return}$("feedback").className="feedback";$("feedback").textContent="💡 Maslahat: "+state.question[4]};
+$("student").value="";renderMap();renderStats();
+
+// Cinematic entrance: user explicitly starts the adventure.
+const introScreen=document.getElementById("introScreen");
+const enterGameBtn=document.getElementById("enterGameBtn");
+enterGameBtn.addEventListener("click",()=>{
+  introScreen.classList.add("hidden");
+  document.querySelector(".top").classList.add("game-entering");
+  document.querySelector("main.wrap").classList.add("game-entering");
+  try{sessionStorage.setItem("bilmasvoyIntroSeen","1")}catch(e){}
+  // Move attention to the player's first action.
+  setTimeout(()=>{const studentInput=document.getElementById("student");if(studentInput)studentInput.focus({preventScroll:true});},450);
+});
+
+</script>
+</body></html>
