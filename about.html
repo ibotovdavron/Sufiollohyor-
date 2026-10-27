@@ -60,10 +60,6 @@
       margin: 15px 0;
       border-radius: 12px;
       font-size: 16px;
-    }
-
-    .daily-answer-input,
-    .daily-student-select {
       border: 1px solid #286343;
       background: #fff;
       color: #111;
@@ -128,7 +124,6 @@
     }
   </style>
 
-  <!-- Supabase kutubxonasi va loyiha sozlamalari -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
 </head>
@@ -137,11 +132,9 @@
 <header class="topbar">
   <div class="wrap topinner">
     <a class="brand" href="index.html">
-      <img
-        src="assets/markaz-logo.png"
-        alt="So‘fi Ollohyor logotipi"
-        onerror="this.style.display='none'"
-      >
+      <img src="assets/markaz-logo.png"
+           alt="So‘fi Ollohyor logotipi"
+           onerror="this.style.display='none'">
       <span class="brand-mark">S<span class="green">O</span></span>
       <span class="brand-name">
         SO‘FI OLLOHYOR
@@ -150,17 +143,10 @@
     </a>
 
     <div class="social">
-      <a
-        href="https://t.me/sufi_ollohyor_uquv_markaz"
-        target="_blank"
-        rel="noopener noreferrer"
-      >✈️ Telegram</a>
-
-      <a
-        href="https://www.instagram.com/sufiollohyor/"
-        target="_blank"
-        rel="noopener noreferrer"
-      >📸 Instagram</a>
+      <a href="https://t.me/sufi_ollohyor_uquv_markaz"
+         target="_blank" rel="noopener noreferrer">✈️ Telegram</a>
+      <a href="https://www.instagram.com/sufiollohyor/"
+         target="_blank" rel="noopener noreferrer">📸 Instagram</a>
     </div>
   </div>
 </header>
@@ -170,48 +156,39 @@
     <div class="big-icon">🧠</div>
     <span class="eyebrow">SO‘FI OLLOHYOR O‘QUV MARKAZI</span>
     <h1>Kunlik <span class="green">savol</span></h1>
-    <p>
-      To‘g‘ri javob bering va bugungi g‘olib bo‘lishga harakat qiling!
-    </p>
+    <p>To‘g‘ri javob bering va bugungi g‘olib bo‘lishga harakat qiling!</p>
   </section>
 
   <section class="daily-card" id="dailyQuestionSection">
-    <span class="tag">🏆 KUNLIK BILIMLAR BELLASHUVI</span>
-    <h2>📌 Bugungi savol</h2>
+    <span class="tag">🏆 BILIMLAR BELLASHUVI</span>
+    <h2>📌 Savol</h2>
 
     <div id="dailyQuestionText">Savol yuklanmoqda...</div>
 
     <form id="dailyAnswerForm">
       <label for="dailyAnswerInput">Javobingiz:</label>
-
-      <input
-        id="dailyAnswerInput"
-        class="daily-answer-input"
-        type="text"
-        placeholder="Javobingizni yozing..."
-        autocomplete="off"
-        required
-      >
+      <input id="dailyAnswerInput"
+             class="daily-answer-input"
+             type="text"
+             placeholder="Javobingizni yozing..."
+             autocomplete="off"
+             required>
 
       <button type="submit" class="btn" id="dailyCheck">
         Javobni tekshirish
       </button>
     </form>
 
-    <div
-      id="dailyFeedback"
-      class="daily-feedback"
-      aria-live="polite"
-      role="status"
-    ></div>
+    <div id="dailyFeedback"
+         class="daily-feedback"
+         aria-live="polite"
+         role="status"></div>
 
     <div id="dailyStudentBox"></div>
 
-    <div
-      id="dailyWinner"
-      class="daily-winner"
-      aria-live="polite"
-    ></div>
+    <div id="dailyWinner"
+         class="daily-winner"
+         aria-live="polite"></div>
   </section>
 
   <section class="daily-rules panel">
@@ -219,9 +196,9 @@
     <ul>
       <li>Javobni o‘zingiz yozasiz.</li>
       <li>To‘g‘ri javobdan keyin ro‘yxatdan ismingizni tanlaysiz.</li>
-      <li>Har kun uchun faqat bitta g‘olib qayd etiladi.</li>
-      <li>G‘olib uchun 2 yulduzli mukofot bazada saqlanadi.</li>
-      <li>G‘olib natijasi internet orqali boshqa qurilmalarda ham ko‘rinadi.</li>
+      <li>Har bir savol ID raqami uchun faqat bitta g‘olib qayd etiladi.</li>
+      <li>G‘olib uchun 2 yulduz mukofoti bazada saqlanadi.</li>
+      <li>G‘olib natijasi boshqa qurilmalarda ham ko‘rinadi.</li>
     </ul>
   </section>
 
@@ -269,15 +246,6 @@
   let submitting = false;
   let pollingTimer = null;
 
-  function localDate() {
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
-  }
-
   function normalize(value) {
     return String(value || "")
       .trim()
@@ -318,7 +286,7 @@
 
   function showWinner(name, stars) {
     winnerBox.textContent =
-      `🏆 Bugungi g‘olib — ${name} 🎉 ⭐ ${stars} ta yulduz`;
+      `🏆 Ushbu savol g‘olibi — ${name} 🎉 ⭐ ${stars} ta yulduz`;
 
     lockForm();
   }
@@ -326,51 +294,45 @@
   function showDetailedError(prefix, error) {
     console.error(prefix, error);
 
-    const message =
-      error && error.message
-        ? error.message
-        : String(error || "Noma’lum xatolik");
+    const message = error && error.message
+      ? error.message
+      : String(error || "Noma’lum xatolik");
 
-    const code =
-      error && error.code
-        ? ` | Kod: ${error.code}`
-        : "";
+    const code = error && error.code
+      ? ` | Kod: ${error.code}`
+      : "";
 
-    showFeedback(
-      `${prefix}: ${message}${code}`,
-      "error"
-    );
+    showFeedback(`${prefix}: ${message}${code}`, "error");
   }
 
   async function loadWinner() {
-    if (!db || loadingWinner) return;
+    if (!db || loadingWinner || !question || !question.id) return;
 
     loadingWinner = true;
 
     try {
       const { data, error } = await db
-        .from("daily_question_winners")
+        .from("question_winners")
         .select("student_name, stars")
-        .eq("question_date", localDate())
+        .eq("question_id", String(question.id).trim())
         .maybeSingle();
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       if (data && data.student_name) {
         showWinner(data.student_name, data.stars || 2);
-
         showFeedback(
-          "Bugungi g‘olib bazada saqlangan.",
+          "Ushbu savolning g‘olibi bazada saqlangan.",
           "success"
         );
+      } else if (!winnerLocked) {
+        winnerBox.textContent = "";
+        input.disabled = false;
+        checkButton.disabled = false;
+        showFeedback("Bu savol uchun hali g‘olib aniqlanmagan.");
       }
     } catch (error) {
-      showDetailedError(
-        "G‘olibni yuklash xatosi",
-        error
-      );
+      showDetailedError("G‘olibni yuklash xatosi", error);
     } finally {
       loadingWinner = false;
     }
@@ -406,7 +368,6 @@
 
     students.forEach((student, index) => {
       const name = getStudentName(student);
-
       if (!name) return;
 
       const option = document.createElement("option");
@@ -422,30 +383,20 @@
 
     studentBox.append(label, select, button);
 
-    showFeedback(
-      "✅ Javob to‘g‘ri! Endi ismingizni tanlang.",
-      "success"
-    );
+    showFeedback("✅ Javob to‘g‘ri! Endi ismingizni tanlang.", "success");
 
     button.addEventListener("click", async function () {
       if (winnerLocked || submitting) return;
 
       if (!select.value) {
-        showFeedback(
-          "Avval ro‘yxatdan ismingizni tanlang.",
-          "error"
-        );
+        showFeedback("Avval ro‘yxatdan ismingizni tanlang.", "error");
         return;
       }
 
-      const student = students[Number(select.value)];
-      const name = getStudentName(student);
+      const name = getStudentName(students[Number(select.value)]);
 
       if (!name) {
-        showFeedback(
-          "Tanlangan o‘quvchining ismi topilmadi.",
-          "error"
-        );
+        showFeedback("Tanlangan o‘quvchining ismi topilmadi.", "error");
         return;
       }
 
@@ -455,29 +406,20 @@
       button.textContent = "Saqlanmoqda...";
 
       try {
-        if (!db) {
-          throw new Error(
-            "Supabase ulanmagan. config.js faylini tekshiring."
-          );
-        }
-
         const { data, error } = await db.rpc(
-          "claim_daily_winner",
-          { p_student_name: name }
+          "claim_question_winner",
+          {
+            p_question_id: String(question.id).trim(),
+            p_student_name: name
+          }
         );
 
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
 
-        const result = Array.isArray(data)
-          ? data[0]
-          : data;
+        const result = Array.isArray(data) ? data[0] : data;
 
         if (!result || !result.winner_name) {
-          throw new Error(
-            "SQL funksiyasidan g‘olib natijasi qaytmadi."
-          );
+          throw new Error("SQL funksiyasidan g‘olib natijasi qaytmadi.");
         }
 
         showWinner(
@@ -487,21 +429,17 @@
 
         if (result.is_new_winner === true) {
           showFeedback(
-            `🎉 Tabriklaymiz, ${result.winner_name}! Siz bugungi g‘olibsiz. 2 yulduzli mukofot qayd etildi.`,
+            `🎉 Tabriklaymiz, ${result.winner_name}! Ushbu savol g‘olibi sifatida qayd etildingiz. 2 yulduz mukofoti saqlandi.`,
             "success"
           );
         } else {
           showFeedback(
-            `Bugungi g‘olib avval aniqlangan: ${result.winner_name}. Yangi g‘olib yozilmadi.`,
+            `Ushbu savolning g‘olibi avval aniqlangan: ${result.winner_name}. Yangi g‘olib yozilmadi.`,
             "success"
           );
         }
       } catch (error) {
-        showDetailedError(
-          "G‘olibni saqlash xatosi",
-          error
-        );
-
+        showDetailedError("G‘olibni saqlash xatosi", error);
         button.disabled = false;
         select.disabled = false;
         button.textContent = "Qayta urinish";
@@ -511,10 +449,9 @@
     });
   }
 
-  // Savol ma’lumotlarini tekshirish.
-  if (!question || !question.text || !question.answer) {
+  if (!question || !question.id || !question.text || !question.answer) {
     questionBox.textContent =
-      "Hozircha savol joylashtirilmagan. data.js faylidagi DAILY_QUESTION ma’lumotini tekshiring.";
+      "Savol ma’lumoti to‘liq emas. data.js faylida DAILY_QUESTION uchun id, text va answer maydonlarini kiriting.";
 
     form.hidden = true;
     return;
@@ -522,7 +459,6 @@
 
   questionBox.textContent = question.text;
 
-  // Supabase sozlamalarini tekshirish.
   if (
     !config ||
     !config.SUPABASE_URL ||
@@ -538,50 +474,36 @@
     return;
   }
 
-  // Supabase klientini yaratish.
   try {
     db = window.supabase.createClient(
       config.SUPABASE_URL,
       config.SUPABASE_ANON_KEY
     );
   } catch (error) {
-    showDetailedError(
-      "Supabase ulanishini boshlash xatosi",
-      error
-    );
-
+    showDetailedError("Supabase ulanishini boshlash xatosi", error);
     form.hidden = true;
     return;
   }
 
-  // Javobni tekshirish.
   form.addEventListener("submit", function (event) {
     event.preventDefault();
 
     if (winnerLocked || submitting) return;
 
     if (normalize(input.value) !== normalize(question.answer)) {
-      showFeedback(
-        "❌ Javob noto‘g‘ri. Qayta urinib ko‘ring.",
-        "error"
-      );
+      showFeedback("❌ Javob noto‘g‘ri. Qayta urinib ko‘ring.", "error");
       return;
     }
 
     buildStudentPicker();
   });
 
-  // Sahifa ochilganda bugungi g‘olibni yuklash.
   loadWinner();
 
-  // Boshqa qurilmadagi natijani davriy tekshirish.
   pollingTimer = window.setInterval(function () {
-    if (!document.hidden) {
-      loadWinner();
-    }
+    if (!document.hidden) loadWinner();
   }, 10000);
 
-  // Sahifa yopilayotganda intervalni to‘xtatish.
   window.addEventListener("pagehide", function () {
     if (pollingTimer !== null) {
       window.clearInterval(pollingTimer);
