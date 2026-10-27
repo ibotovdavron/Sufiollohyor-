@@ -171,7 +171,7 @@ students: [
 ]
 };
 window.DAILY_QUESTION = {
-  id: "savol-003",
+  id: "savol-002",
   text: "Bir sonning yarmi, uchdan bir qismi va to‘rtdan bir qismining yig‘indisi 26 ga teng. Shu sonni toping.",
   answer: "24"
 };
