@@ -11,80 +11,124 @@
   <link rel="stylesheet" href="style.css">
 
   <style>
-    .daily-page { max-width:850px; margin:35px auto; }
-    .daily-intro { text-align:center; padding:25px 12px; }
-    .daily-intro .big-icon { font-size:60px; }
-    .daily-intro h1 { font-size:clamp(30px,6vw,46px); margin:14px 0; }
-    .daily-intro p,.daily-muted { color:#b7cebf; line-height:1.8; }
+    .daily-page {
+      max-width: 850px;
+      margin: 35px auto;
+      padding-bottom: 25px;
+    }
+
+    .daily-intro {
+      text-align: center;
+      padding: 25px 12px;
+    }
+
+    .daily-intro .big-icon { font-size: 60px; }
+
+    .daily-intro h1 {
+      font-size: clamp(30px, 6vw, 46px);
+      margin: 14px 0;
+    }
+
+    .daily-intro p,
+    .daily-muted {
+      color: #b7cebf;
+      line-height: 1.8;
+    }
 
     .daily-card {
-      padding:24px;
-      border-radius:24px;
-      border:1px solid rgba(0,255,128,.28);
-      background:linear-gradient(145deg,#09251a,#020b09);
-      color:#f4fff8;
-      box-shadow:0 10px 35px rgba(0,0,0,.18);
+      padding: 24px;
+      border-radius: 24px;
+      border: 1px solid rgba(0,255,128,.28);
+      background: linear-gradient(145deg,#09251a,#020b09);
+      color: #f4fff8;
+      box-shadow: 0 10px 35px rgba(0,0,0,.18);
     }
 
     #dailyQuestionText {
-      font-size:21px;
-      line-height:1.7;
-      font-weight:700;
-      margin:18px 0;
+      font-size: 21px;
+      line-height: 1.7;
+      font-weight: 700;
+      margin: 18px 0;
     }
 
-    .daily-answer-input,.daily-student-select {
-      display:block;
-      box-sizing:border-box;
-      width:100%;
-      padding:15px;
-      margin:15px 0;
-      border-radius:12px;
-      font-size:16px;
-    }
-
-    .daily-answer-input {
-      border:1px solid #286343;
-      background:#fff;
-      color:#111;
-    }
-
+    .daily-answer-input,
     .daily-student-select {
-      border:1px solid #286343;
-      background:#fff;
-      color:#111;
+      display: block;
+      box-sizing: border-box;
+      width: 100%;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 12px;
+      font-size: 16px;
     }
 
-    .daily-feedback { margin-top:18px; line-height:1.8; }
+    .daily-answer-input,
+    .daily-student-select {
+      border: 1px solid #286343;
+      background: #fff;
+      color: #111;
+    }
+
+    .daily-feedback {
+      margin-top: 18px;
+      line-height: 1.8;
+      overflow-wrap: anywhere;
+    }
 
     .daily-winner {
-      margin-top:18px;
-      padding:15px;
-      border-radius:14px;
-      background:rgba(56,237,145,.08);
-      border:1px solid rgba(56,237,145,.22);
-      line-height:1.7;
+      margin-top: 18px;
+      padding: 15px;
+      border-radius: 14px;
+      background: rgba(56,237,145,.08);
+      border: 1px solid rgba(56,237,145,.22);
+      line-height: 1.7;
     }
 
-    .daily-winner:empty { display:none; }
+    .daily-winner:empty { display: none; }
 
     .daily-rules {
-      margin-top:20px;
-      padding:18px;
-      border-radius:18px;
-      border:1px solid rgba(0,255,128,.15);
+      margin-top: 20px;
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(0,255,128,.15);
     }
 
-    .daily-rules li { margin:10px 0; line-height:1.6; }
-    .daily-button { margin-top:10px; }
-    button:disabled { opacity:.55; cursor:not-allowed; }
+    .daily-rules li {
+      margin: 10px 0;
+      line-height: 1.6;
+    }
+
+    .daily-button { margin-top: 10px; }
+
+    .daily-card button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .daily-status {
+      padding: 12px;
+      border-radius: 12px;
+      margin-top: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .daily-status.error {
+      color: #ffd6d6;
+      background: rgba(255,40,40,.1);
+      border: 1px solid rgba(255,80,80,.25);
+    }
+
+    .daily-status.success {
+      color: #b9ffd3;
+      background: rgba(0,255,128,.08);
+    }
 
     @media(max-width:520px) {
-      .daily-card { padding:17px; }
+      .daily-card { padding: 17px; }
     }
   </style>
 
-  <!-- Supabase va konfiguratsiya -->
+  <!-- Supabase kutubxonasi va loyiha sozlamalari -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
 </head>
@@ -93,9 +137,11 @@
 <header class="topbar">
   <div class="wrap topinner">
     <a class="brand" href="index.html">
-      <img src="assets/markaz-logo.png"
-           alt="So‘fi Ollohyor logotipi"
-           onerror="this.style.display='none'">
+      <img
+        src="assets/markaz-logo.png"
+        alt="So‘fi Ollohyor logotipi"
+        onerror="this.style.display='none'"
+      >
       <span class="brand-mark">S<span class="green">O</span></span>
       <span class="brand-name">
         SO‘FI OLLOHYOR
@@ -104,10 +150,17 @@
     </a>
 
     <div class="social">
-      <a href="https://t.me/sufi_ollohyor_uquv_markaz"
-         target="_blank" rel="noopener noreferrer">✈️ Telegram</a>
-      <a href="https://www.instagram.com/sufiollohyor/"
-         target="_blank" rel="noopener noreferrer">📸 Instagram</a>
+      <a
+        href="https://t.me/sufi_ollohyor_uquv_markaz"
+        target="_blank"
+        rel="noopener noreferrer"
+      >✈️ Telegram</a>
+
+      <a
+        href="https://www.instagram.com/sufiollohyor/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >📸 Instagram</a>
     </div>
   </div>
 </header>
@@ -117,7 +170,9 @@
     <div class="big-icon">🧠</div>
     <span class="eyebrow">SO‘FI OLLOHYOR O‘QUV MARKAZI</span>
     <h1>Kunlik <span class="green">savol</span></h1>
-    <p>To‘g‘ri javob bering va bugungi g‘olib bo‘lishga harakat qiling!</p>
+    <p>
+      To‘g‘ri javob bering va bugungi g‘olib bo‘lishga harakat qiling!
+    </p>
   </section>
 
   <section class="daily-card" id="dailyQuestionSection">
@@ -128,20 +183,35 @@
 
     <form id="dailyAnswerForm">
       <label for="dailyAnswerInput">Javobingiz:</label>
-      <input id="dailyAnswerInput"
-             class="daily-answer-input"
-             type="text"
-             placeholder="Javobingizni yozing..."
-             autocomplete="off"
-             required>
+
+      <input
+        id="dailyAnswerInput"
+        class="daily-answer-input"
+        type="text"
+        placeholder="Javobingizni yozing..."
+        autocomplete="off"
+        required
+      >
+
       <button type="submit" class="btn" id="dailyCheck">
         Javobni tekshirish
       </button>
     </form>
 
-    <div id="dailyFeedback" class="daily-feedback" aria-live="polite"></div>
+    <div
+      id="dailyFeedback"
+      class="daily-feedback"
+      aria-live="polite"
+      role="status"
+    ></div>
+
     <div id="dailyStudentBox"></div>
-    <div id="dailyWinner" class="daily-winner" aria-live="polite"></div>
+
+    <div
+      id="dailyWinner"
+      class="daily-winner"
+      aria-live="polite"
+    ></div>
   </section>
 
   <section class="daily-rules panel">
@@ -150,14 +220,16 @@
       <li>Javobni o‘zingiz yozasiz.</li>
       <li>To‘g‘ri javobdan keyin ro‘yxatdan ismingizni tanlaysiz.</li>
       <li>Har kun uchun faqat bitta g‘olib qayd etiladi.</li>
-      <li>G‘olib uchun 2 yulduzli mukofot Supabase’da qayd qilinadi.</li>
+      <li>G‘olib uchun 2 yulduzli mukofot bazada saqlanadi.</li>
       <li>G‘olib natijasi internet orqali boshqa qurilmalarda ham ko‘rinadi.</li>
     </ul>
   </section>
 
   <section class="panel">
     <h2>🏆 O‘quvchilar reytingi</h2>
-    <p class="daily-muted">O‘quvchilar natijalarini reyting sahifasida ko‘ring.</p>
+    <p class="daily-muted">
+      O‘quvchilar natijalarini reyting sahifasida ko‘ring.
+    </p>
     <a class="btn" href="ranking.html">Reytingni ko‘rish →</a>
   </section>
 </main>
@@ -177,28 +249,32 @@
 (function () {
   "use strict";
 
-  const q = window.DAILY_QUESTION;
-  const students = (window.CENTER_DATA || {}).students || [];
-  const config = window.SUFIOLLOHYOR_CONFIG;
-
   const $ = id => document.getElementById(id);
-  const text = $("dailyQuestionText");
+
+  const questionBox = $("dailyQuestionText");
   const form = $("dailyAnswerForm");
   const input = $("dailyAnswerInput");
-  const check = $("dailyCheck");
+  const checkButton = $("dailyCheck");
   const feedback = $("dailyFeedback");
   const studentBox = $("dailyStudentBox");
   const winnerBox = $("dailyWinner");
 
+  const question = window.DAILY_QUESTION;
+  const students = (window.CENTER_DATA || {}).students || [];
+  const config = window.SUFIOLLOHYOR_CONFIG;
+
   let db = null;
   let winnerLocked = false;
-  let polling = false;
+  let loadingWinner = false;
+  let submitting = false;
+  let pollingTimer = null;
 
   function localDate() {
     const d = new Date();
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, "0");
     const day = String(d.getDate()).padStart(2, "0");
+
     return `${year}-${month}-${day}`;
   }
 
@@ -210,26 +286,66 @@
       .replace(/\s+/g, " ");
   }
 
+  function showFeedback(message, type) {
+    feedback.textContent = message;
+    feedback.className = "daily-feedback";
+
+    if (type) {
+      feedback.classList.add("daily-status", type);
+    }
+  }
+
+  function getStudentName(student) {
+    if (typeof student === "string") {
+      return student.trim();
+    }
+
+    if (student && typeof student === "object") {
+      return String(
+        student.name || student.full_name || ""
+      ).trim();
+    }
+
+    return "";
+  }
+
   function lockForm() {
     winnerLocked = true;
     input.disabled = true;
-    check.disabled = true;
+    checkButton.disabled = true;
     studentBox.replaceChildren();
   }
 
   function showWinner(name, stars) {
     winnerBox.textContent =
       `🏆 Bugungi g‘olib — ${name} 🎉 ⭐ ${stars} ta yulduz`;
+
     lockForm();
   }
 
-  function showError(message) {
-    feedback.textContent = message;
+  function showDetailedError(prefix, error) {
+    console.error(prefix, error);
+
+    const message =
+      error && error.message
+        ? error.message
+        : String(error || "Noma’lum xatolik");
+
+    const code =
+      error && error.code
+        ? ` | Kod: ${error.code}`
+        : "";
+
+    showFeedback(
+      `${prefix}: ${message}${code}`,
+      "error"
+    );
   }
 
   async function loadWinner() {
-    if (!db || polling) return;
-    polling = true;
+    if (!db || loadingWinner) return;
+
+    loadingWinner = true;
 
     try {
       const { data, error } = await db
@@ -238,38 +354,50 @@
         .eq("question_date", localDate())
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
-      if (data) {
+      if (data && data.student_name) {
         showWinner(data.student_name, data.stars || 2);
-        feedback.textContent = "Bugungi g‘olib bazada saqlangan.";
+
+        showFeedback(
+          "Bugungi g‘olib bazada saqlangan.",
+          "success"
+        );
       }
     } catch (error) {
-      console.error("G‘olibni yuklash xatosi:", error);
-      showError("G‘olibni yuklab bo‘lmadi. Supabase ruxsatlarini tekshiring.");
+      showDetailedError(
+        "G‘olibni yuklash xatosi",
+        error
+      );
     } finally {
-      polling = false;
+      loadingWinner = false;
     }
   }
 
   function buildStudentPicker() {
     if (winnerLocked) return;
 
-    if (!Array.isArray(students) || !students.length) {
-      showError("O‘quvchilar ro‘yxati topilmadi. data.js faylini tekshiring.");
+    if (!Array.isArray(students) || students.length === 0) {
+      showFeedback(
+        "O‘quvchilar ro‘yxati topilmadi. data.js faylini tekshiring.",
+        "error"
+      );
       return;
     }
 
-    feedback.textContent = "✅ Javob to‘g‘ri! Ismingizni tanlang.";
     studentBox.replaceChildren();
 
     const label = document.createElement("label");
-    label.textContent = "O‘quvchilar ro‘yxatidan ismingizni tanlang:";
+    label.textContent =
+      "O‘quvchilar ro‘yxatidan ismingizni tanlang:";
     label.htmlFor = "dailyStudentSelect";
 
     const select = document.createElement("select");
     select.id = "dailyStudentSelect";
     select.className = "daily-student-select";
+    select.required = true;
 
     const placeholder = document.createElement("option");
     placeholder.value = "";
@@ -277,9 +405,7 @@
     select.appendChild(placeholder);
 
     students.forEach((student, index) => {
-      const name = typeof student === "string"
-        ? student
-        : (student.name || student.full_name || "");
+      const name = getStudentName(student);
 
       if (!name) return;
 
@@ -296,99 +422,171 @@
 
     studentBox.append(label, select, button);
 
-    button.addEventListener("click", async () => {
-      if (winnerLocked) return;
+    showFeedback(
+      "✅ Javob to‘g‘ri! Endi ismingizni tanlang.",
+      "success"
+    );
+
+    button.addEventListener("click", async function () {
+      if (winnerLocked || submitting) return;
 
       if (!select.value) {
-        showError("Avval ismingizni tanlang.");
+        showFeedback(
+          "Avval ro‘yxatdan ismingizni tanlang.",
+          "error"
+        );
         return;
       }
 
       const student = students[Number(select.value)];
-      const name = typeof student === "string"
-        ? student
-        : (student.name || student.full_name || "");
+      const name = getStudentName(student);
 
       if (!name) {
-        showError("O‘quvchi ismi topilmadi.");
+        showFeedback(
+          "Tanlangan o‘quvchining ismi topilmadi.",
+          "error"
+        );
         return;
       }
 
+      submitting = true;
       button.disabled = true;
+      select.disabled = true;
       button.textContent = "Saqlanmoqda...";
 
       try {
+        if (!db) {
+          throw new Error(
+            "Supabase ulanmagan. config.js faylini tekshiring."
+          );
+        }
+
         const { data, error } = await db.rpc(
           "claim_daily_winner",
           { p_student_name: name }
         );
 
-        if (error) throw error;
+        if (error) {
+          throw error;
+        }
 
-        const result = Array.isArray(data) ? data[0] : data;
+        const result = Array.isArray(data)
+          ? data[0]
+          : data;
 
         if (!result || !result.winner_name) {
-          throw new Error("G‘olib natijasi qaytmadi.");
+          throw new Error(
+            "SQL funksiyasidan g‘olib natijasi qaytmadi."
+          );
         }
 
-        showWinner(result.winner_name, result.awarded_stars || 2);
+        showWinner(
+          result.winner_name,
+          result.awarded_stars || 2
+        );
 
-        if (result.is_new_winner) {
-          feedback.textContent =
-            "🎉 Siz bugungi g‘olib sifatida qayd etildingiz! 2 yulduzli mukofot yozildi.";
+        if (result.is_new_winner === true) {
+          showFeedback(
+            `🎉 Tabriklaymiz, ${result.winner_name}! Siz bugungi g‘olibsiz. 2 yulduzli mukofot qayd etildi.`,
+            "success"
+          );
         } else {
-          feedback.textContent =
-            "Bugungi g‘olib oldin aniqlangan: " + result.winner_name;
+          showFeedback(
+            `Bugungi g‘olib avval aniqlangan: ${result.winner_name}. Yangi g‘olib yozilmadi.`,
+            "success"
+          );
         }
       } catch (error) {
-        console.error("G‘olibni saqlash xatosi:", error);
-        showError(
-          "G‘olibni saqlab bo‘lmadi. Internet, SQL funksiya va Supabase ruxsatlarini tekshiring."
+        showDetailedError(
+          "G‘olibni saqlash xatosi",
+          error
         );
+
         button.disabled = false;
+        select.disabled = false;
         button.textContent = "Qayta urinish";
+      } finally {
+        submitting = false;
       }
     });
   }
 
-  if (!q || !q.text || !q.answer) {
-    text.textContent = "Hozircha savol joylashtirilmagan.";
+  // Savol ma’lumotlarini tekshirish.
+  if (!question || !question.text || !question.answer) {
+    questionBox.textContent =
+      "Hozircha savol joylashtirilmagan. data.js faylidagi DAILY_QUESTION ma’lumotini tekshiring.";
+
     form.hidden = true;
     return;
   }
 
-  text.textContent = q.text;
+  questionBox.textContent = question.text;
 
-  if (!config?.SUPABASE_URL ||
-      !config?.SUPABASE_ANON_KEY ||
-      !window.supabase) {
-    showError("Supabase sozlamalari topilmadi. config.js faylini tekshiring.");
+  // Supabase sozlamalarini tekshirish.
+  if (
+    !config ||
+    !config.SUPABASE_URL ||
+    !config.SUPABASE_ANON_KEY ||
+    !window.supabase
+  ) {
+    showFeedback(
+      "Supabase sozlamalari topilmadi. config.js va Supabase kutubxonasini tekshiring.",
+      "error"
+    );
+
     form.hidden = true;
     return;
   }
 
-  db = window.supabase.createClient(
-    config.SUPABASE_URL,
-    config.SUPABASE_ANON_KEY
-  );
+  // Supabase klientini yaratish.
+  try {
+    db = window.supabase.createClient(
+      config.SUPABASE_URL,
+      config.SUPABASE_ANON_KEY
+    );
+  } catch (error) {
+    showDetailedError(
+      "Supabase ulanishini boshlash xatosi",
+      error
+    );
 
-  form.addEventListener("submit", event => {
+    form.hidden = true;
+    return;
+  }
+
+  // Javobni tekshirish.
+  form.addEventListener("submit", function (event) {
     event.preventDefault();
 
-    if (winnerLocked) return;
+    if (winnerLocked || submitting) return;
 
-    if (normalize(input.value) !== normalize(q.answer)) {
-      showError("❌ Javob noto‘g‘ri. Qayta urinib ko‘ring.");
+    if (normalize(input.value) !== normalize(question.answer)) {
+      showFeedback(
+        "❌ Javob noto‘g‘ri. Qayta urinib ko‘ring.",
+        "error"
+      );
       return;
     }
 
     buildStudentPicker();
   });
 
+  // Sahifa ochilganda bugungi g‘olibni yuklash.
   loadWinner();
 
-  // Boshqa qurilmada g‘olib e’lon qilinsa, sahifani yangilamasdan ko‘rsatish.
-  window.setInterval(loadWinner, 10000);
+  // Boshqa qurilmadagi natijani davriy tekshirish.
+  pollingTimer = window.setInterval(function () {
+    if (!document.hidden) {
+      loadWinner();
+    }
+  }, 10000);
+
+  // Sahifa yopilayotganda intervalni to‘xtatish.
+  window.addEventListener("pagehide", function () {
+    if (pollingTimer !== null) {
+      window.clearInterval(pollingTimer);
+    }
+  });
 })();
 </script>
 
