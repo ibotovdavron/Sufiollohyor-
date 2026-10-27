@@ -7,7 +7,63 @@
   <meta name="theme-color" content="#020b09">
   <meta name="description" content="So‘fi Ollohyor o‘quv markazi — Oltinsoy tumani">
   <title>Bosh sahifa | So‘fi Ollohyor</title>
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=3">
+
+  <style>
+    .bilmasvoy-section{margin:28px 0}
+    .bilmasvoy-panel{
+      position:relative;display:flex;align-items:center;
+      justify-content:space-between;gap:22px;overflow:hidden;
+      padding:clamp(20px,4vw,34px);
+      border:1px solid #b8e9c6;border-radius:26px;
+      background:linear-gradient(130deg,#f4fff4,#dcf8e2 56%,#c7f0d0);
+      box-shadow:0 12px 34px #14763b14
+    }
+    .bilmasvoy-content{position:relative;z-index:1;max-width:610px}
+    .bilmasvoy-content h2{margin:13px 0 9px;line-height:1.15}
+    .bilmasvoy-content p{line-height:1.75;margin:0 0 14px}
+    .bilmasvoy-benefits{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 20px}
+    .bilmasvoy-benefits span{
+      padding:8px 11px;border:1px solid #ccebd2;border-radius:999px;
+      background:#ffffffc9;color:#176b3b;font-size:13px;font-weight:800
+    }
+    .bilmasvoy-cta{display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+    .bilmasvoy-hero-art{position:relative;z-index:1;flex:0 0 175px;display:grid;place-items:center;min-height:170px}
+    .bilmasvoy-orbit{
+      position:absolute;width:150px;height:150px;border:2px dashed #72c98a;
+      border-radius:50%;animation:bilmasvoyOrbit 18s linear infinite
+    }
+    .bilmasvoy-boy{
+      font-size:clamp(68px,10vw,104px);
+      filter:drop-shadow(0 9px 3px #1e75402b);
+      animation:bilmasvoyBounce 2.2s ease-in-out infinite
+    }
+    .bilmasvoy-float{position:absolute;font-size:27px;animation:bilmasvoyFloat 2.5s ease-in-out infinite}
+    .bilmasvoy-float.star{right:0;top:12px}
+    .bilmasvoy-float.book{left:0;bottom:15px;animation-delay:.5s}
+    .bilmasvoy-float.spark{right:2px;bottom:20px;animation-delay:1s}
+    @keyframes bilmasvoyBounce{
+      0%,100%{transform:translateY(0) rotate(-3deg)}
+      50%{transform:translateY(-11px) rotate(3deg)}
+    }
+    @keyframes bilmasvoyFloat{
+      0%,100%{transform:translateY(0) rotate(-8deg)}
+      50%{transform:translateY(-8px) rotate(8deg)}
+    }
+    @keyframes bilmasvoyOrbit{to{transform:rotate(360deg)}}
+    @media(max-width:620px){
+      .bilmasvoy-panel{gap:6px;padding:19px}
+      .bilmasvoy-hero-art{flex-basis:88px;min-height:120px}
+      .bilmasvoy-orbit{width:92px;height:92px}
+      .bilmasvoy-boy{font-size:62px}
+      .bilmasvoy-float{font-size:20px}
+      .bilmasvoy-content p{font-size:.94rem}
+      .bilmasvoy-benefits span{font-size:11px;padding:7px 9px}
+    }
+    @media(prefers-reduced-motion:reduce){
+      .bilmasvoy-boy,.bilmasvoy-orbit,.bilmasvoy-float{animation:none!important}
+    }
+  </style>
 </head>
 <body>
 
@@ -111,6 +167,37 @@
     <span class="btn">Guruhga o‘tish →</span>
   </a>
 
+  <!-- BILMASVOYGA O‘RGAT O‘YINI -->
+  <section class="content-section bilmasvoy-section" id="bilmasvoySection">
+    <div class="bilmasvoy-panel">
+      <div class="bilmasvoy-content">
+        <span class="tag">🎮 INTERAKTIV TA’LIM O‘YINI</span>
+        <h2>🧢 Bilmasvoyga <span class="green">o‘rgat!</span></h2>
+        <p>
+          Do‘ppi kiygan sho‘x Bilmasvoyga bilim o‘rgating!
+          Uning xatolarini toping, savollarni yeching,
+          yulduzlar to‘plang va bilimlar shahriga sayohat qiling.
+        </p>
+        <div class="bilmasvoy-benefits">
+          <span>⭐ Yulduzlar</span>
+          <span>🗺️ Sarguzasht xaritasi</span>
+          <span>🏆 Nishonlar</span>
+        </div>
+        <a class="btn bilmasvoy-cta" href="bilmasvoy.html">
+          Sarguzashtni boshlash 🚀
+        </a>
+      </div>
+
+      <div class="bilmasvoy-hero-art" aria-hidden="true">
+        <div class="bilmasvoy-orbit"></div>
+        <span class="bilmasvoy-boy">🧒🏻</span>
+        <span class="bilmasvoy-float star">⭐</span>
+        <span class="bilmasvoy-float book">📚</span>
+        <span class="bilmasvoy-float spark">✨</span>
+      </div>
+    </div>
+  </section>
+
   <!-- KUNLIK SAVOL -->
   <section class="daily-question" id="dailyQuestionSection">
     <span class="eyebrow">🧠 BILIMINGIZNI SINANG</span>
@@ -122,30 +209,14 @@
 
     <div class="daily-card">
       <div class="question-label">BUGUNGI TOPSHIRIQ</div>
-
       <h3 id="dailyQuestionText">Savol yuklanmoqda...</h3>
-
-      <label class="visually-hidden" for="dailyAnswerInput">
-        Javobingiz
-      </label>
-      <input id="dailyAnswerInput"
-             type="text"
-             placeholder="Javobingizni yozing..."
-             autocomplete="off">
-
-      <button type="button" class="btn" id="dailyCheck">
-        Javobni tekshirish
-      </button>
-
-      <div id="dailyFeedback"
-           class="daily-feedback"
-           aria-live="polite"></div>
-
+      <label class="visually-hidden" for="dailyAnswerInput">Javobingiz</label>
+      <input id="dailyAnswerInput" type="text"
+             placeholder="Javobingizni yozing..." autocomplete="off">
+      <button type="button" class="btn" id="dailyCheck">Javobni tekshirish</button>
+      <div id="dailyFeedback" class="daily-feedback" aria-live="polite"></div>
       <div id="dailyStudentBox"></div>
-
-      <div id="dailyWinner"
-           class="daily-winner"
-           aria-live="polite"></div>
+      <div id="dailyWinner" class="daily-winner" aria-live="polite"></div>
     </div>
 
     <p class="daily-note">
@@ -185,23 +256,15 @@
         <p>Rasmiy kanallarimizdan kuzatib boring</p>
       </div>
     </div>
-
     <p class="muted">
       E’lonlar, dars jadvalidagi o‘zgarishlar va markaz
       yangiliklari Telegram kanalida joylanadi.
     </p>
-
     <div class="hero-actions">
-      <a class="btn"
-         href="https://t.me/sufi_ollohyor_uquv_markaz"
-         target="_blank" rel="noopener noreferrer">
-        Telegram kanaliga o‘tish ↗
-      </a>
-      <a class="btn secondary"
-         href="https://www.instagram.com/sufiollohyor/"
-         target="_blank" rel="noopener noreferrer">
-        Instagram ↗
-      </a>
+      <a class="btn" href="https://t.me/sufi_ollohyor_uquv_markaz"
+         target="_blank" rel="noopener noreferrer">Telegram kanaliga o‘tish ↗</a>
+      <a class="btn secondary" href="https://www.instagram.com/sufiollohyor/"
+         target="_blank" rel="noopener noreferrer">Instagram ↗</a>
     </div>
   </section>
 
@@ -218,18 +281,15 @@
 
 <nav class="bottom-nav" id="bottomNav" aria-label="Asosiy menyu"></nav>
 
-<!-- Mavjud fayllar -->
 <script src="data.js"></script>
 <script src="app.js"></script>
 
-<!-- Kunlik savol: faqat bitta skript -->
 <script>
 (function () {
   "use strict";
 
   const q = window.DAILY_QUESTION;
   const data = window.CENTER_DATA || {};
-
   const text = document.getElementById("dailyQuestionText");
   const input = document.getElementById("dailyAnswerInput");
   const check = document.getElementById("dailyCheck");
@@ -237,11 +297,9 @@
   const studentBox = document.getElementById("dailyStudentBox");
   const winnerBox = document.getElementById("dailyWinner");
 
-  if (!text || !input || !check || !feedback ||
-      !studentBox || !winnerBox) return;
+  if (!text || !input || !check || !feedback || !studentBox || !winnerBox) return;
 
-  if (!q || !q.text || q.answer == null ||
-      String(q.answer).trim() === "") {
+  if (!q || !q.text || q.answer == null || String(q.answer).trim() === "") {
     text.textContent = "Hozircha savol joylashtirilmagan.";
     check.disabled = true;
     input.disabled = true;
@@ -252,8 +310,7 @@
 
   const winnerKey = "sofi_daily_winner_v1";
   const questionKey = "sofi_daily_question_v1";
-  const currentQuestion =
-    String(q.text).trim() + "|" + String(q.answer).trim();
+  const currentQuestion = String(q.text).trim() + "|" + String(q.answer).trim();
 
   function normalize(value) {
     return String(value == null ? "" : value)
@@ -265,14 +322,12 @@
 
   function studentName(student) {
     if (typeof student === "string") return student;
-    return student &&
-      (student.name || student.full_name || student.fullName)
+    return student && (student.name || student.full_name || student.fullName)
       || "O‘quvchi";
   }
 
   function showWinner(name) {
-    winnerBox.textContent =
-      "🏆 Bugungi g‘olib — " + name + " 🎉";
+    winnerBox.textContent = "🏆 Bugungi g‘olib — " + name + " 🎉";
   }
 
   try {
@@ -281,15 +336,11 @@
       localStorage.removeItem(winnerKey);
     }
 
-    const saved = JSON.parse(
-      localStorage.getItem(winnerKey) || "null"
-    );
+    const saved = JSON.parse(localStorage.getItem(winnerKey) || "null");
 
-    if (saved && saved.name &&
-        saved.question === currentQuestion) {
+    if (saved && saved.name && saved.question === currentQuestion) {
       showWinner(saved.name);
-      feedback.textContent =
-        "Bugungi g‘olib ushbu brauzerda qayd etilgan.";
+      feedback.textContent = "Bugungi g‘olib ushbu brauzerda qayd etilgan.";
       input.disabled = true;
       check.disabled = true;
     }
@@ -299,24 +350,19 @@
     if (check.disabled) return;
 
     if (normalize(input.value) !== normalize(q.answer)) {
-      feedback.textContent =
-        "❌ Javob noto‘g‘ri. Qayta urinib ko‘ring.";
+      feedback.textContent = "❌ Javob noto‘g‘ri. Qayta urinib ko‘ring.";
       studentBox.replaceChildren();
       return;
     }
 
-    const students = Array.isArray(data.students)
-      ? data.students : [];
+    const students = Array.isArray(data.students) ? data.students : [];
 
     if (!students.length) {
-      feedback.textContent =
-        "O‘quvchilar ro‘yxati topilmadi. data.js faylini tekshiring.";
+      feedback.textContent = "O‘quvchilar ro‘yxati topilmadi. data.js faylini tekshiring.";
       return;
     }
 
-    feedback.textContent =
-      "✅ Javob to‘g‘ri! Ro‘yxatdan ismingizni tanlang.";
-
+    feedback.textContent = "✅ Javob to‘g‘ri! Ro‘yxatdan ismingizni tanlang.";
     studentBox.replaceChildren();
 
     const select = document.createElement("select");
@@ -353,16 +399,12 @@
       try {
         localStorage.setItem(
           winnerKey,
-          JSON.stringify({
-            name: name,
-            question: currentQuestion
-          })
+          JSON.stringify({ name: name, question: currentQuestion })
         );
       } catch (e) {}
 
       showWinner(name);
       feedback.textContent = "🎉 G‘olib e’lon qilindi!";
-
       input.disabled = true;
       check.disabled = true;
       select.disabled = true;
@@ -371,9 +413,7 @@
   });
 
   input.addEventListener("keydown", function (event) {
-    if (event.key === "Enter" && !check.disabled) {
-      check.click();
-    }
+    if (event.key === "Enter" && !check.disabled) check.click();
   });
 })();
 </script>
