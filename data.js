@@ -171,6 +171,7 @@ students: [
 ]
 };
 window.DAILY_QUESTION = {
-  text: "Bir sonni 2 ga ko‘paytirib, natijaga 10 qo‘shildi. Hosil bo‘lgan sonni 2 ga bo‘lib, 5 ayirilsa, 0 chiqdi. O‘ylab ko‘r: bu qaysi son?",
-  answer: "0"
+  id: "savol-003",
+  text: "Bir sonning yarmi, uchdan bir qismi va to‘rtdan bir qismining yig‘indisi 26 ga teng. Shu sonni toping.",
+  answer: "24"
 };
