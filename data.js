@@ -171,7 +171,7 @@ students: [
 ]
 };
 window.DAILY_QUESTION = {
-  id: "savol-002",
-  text: "Bir sonning yarmi, uchdan bir qismi va to‘rtdan bir qismining yig‘indisi 26 ga teng. Shu sonni toping.",
-  answer: "24"
+  id: "savol-004",
+  text: "Uch xonali ABC soni raqamlari yig‘indisining 37 baravariga teng. Raqamlari teskari yozilganda hosil bo‘lgan son dastlabki sondan 396 ga kichik. ABC sonini toping.",
+  answer: "Bunday son mavjud emas"
 };
