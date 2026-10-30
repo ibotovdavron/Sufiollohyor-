@@ -889,69 +889,6 @@ img {
   margin: 5px 0;
 }
 
-/* =========================================
-   PASTKI NAVIGATSIYA — app.js
-========================================= */
-
-.bottom-nav {
-  position: fixed;
-  z-index: 1000;
-  bottom: 5px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(1100px, calc(100% - 12px));
-  display: grid;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
-  gap: 0;
-  padding: 5px;
-  background: rgba(1, 15, 9, 0.97);
-  border: 1px solid var(--green);
-  border-radius: 19px;
-  box-shadow: 0 0 24px #00f07833;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-
-.navitem {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  padding: 8px 2px;
-  color: #d9eee1;
-  border-right: 1px solid #00ff7821;
-  font-size: 0.65rem;
-  font-weight: 750;
-  line-height: 1.15;
-  text-align: center;
-  transition: 0.18s;
-}
-
-.navitem:last-child {
-  border-right: 0;
-}
-
-.navitem .navicon {
-  font-size: 1.25rem;
-  line-height: 1.15;
-}
-
-.navitem .navlabel {
-  max-width: 100%;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.navitem.active {
-  color: #00190a;
-  background: linear-gradient(140deg, #00f59b, #07984b);
-  border-radius: 12px;
-  box-shadow: 0 0 17px #00f07855;
-}
-
 .hidden {
   display: none !important;
 }
@@ -1187,26 +1124,9 @@ img {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .bottom-nav {
-    bottom: 4px;
-    width: calc(100% - 8px);
-    padding: 4px 2px;
-    border-radius: 15px;
-  }
 
-  .navitem {
-    padding: 7px 1px;
-    gap: 3px;
-    font-size: clamp(0.46rem, 1.75vw, 0.61rem);
-  }
 
-  .navitem .navicon {
-    font-size: clamp(0.9rem, 3.5vw, 1.15rem);
-  }
 
-  .navitem .navlabel {
-    letter-spacing: -0.035em;
-  }
 
   .footer {
     padding-bottom: 22px;
@@ -1239,9 +1159,6 @@ img {
     padding: 8px;
   }
 
-  .navitem .navlabel {
-    font-size: 0.44rem;
-  }
 }
 
 /* Harakatni kamaytiritanlagan foydalanuvchilar */
@@ -1368,9 +1285,6 @@ img {
   line-height: 1.8;
 }
 
-.bottom-nav {
-  max-width: 100%;
-}
 
 @media (max-width: 480px) {
   .topinner {
@@ -1848,5 +1762,313 @@ img {
   .leader-photo,
   .leader-photo img {
     animation: none !important;
+  }
+}
+
+/* =========================================
+   PASTKI NAVIGATSIYA — app.js
+========================================= */
+
+.bottom-nav {
+  position: fixed;
+  z-index: 1000;
+  left: 50%;
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  width: min(980px, calc(100% - 20px));
+  transform: translateX(-50%);
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s;
+}
+
+.bottom-nav.tucked {
+  transform: translate(-50%, 140%);
+  opacity: 0;
+}
+
+.nav-bar {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  padding: 7px;
+  border: 1px solid rgba(0, 245, 155, 0.28);
+  border-radius: 26px;
+  background: rgba(4, 22, 14, 0.86);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.navitem {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 4px 7px;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  color: #8fb3a1;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.25s, background 0.25s, transform 0.2s;
+}
+
+.navitem:hover {
+  color: var(--white);
+  background: rgba(0, 245, 155, 0.07);
+}
+
+.navitem:active {
+  transform: scale(0.92);
+}
+
+.navicon {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+}
+
+.navicon svg {
+  width: 23px;
+  height: 23px;
+  transition: transform 0.35s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+.navlabel {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.navitem.active {
+  color: var(--green);
+  background: rgba(0, 245, 155, 0.12);
+}
+
+.navitem.active .navicon svg {
+  transform: translateY(-1px) scale(1.08);
+  filter: drop-shadow(0 0 8px rgba(0, 245, 155, 0.7));
+}
+
+.navitem.active::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 18px;
+  height: 3px;
+  margin-left: -9px;
+  border-radius: 3px;
+  background: var(--green);
+  box-shadow: 0 0 10px var(--green);
+  animation: navDot 0.4s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+@keyframes navDot {
+  from { transform: scaleX(0); }
+}
+
+.navitem.more,
+.navlabel .sm {
+  display: none;
+}
+
+/* Menyu varag‘i */
+.nav-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 10px;
+  background: rgba(1, 8, 5, 0);
+  backdrop-filter: blur(0);
+  transition: background 0.3s, backdrop-filter 0.3s;
+}
+
+.nav-sheet.open {
+  background: rgba(1, 8, 5, 0.6);
+  backdrop-filter: blur(6px);
+}
+
+.nav-sheet-card {
+  width: min(520px, 100%);
+  margin-bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+  padding: 10px 16px 18px;
+  border: 1px solid rgba(0, 245, 155, 0.3);
+  border-radius: 28px;
+  background: linear-gradient(180deg, #0a2a1c, #04140c);
+  box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.5);
+  transform: translateY(30px) scale(0.97);
+  opacity: 0;
+  transition: transform 0.35s cubic-bezier(0.2, 1.2, 0.4, 1), opacity 0.25s;
+}
+
+.nav-sheet.open .nav-sheet-card {
+  transform: none;
+  opacity: 1;
+}
+
+.nav-sheet-grip {
+  display: block;
+  width: 42px;
+  height: 5px;
+  margin: 2px auto 10px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.nav-sheet h3 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  text-align: center;
+  color: var(--mint);
+}
+
+.nav-sheet-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sheet-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 6px;
+  border: 1px solid rgba(0, 245, 155, 0.16);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--white);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.nav-sheet.open .sheet-item {
+  animation: sheetIn 0.4s cubic-bezier(0.2, 1.2, 0.4, 1) forwards;
+  animation-delay: calc(var(--i) * 35ms);
+}
+
+@keyframes sheetIn {
+  to { opacity: 1; transform: none; }
+}
+
+.sheet-item .navicon {
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  background: rgba(0, 245, 155, 0.1);
+  color: var(--green);
+}
+
+.sheet-item:hover,
+.sheet-item.active {
+  border-color: var(--green);
+  background: rgba(0, 245, 155, 0.1);
+}
+
+.sheet-item.active .navicon {
+  background: var(--green);
+  color: #02130c;
+  box-shadow: 0 0 18px rgba(0, 245, 155, 0.5);
+}
+
+/* Telefon: 4 ta asosiy bo‘lim + o‘rtada o‘yin tugmasi + Menyu */
+@media (max-width: 820px) {
+  .bottom-nav {
+    width: calc(100% - 20px);
+  }
+
+  .navitem.extra {
+    display: none;
+  }
+
+  .navitem.more {
+    display: flex;
+  }
+
+  .navlabel .lg {
+    display: none;
+  }
+
+  .navlabel .sm {
+    display: inline;
+  }
+
+  .navitem {
+    font-size: 0.66rem;
+  }
+
+  .navitem.play {
+    flex: 0 0 64px;
+    margin: -22px 2px 0;
+    padding: 0;
+    background: none;
+    color: var(--white);
+  }
+
+  .navitem.play .navicon {
+    width: 56px;
+    height: 56px;
+    border-radius: 20px;
+    background: linear-gradient(140deg, #00f59b, #0ea5e9);
+    color: #02130c;
+    box-shadow:
+      0 10px 24px rgba(0, 245, 155, 0.35),
+      0 0 0 5px rgba(4, 22, 14, 0.95);
+    transform: rotate(-8deg);
+    transition: transform 0.3s cubic-bezier(0.2, 1.6, 0.4, 1);
+  }
+
+  .navitem.play .navicon svg {
+    width: 28px;
+    height: 28px;
+    transform: rotate(8deg);
+    filter: none;
+  }
+
+  .navitem.play:hover .navicon,
+  .navitem.play.active .navicon {
+    transform: rotate(0) scale(1.05);
+  }
+
+  .navitem.play.active {
+    background: none;
+    color: var(--green);
+  }
+
+  .navitem.play::after {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bottom-nav,
+  .nav-sheet-card,
+  .sheet-item,
+  .navitem.active::after {
+    transition: none;
+    animation: none !important;
+  }
+
+  .sheet-item {
+    opacity: 1;
+    transform: none;
   }
 }
