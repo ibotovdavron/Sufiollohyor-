@@ -91,12 +91,14 @@ students: [
     {name:"Ustoz 4", subject:"Ona tili", bio:"Ustoz haqida ma’lumot keyin qo‘shiladi.", icon:"👩‍🏫"},
     {name:"Ustoz 5", subject:"Fan keyin belgilanadi", bio:"Ustoz haqida ma’lumot keyin qo‘shiladi.", icon:"👨‍🏫"}
   ],
+  // date: "2026-11-14T10:00" ko'rinishida yozilsa, sahifada ortga sanash (taymer) chiqadi.
   competitions: [
-    {name:"Zakovat musobaqasi", type:"Bilimlar bellashuvi", description:"Mantiqiy fikrlash va jamoaviy bilimni sinovdan o‘tkazish.", icon:"🏆", status:"Reja / e’lon"},
-    {name:"Matematika bellashuvi", type:"Matematik tafakkur", description:"Misol va masalalar orqali bilimlarni mustahkamlash.", icon:"🧠", status:"Reja / e’lon"},
-    {name:"Haftalik test sinovi", type:"Bilimni tekshirish", description:"O‘quvchilarning o‘zlashtirish darajasini kuzatish.", icon:"📝", status:"Reja / e’lon"},
-    {name:"Yutuqlar haftaligi", type:"Rag‘batlantirish", description:"Faol qatnashchilar va yutuqlarni e’tirof etish.", icon:"🌟", status:"Reja / e’lon"}
+    {name:"Zakovat musobaqasi", type:"Jamoaviy bellashuv", description:"Mantiqiy fikrlash va jamoaviy bilimni sinovdan o‘tkazish. Jamoalar savollarga vaqt bilan javob beradi.", icon:"🧠", status:"Reja / e’lon", date:"", format:"Jamoa · 6 kishi"},
+    {name:"Matematika bellashuvi", type:"Yakkama-yakka", description:"Misol va masalalar orqali tezlik va aniqlik jangi. Kim tezroq va to‘g‘ri yechsa — g‘olib.", icon:"⚔️", status:"Reja / e’lon", date:"", format:"Yakka · 1 ga 1"},
+    {name:"Haftalik test sinovi", type:"Bilim marafoni", description:"Har hafta o‘zlashtirish darajasini tekshiruvchi test. Natijalar reytingga qo‘shiladi.", icon:"📝", status:"Reja / e’lon", date:"", format:"Yakka · 30 savol"},
+    {name:"Yutuqlar haftaligi", type:"Rag‘batlantirish", description:"Eng faol qatnashchilar va yutuqlarni e’tirof etish, sovg‘alar topshirish.", icon:"🌟", status:"Reja / e’lon", date:"", format:"Hamma uchun"}
   ],
+
   starRules: [
     {title:"Uy vazifasini to‘liq bajarish", stars:1},
     {title:"Darsdagi faol ishtirok", stars:1},

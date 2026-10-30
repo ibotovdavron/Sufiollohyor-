@@ -1,4 +1,83 @@
 <!doctype html>
-<html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#020b09"><meta name="description" content="So‘fi Ollohyor o‘quv markazi — Oltinsoy tumani"><title>Musobaqalar | So‘fi Ollohyor</title><link rel="stylesheet" href="style.css?v=8"></head>
-<body><header class="topbar"><div class="wrap topinner"><a class="brand" href="index.html"><img src="assets/markaz-logo.png" alt="So‘fi Ollohyor logotipi" onerror="this.style.display='none'"><span class="brand-mark">S<span class="green">O</span></span><span class="brand-name">SO‘FI OLLOHYOR<small>O‘QUV MARKAZI</small></span></a><div class="social"><a data-telegram href="https://t.me/sufi_ollohyor_uquv_markaz">✈️ Telegram</a><a data-instagram href="https://www.instagram.com/sufiollohyor/" aria-label="Instagram">📸</a></div></div></header>
-<main class="wrap"><section class="pagehead"><span class="eyebrow">🏆 Bilimlar bellashuvi</span><h1>Musobaqalar <span class="green">maydoni</span></h1><p>O‘quvchilarning bilimini sinash, mantiqiy fikrlashini rivojlantirish va yutuqlarini rag‘batlantirish uchun musobaqalar bo‘limi.</p></section><section class="panel"><div class="toolbar"><input id="competitionSearch" placeholder="🔎 Musobaqa qidirish..."></div><div class="competition-grid" id="competitionGrid"></div></section><section class="panel"><h2>Musobaqalarda qatnashish</h2><p class="muted">Yangi musobaqa sanasi va shartlari rasmiy Telegram kanalida e’lon qilinadi.</p><a class="btn" data-telegram href="https://t.me/sufi_ollohyor_uquv_markaz">E’lonlarni ko‘rish ↗</a></section></main><footer class="footer wrap">© 2026 So‘fi Ollohyor o‘quv markazi · Oltinsoy tumani<br><span class="smallprint">Bilim · Tarbiya · Natija</span></footer><nav class="bottom-nav" id="bottomNav" aria-label="Asosiy menyu"></nav><script src="data.js"></script><script src="app.js"></script></body></html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#1a0606">
+  <meta name="description" content="So‘fi Ollohyor o‘quv markazi — bilimlar arenasi: sinflar jangi, yulduzlar marafoni va musobaqalar">
+  <title>Musobaqalar | So‘fi Ollohyor</title>
+  <link rel="stylesheet" href="style.css?v=9">
+  <link rel="stylesheet" href="competitions.css?v=1">
+</head>
+<body class="arena-page">
+
+<header class="topbar">
+  <div class="wrap topinner">
+    <a class="brand" href="index.html">
+      <img class="brand-image" src="assets/markaz-logo.png" alt="Markaz logotipi">
+      <span class="brand-name">SO‘FI OLLOHYOR<small>O‘QUV MARKAZI</small></span>
+    </a>
+    <span class="ar-live"><i></i> JONLI</span>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="ar-hero">
+    <div class="ar-sparks" aria-hidden="true"></div>
+    <div class="ar-hero-copy">
+      <span class="ar-kicker">⚔️ BILIMLAR ARENASI</span>
+      <h1>Jang <span>boshlandi!</span></h1>
+      <p>Har bir yulduz — g‘alaba sari bir qadam. Sinflar bellashadi, o‘quvchilar marafonda yuguradi, eng kuchlilar shohsupaga chiqadi.</p>
+      <div class="ar-stats" id="heroStats"></div>
+    </div>
+    <div class="ar-hero-art" aria-hidden="true">
+      <span class="sw sw1">⚔️</span>
+      <span class="ar-vs">VS</span>
+      <span class="sw sw2">🛡️</span>
+    </div>
+  </section>
+
+  <section class="ar-section">
+    <div class="ar-head"><h2>🔥 Sinflar jangi</h2><span class="ar-note">Har bir sinfning jami yulduzlari</span></div>
+    <div class="ar-battle" id="battle"></div>
+  </section>
+
+  <section class="ar-section">
+    <div class="ar-head"><h2>🏁 Yulduzlar marafoni</h2><span class="ar-note" id="raceNote">Top 10 · marragacha</span></div>
+    <div class="ar-filters" id="raceFilter"></div>
+    <div class="ar-track" id="race"></div>
+  </section>
+
+  <section class="ar-section">
+    <div class="ar-head"><h2>🏆 Shohsupa</h2></div>
+    <div class="ar-podium" id="podium"></div>
+  </section>
+
+  <section class="ar-section">
+    <div class="ar-head"><h2>🎯 Musobaqalar</h2><span class="ar-note">Qatnashing va yulduz yutib oling</span></div>
+    <div class="ar-events" id="events"></div>
+  </section>
+
+  <section class="ar-section">
+    <div class="ar-head"><h2>⭐ Ochko qoidalari</h2></div>
+    <div class="ar-rules" id="rules"></div>
+    <a class="ar-btn wide" data-telegram href="https://t.me/sufi_ollohyor_uquv_markaz">✈️ E’lonlarni Telegramda kuzating</a>
+  </section>
+
+</main>
+
+<footer class="footer wrap">
+  <div class="footer-brand">SO‘FI OLLOHYOR<span>O‘QUV MARKAZI</span></div>
+  <p>© 2026 So‘fi Ollohyor o‘quv markazi · Oltinsoy tumani</p>
+</footer>
+
+<nav class="bottom-nav" id="bottomNav" aria-label="Asosiy menyu"></nav>
+
+<script src="lib/supabase.js"></script>
+<script src="config.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script src="competitions.js"></script>
+</body>
+</html>
