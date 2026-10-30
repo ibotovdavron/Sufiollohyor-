@@ -84,6 +84,17 @@ students: [
     {name:"Xursanov Xumoyiddin", group:"8-sinf", stars:0, result:"Natija hali kiritilmagan"},
     {name:"Haqnazarova Munisa", group:"8-sinf", stars:0, result:"Natija hali kiritilmagan"}
 ],
+  // Dars jadvali. Kunlar: "Dushanba" ... "Yakshanba". Vaqt — dars boshlanishi.
+  schedule: {
+    group: "Matematika 144",
+    days: ["Chorshanba", "Shanba"],
+    slots: [
+      {cls:"6-sinf", time:"11:00"},
+      {cls:"5-sinf", time:"12:00"},
+      {cls:"8-sinf", time:"15:30"}
+    ],
+    note: "Diqqat, o‘quvchilar! Hamma o‘z vaqtida kelsin — dars o‘z vaqtida boshlanadi."
+  },
   // Ustozlar. photo: "assets/ustoz-ism.jpg" ko'rinishida rasm yo'lini yozing.
   // achievements — yutuq va sertifikatlar ro'yxati, quote — ustozning shiori.
   teachers: [
