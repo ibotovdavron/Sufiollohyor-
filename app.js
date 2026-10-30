@@ -13,23 +13,22 @@
     calendar: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>',
     bag: '<path d="M5 8h14l-1 13H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
     question: '<circle cx="12" cy="12" r="9.5"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6"/><circle cx="12" cy="17.2" r=".6" fill="currentColor"/>',
-    phone: '<path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2Z"/>',
-    menu: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>'
+    phone: '<path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2Z"/>'
   };
   const icon = (name) =>
     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
 
-  // [manzil, ikonka, nom, telefonda pastki qatorda ko'rinadimi]
+  // [manzil, ikonka, nom, telefondagi qisqa nom]
   const pages = [
-    ["index.html", "home", "Bosh sahifa", true],
-    ["competitions.html", "trophy", "Musobaqalar", false],
-    ["teachers.html", "cap", "Ustozlar", false],
-    ["ranking.html", "chart", "Reyting", true],
-    ["games.html", "game", "O‘yinlar", true],
-    ["schedule.html", "calendar", "Jadval", false],
-    ["shop.html", "bag", "Do‘kon", true],
-    ["about.html", "question", "Kunlik savol", false],
-    ["contact.html", "phone", "Aloqa", false]
+    ["index.html", "home", "Bosh sahifa", "Asosiy"],
+    ["competitions.html", "trophy", "Musobaqalar", "Tanlov"],
+    ["teachers.html", "cap", "Ustozlar", "Ustozlar"],
+    ["ranking.html", "chart", "Reyting", "Reyting"],
+    ["games.html", "game", "O‘yinlar", "O‘yinlar"],
+    ["schedule.html", "calendar", "Jadval", "Jadval"],
+    ["shop.html", "bag", "Do‘kon", "Do‘kon"],
+    ["about.html", "question", "Kunlik savol", "Savol"],
+    ["contact.html", "phone", "Aloqa", "Aloqa"]
   ];
 
   const path =
@@ -38,67 +37,20 @@
   const nav = document.getElementById("bottomNav");
 
   if (nav) {
-    const inSheet = pages.some(([url, , , main]) => !main && url === path);
     nav.innerHTML = `
       <div class="nav-bar">
-        ${pages.map(([url, ic, label, main]) => `
+        ${pages.map(([url, ic, label, short]) => `
           <a
-            class="navitem ${main ? "main" : "extra"} ${url === "games.html" ? "play" : ""} ${path === url ? "active" : ""}"
+            class="navitem ${url === "games.html" ? "play" : ""} ${path === url ? "active" : ""}"
             href="${url}"
+            aria-label="${label}"
             ${path === url ? 'aria-current="page"' : ""}
           >
             <span class="navicon">${icon(ic)}</span>
-            <span class="navlabel">${url === "index.html" ? '<span class="lg">Bosh sahifa</span><span class="sm">Asosiy</span>' : label}</span>
+            <span class="navlabel"><span class="lg">${label}</span><span class="sm">${short}</span></span>
           </a>
         `).join("")}
-        <button class="navitem more ${inSheet ? "active" : ""}" type="button" aria-expanded="false" aria-controls="navSheet">
-          <span class="navicon">${icon("menu")}</span>
-          <span class="navlabel">Menyu</span>
-        </button>
       </div>`;
-
-    const sheet = document.createElement("div");
-    sheet.className = "nav-sheet";
-    sheet.id = "navSheet";
-    sheet.hidden = true;
-    sheet.innerHTML = `
-      <div class="nav-sheet-card" role="dialog" aria-label="Barcha bo‘limlar">
-        <span class="nav-sheet-grip"></span>
-        <h3>Barcha bo‘limlar</h3>
-        <div class="nav-sheet-grid">
-          ${pages.map(([url, ic, label], i) => `
-            <a class="sheet-item ${path === url ? "active" : ""}" href="${url}" style="--i:${i}">
-              <span class="navicon">${icon(ic)}</span>
-              <span>${label}</span>
-            </a>
-          `).join("")}
-        </div>
-      </div>`;
-    document.body.appendChild(sheet);
-
-    const moreBtn = nav.querySelector(".more");
-    const setSheet = (open) => {
-      moreBtn.setAttribute("aria-expanded", String(open));
-      if (open) {
-        sheet.hidden = false;
-        requestAnimationFrame(() => sheet.classList.add("open"));
-      } else {
-        sheet.classList.remove("open");
-        setTimeout(() => { if (!sheet.classList.contains("open")) sheet.hidden = true; }, 300);
-      }
-    };
-    moreBtn.addEventListener("click", () => setSheet(sheet.hidden));
-    sheet.addEventListener("click", (e) => { if (e.target === sheet) setSheet(false); });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") setSheet(false); });
-
-    // Pastga aylantirganda menyu yashirinadi, tepaga qaytganda chiqadi
-    let lastY = window.scrollY;
-    window.addEventListener("scroll", () => {
-      const y = window.scrollY;
-      if (Math.abs(y - lastY) < 8) return;
-      nav.classList.toggle("tucked", y > lastY && y > 120 && sheet.hidden);
-      lastY = y;
-    }, { passive: true });
   }
 
   // Xavfsiz matn chiqarish

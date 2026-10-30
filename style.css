@@ -1774,24 +1774,18 @@ img {
   z-index: 1000;
   left: 50%;
   bottom: calc(10px + env(safe-area-inset-bottom, 0px));
-  width: min(980px, calc(100% - 20px));
+  width: min(980px, calc(100% - 16px));
   transform: translateX(-50%);
-  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s;
-}
-
-.bottom-nav.tucked {
-  transform: translate(-50%, 140%);
-  opacity: 0;
 }
 
 .nav-bar {
   display: flex;
   align-items: stretch;
-  gap: 4px;
-  padding: 7px;
+  gap: 3px;
+  padding: 6px;
   border: 1px solid rgba(0, 245, 155, 0.28);
-  border-radius: 26px;
-  background: rgba(4, 22, 14, 0.86);
+  border-radius: 24px;
+  background: rgba(4, 22, 14, 0.9);
   backdrop-filter: blur(22px) saturate(160%);
   -webkit-backdrop-filter: blur(22px) saturate(160%);
   box-shadow:
@@ -1808,10 +1802,8 @@ img {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  padding: 8px 4px 7px;
-  border: 0;
-  border-radius: 18px;
-  background: transparent;
+  padding: 8px 2px 8px;
+  border-radius: 17px;
   color: #8fb3a1;
   font-size: 0.68rem;
   font-weight: 700;
@@ -1833,13 +1825,15 @@ img {
 .navicon {
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
+  border-radius: 11px;
+  transition: background 0.25s, box-shadow 0.25s;
 }
 
 .navicon svg {
-  width: 23px;
-  height: 23px;
+  width: 22px;
+  height: 22px;
   transition: transform 0.35s cubic-bezier(0.2, 1.6, 0.4, 1);
 }
 
@@ -1848,6 +1842,10 @@ img {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+.navlabel .sm {
+  display: none;
 }
 
 .navitem.active {
@@ -1865,9 +1863,9 @@ img {
   position: absolute;
   bottom: 2px;
   left: 50%;
-  width: 18px;
+  width: 16px;
   height: 3px;
-  margin-left: -9px;
+  margin-left: -8px;
   border-radius: 3px;
   background: var(--green);
   box-shadow: 0 0 10px var(--green);
@@ -1878,129 +1876,47 @@ img {
   from { transform: scaleX(0); }
 }
 
-.navitem.more,
-.navlabel .sm {
-  display: none;
-}
-
-/* Menyu varag‘i */
-.nav-sheet {
-  position: fixed;
-  inset: 0;
-  z-index: 1001;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 10px;
-  background: rgba(1, 8, 5, 0);
-  backdrop-filter: blur(0);
-  transition: background 0.3s, backdrop-filter 0.3s;
-}
-
-.nav-sheet.open {
-  background: rgba(1, 8, 5, 0.6);
-  backdrop-filter: blur(6px);
-}
-
-.nav-sheet-card {
-  width: min(520px, 100%);
-  margin-bottom: calc(86px + env(safe-area-inset-bottom, 0px));
-  padding: 10px 16px 18px;
-  border: 1px solid rgba(0, 245, 155, 0.3);
-  border-radius: 28px;
-  background: linear-gradient(180deg, #0a2a1c, #04140c);
-  box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.5);
-  transform: translateY(30px) scale(0.97);
-  opacity: 0;
-  transition: transform 0.35s cubic-bezier(0.2, 1.2, 0.4, 1), opacity 0.25s;
-}
-
-.nav-sheet.open .nav-sheet-card {
-  transform: none;
-  opacity: 1;
-}
-
-.nav-sheet-grip {
-  display: block;
-  width: 42px;
-  height: 5px;
-  margin: 2px auto 10px;
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.nav-sheet h3 {
-  margin: 0 0 12px;
-  font-size: 1rem;
-  text-align: center;
-  color: var(--mint);
-}
-
-.nav-sheet-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.sheet-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 14px 6px;
-  border: 1px solid rgba(0, 245, 155, 0.16);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--white);
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-align: center;
-  opacity: 0;
-  transform: translateY(12px);
-  transition: background 0.2s, border-color 0.2s;
-}
-
-.nav-sheet.open .sheet-item {
-  animation: sheetIn 0.4s cubic-bezier(0.2, 1.2, 0.4, 1) forwards;
-  animation-delay: calc(var(--i) * 35ms);
-}
-
-@keyframes sheetIn {
-  to { opacity: 1; transform: none; }
-}
-
-.sheet-item .navicon {
-  width: 46px;
-  height: 46px;
-  border-radius: 15px;
-  background: rgba(0, 245, 155, 0.1);
-  color: var(--green);
-}
-
-.sheet-item:hover,
-.sheet-item.active {
-  border-color: var(--green);
-  background: rgba(0, 245, 155, 0.1);
-}
-
-.sheet-item.active .navicon {
-  background: var(--green);
+/* O‘yinlar tugmasi alohida ajralib turadi */
+.navitem.play .navicon {
+  background: linear-gradient(140deg, #00f59b, #0ea5e9);
   color: #02130c;
-  box-shadow: 0 0 18px rgba(0, 245, 155, 0.5);
+  box-shadow: 0 6px 16px rgba(0, 245, 155, 0.35);
 }
 
-/* Telefon: 4 ta asosiy bo‘lim + o‘rtada o‘yin tugmasi + Menyu */
-@media (max-width: 820px) {
+.navitem.play.active .navicon svg {
+  filter: none;
+}
+
+/* Telefon: 9 ta bo‘lim ham ko‘rinadi, nomlar qisqa */
+@media (max-width: 700px) {
   .bottom-nav {
-    width: calc(100% - 20px);
+    width: calc(100% - 10px);
+    bottom: calc(6px + env(safe-area-inset-bottom, 0px));
   }
 
-  .navitem.extra {
-    display: none;
+  .nav-bar {
+    gap: 1px;
+    padding: 4px 3px;
+    border-radius: 20px;
   }
 
-  .navitem.more {
-    display: flex;
+  .navitem {
+    gap: 3px;
+    padding: 6px 0 7px;
+    border-radius: 14px;
+    font-size: clamp(0.5rem, 2.25vw, 0.64rem);
+    letter-spacing: -0.02em;
+  }
+
+  .navicon {
+    width: 26px;
+    height: 26px;
+    border-radius: 9px;
+  }
+
+  .navicon svg {
+    width: clamp(17px, 5vw, 21px);
+    height: clamp(17px, 5vw, 21px);
   }
 
   .navlabel .lg {
@@ -2010,65 +1926,10 @@ img {
   .navlabel .sm {
     display: inline;
   }
-
-  .navitem {
-    font-size: 0.66rem;
-  }
-
-  .navitem.play {
-    flex: 0 0 64px;
-    margin: -22px 2px 0;
-    padding: 0;
-    background: none;
-    color: var(--white);
-  }
-
-  .navitem.play .navicon {
-    width: 56px;
-    height: 56px;
-    border-radius: 20px;
-    background: linear-gradient(140deg, #00f59b, #0ea5e9);
-    color: #02130c;
-    box-shadow:
-      0 10px 24px rgba(0, 245, 155, 0.35),
-      0 0 0 5px rgba(4, 22, 14, 0.95);
-    transform: rotate(-8deg);
-    transition: transform 0.3s cubic-bezier(0.2, 1.6, 0.4, 1);
-  }
-
-  .navitem.play .navicon svg {
-    width: 28px;
-    height: 28px;
-    transform: rotate(8deg);
-    filter: none;
-  }
-
-  .navitem.play:hover .navicon,
-  .navitem.play.active .navicon {
-    transform: rotate(0) scale(1.05);
-  }
-
-  .navitem.play.active {
-    background: none;
-    color: var(--green);
-  }
-
-  .navitem.play::after {
-    display: none;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bottom-nav,
-  .nav-sheet-card,
-  .sheet-item,
   .navitem.active::after {
-    transition: none;
-    animation: none !important;
-  }
-
-  .sheet-item {
-    opacity: 1;
-    transform: none;
+    animation: none;
   }
 }
