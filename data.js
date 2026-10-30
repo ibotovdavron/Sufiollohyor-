@@ -106,101 +106,31 @@ students: [
     {title:"Musobaqada 3-o‘rin", stars:2}
   ],
   products: [
-  {
-    name: "Ruchka",
-    category: "Ruchka",
-    icon: "🖊️",
-    description: "Sifatli yozuv ruchkasi",
-    price: 0,
-    stars: 30
-  },
-  {
-    name: "Chizg‘ich",
-    category: "Jihoz",
-    icon: "📏",
-    description: "Geometriya uchun",
-    price: 0,
-    stars: 30
-  },
-  {
-    name: "Qalam va o‘chirg‘ich",
-    category: "Jihoz",
-    icon: "✏️",
-    description: "Dars uchun to‘plam",
-    price: 0,
-    stars: 35
-  },
-  {
-    name: "Katak daftar",
-    category: "Daftar",
-    icon: "📒",
-    description: "Matematika uchun daftar",
-    price: 0,
-    stars: 40
-  },
-  {
-    name: "Chiziqli daftar",
-    category: "Daftar",
-    icon: "📓",
-    description: "Yozuvlar uchun daftar",
-    price: 0,
-    stars: 40
-  },
-  {
-    name: "Rangli markerlar",
-    category: "Jihoz",
-    icon: "🖍️",
-    description: "Rangli markerlar to‘plami",
-    price: 0,
-    stars: 50
-  },
-  {
-    name: "Maqtov yorlig‘i",
-    category: "Sovg‘a",
-    icon: "🏅",
-    description: "O‘quvchi yutug‘i uchun",
-    price: 0,
-    stars: 80
-  },
-  {
-    name: "Matematika kitobi",
-    category: "Kitob",
-    icon: "📘",
-    description: "Misol va masalalar to‘plami",
-    price: 0,
-    stars: 100
-  },
-  {
-    name: "Penal",
-    category: "Jihoz",
-    icon: "🧰",
-    description: "O‘quv qurollari uchun",
-    price: 0,
-    stars: 100
-  },
-  {
-    name: "Ingliz tili lug‘ati",
-    category: "Kitob",
-    icon: "📗",
-    description: "Inglizcha so‘zlarni o‘rganish uchun",
-    price: 0,
-    stars: 120
-  },
-  {
-    name: "Suv idishi",
-    category: "Sovg‘a",
-    icon: "🥤",
-    description: "Kundalik foydalanish uchun",
-    price: 0,
-    stars: 120
-  },
-  {
-    name: "Kichik sovg‘a",
-    category: "Sovg‘a",
-    icon: "🎁",
-    description: "Faol o‘quvchilar uchun",
-    price: 0,
-    stars: 150
-  }
-]
+    {name: "Gelli ruchka to‘plami", category: "Kanselyariya", icon: "🖊️", description: "6 xil rangli gelli ruchka — chiroyli konspekt uchun", stars: 40, badge: ""},
+    {name: "Chizg‘ichlar to‘plami", category: "Kanselyariya", icon: "📐", description: "Chizg‘ich, burchaklik va transportir — geometriya uchun", stars: 45, badge: ""},
+    {name: "Qalam va o‘chirg‘ich", category: "Kanselyariya", icon: "✏️", description: "Yumshoq grafit qalamlar va sifatli o‘chirg‘ich", stars: 35, badge: ""},
+    {name: "Katak daftarlar (5 ta)", category: "Kanselyariya", icon: "📒", description: "96 varaqli qalin katak daftarlar", stars: 60, badge: ""},
+    {name: "Rangli markerlar", category: "Kanselyariya", icon: "🖍️", description: "12 rangli marker va matn ajratgichlar", stars: 70, badge: ""},
+    {name: "Penal", category: "Kanselyariya", icon: "👝", description: "Ko‘p bo‘limli, zamonaviy dizaynli penal", stars: 110, badge: ""},
+    {name: "Ilmiy kalkulyator", category: "Kanselyariya", icon: "🧮", description: "Kasr, daraja va ildizlar bilan ishlaydi", stars: 260, badge: "Top"},
+    {name: "Matematika masalalar to‘plami", category: "Kitoblar", icon: "📘", description: "Olimpiada va test masalalari, yechimlari bilan", stars: 140, badge: ""},
+    {name: "Ingliz tili lug‘ati", category: "Kitoblar", icon: "📗", description: "20 000 dan ortiq so‘z, rasmli izohlar", stars: 160, badge: ""},
+    {name: "Badiiy kitoblar to‘plami", category: "Kitoblar", icon: "📚", description: "5 ta mashhur o‘zbek va jahon adabiyoti asari", stars: 420, badge: "Yangi"},
+    {name: "Ensiklopediya", category: "Kitoblar", icon: "🌍", description: "“Bilasizmi?” — fan, tarix va kosmos haqida", stars: 380, badge: ""},
+    {name: "Futbol to‘pi", category: "Sport", icon: "⚽", description: "Rasmiy o‘lchamdagi charm futbol to‘pi", stars: 320, badge: "Top"},
+    {name: "Shaxmat to‘plami", category: "Sport", icon: "♟️", description: "Yog‘och taxta va figuralar, soat bilan", stars: 300, badge: ""},
+    {name: "Skakalka va gantel", category: "Sport", icon: "🏋️", description: "Uyda mashq qilish uchun to‘plam", stars: 240, badge: ""},
+    {name: "Sport formasi", category: "Sport", icon: "👕", description: "Markaz logotipi tushirilgan forma", stars: 560, badge: "Yangi"},
+    {name: "Velosiped", category: "Sport", icon: "🚲", description: "Bosh sovrin! 24 dyuymli tezlikli velosiped", stars: 2500, badge: "Bosh sovrin"},
+    {name: "Simsiz naushnik", category: "Texnika", icon: "🎧", description: "Bluetooth, shovqinni pasaytirish, 20 soat quvvat", stars: 480, badge: "Top"},
+    {name: "Powerbank", category: "Texnika", icon: "🔋", description: "10 000 mAh, tez quvvatlash", stars: 520, badge: ""},
+    {name: "Bluetooth kolonka", category: "Texnika", icon: "🔊", description: "Kichik, lekin baland ovozli, suvga chidamli", stars: 680, badge: ""},
+    {name: "Stol lampasi", category: "Texnika", icon: "💡", description: "LED, yorug‘lik darajasi sozlanadi — ko‘zni asraydi", stars: 330, badge: ""},
+    {name: "Aqlli soat", category: "Texnika", icon: "⌚", description: "Qadamlar, puls va bildirishnomalar", stars: 950, badge: "Yangi"},
+    {name: "Planshet", category: "Texnika", icon: "📱", description: "O‘qish va video darslar uchun — bosh sovrin", stars: 3000, badge: "Bosh sovrin"},
+    {name: "Ryukzak", category: "Sovg‘alar", icon: "🎒", description: "Ortopedik, suvga chidamli maktab ryukzagi", stars: 360, badge: ""},
+    {name: "Termos krujka", category: "Sovg‘alar", icon: "☕", description: "Choyni 6 soat issiq saqlaydi", stars: 220, badge: ""},
+    {name: "Boshqotirma (1000 bo‘lak)", category: "Sovg‘alar", icon: "🧩", description: "Diqqat va sabrni rivojlantiradi", stars: 200, badge: ""},
+    {name: "Maqtov yorlig‘i", category: "Sovg‘alar", icon: "🏅", description: "Markaz tomonidan rasmiy maqtov yorlig‘i", stars: 80, badge: ""}
+  ]
 };
