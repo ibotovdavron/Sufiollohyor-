@@ -92,7 +92,7 @@ body.rk-page {
 .rk-tabs button.on { background: linear-gradient(135deg, var(--gold), #f59e0b); color: #1c1404; border-color: transparent; }
 .rk-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .rk-row {
-  display: grid; grid-template-columns: 44px 44px 1fr minmax(60px, 26%) 64px; align-items: center; gap: 10px;
+  display: grid; grid-template-columns: 44px 44px minmax(0, 1fr) 64px 150px; align-items: center; gap: 10px;
   padding: 10px 12px; border-radius: 18px; background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)); border: 1px solid rgba(255, 255, 255, 0.07);
   opacity: 0; transform: translateY(60px) scale(0.97);
   transition: opacity 0.6s ease, transform 0.7s cubic-bezier(0.2, 1.2, 0.3, 1), border-color 0.2s; transition-delay: var(--d);
@@ -106,7 +106,7 @@ body.rk-page {
 .rk-who { min-width: 0; }
 .rk-who b { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #fff; }
 .rk-who small { color: var(--c); font-weight: 800; font-size: 0.75rem; }
-.rk-bar { height: 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.rk-bar { display: block; height: 6px; margin-top: 5px; border-radius: 6px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
 .rk-bar i { display: block; height: 100%; width: 0; border-radius: 10px; background: linear-gradient(90deg, var(--gold2), var(--gold)); transition: width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); transition-delay: calc(var(--d) + 0.3s); }
 .rk-row.in .rk-bar i { width: var(--w); }
 .rk-pts { text-align: right; font-size: 1.3rem; font-weight: 900; color: var(--gold); }
@@ -122,8 +122,9 @@ body.rk-page {
 .rk-small { margin: 12px 0 0; color: #a8a29e; font-size: 0.85rem; }
 
 @media (max-width: 640px) {
-  .rk-row { grid-template-columns: 36px 38px 1fr 56px; gap: 8px; padding: 9px 10px; }
-  .rk-bar { grid-column: 3 / 5; grid-row: 2; height: 6px; }
+  .rk-row { grid-template-columns: 34px 38px minmax(0, 1fr) 50px; gap: 4px 8px; padding: 9px 10px; }
+  .rk-row .rk-badge { grid-column: 3 / 5; grid-row: 2; justify-self: start; font-size: 0.75rem; }
+  .rk-th { display: none; }
   .rk-av { width: 38px; height: 38px; }
   .rk-rank { height: 32px; }
   #rkRules { grid-template-columns: 1fr; }
@@ -135,3 +136,50 @@ body.rk-page {
   .rk-block { transition: none; }
   .rk-beams i, .rk-block::after, .rk-medal, .rk-title em { animation: none !important; }
 }
+
+/* Shohsupadagi qahramonlar: kitob o'qiyotgan va mehnat qilayotgan */
+.rk-act { position: relative; display: flex; flex-direction: column; align-items: center; height: 92px; margin-bottom: -14px; z-index: 2; opacity: 0; transform: translateY(40px); }
+.rk-stage.go .s2 .rk-act { animation: rkCupUp 0.8s cubic-bezier(0.2, 1.4, 0.4, 1) 1.5s forwards; }
+.rk-stage.go .s3 .rk-act { animation: rkCupUp 0.8s cubic-bezier(0.2, 1.4, 0.4, 1) 1.7s forwards; }
+.rk-act .rk-medal { font-size: 30px; animation: none; }
+.rk-book { font-size: clamp(34px, 8vw, 44px); transform-origin: bottom center; animation: rkRead 2.4s ease-in-out infinite; }
+@keyframes rkRead { 0%, 100% { transform: rotate(-8deg); } 20% { transform: rotate(-8deg) scaleX(0.85); } 25% { transform: rotate(-8deg) scaleX(1); } 60% { transform: rotate(6deg); } 80% { transform: rotate(6deg) scaleX(0.85); } 85% { transform: rotate(6deg) scaleX(1); } }
+.rk-pen { font-size: clamp(32px, 7.5vw, 42px); animation: rkWrite 0.9s ease-in-out infinite; }
+@keyframes rkWrite { 0%, 100% { transform: translateX(-10px) rotate(-6deg); } 50% { transform: translateX(10px) rotate(6deg) translateY(2px); } }
+.rk-sweat { position: absolute; right: 18%; top: 34px; font-size: 16px; animation: rkSweat 1.6s ease-in infinite; }
+@keyframes rkSweat { 0% { opacity: 0; transform: translateY(-6px); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(26px); } }
+.rk-role { margin-top: 2px; padding: 3px 9px; border-radius: 999px; background: rgba(0, 0, 0, 0.35); color: #fde68a; font-size: 0.72rem; font-weight: 900; white-space: nowrap; }
+
+/* Jadval sarlavhasi va unvonlar */
+.rk-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.rk-legend span { padding: 5px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(252, 211, 77, 0.2); color: #e7e5e4; font-size: 0.75rem; }
+.rk-th { display: grid; grid-template-columns: 44px 44px minmax(0, 1fr) 64px 150px; gap: 10px; padding: 0 12px 4px; color: #a8a29e; font-size: 0.72rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
+.rk-th span:nth-child(4) { text-align: right; }
+.rk-badge { position: relative; display: inline-flex; align-items: center; gap: 6px; justify-self: end; padding: 5px 11px 5px 7px; border-radius: 999px; font-size: 0.8rem; font-weight: 900; white-space: nowrap; }
+.rk-badge i { font-style: normal; font-size: 1.15rem; display: inline-block; }
+.rk-badge.champ { background: linear-gradient(90deg, rgba(252, 211, 77, 0.3), rgba(245, 158, 11, 0.15)); color: #fde68a; border: 1px solid rgba(252, 211, 77, 0.6); }
+.rk-badge.champ i { animation: rkBadgeCup 1.6s ease-in-out infinite; }
+@keyframes rkBadgeCup { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-5px) rotate(-10deg); } }
+.rk-badge.read { background: rgba(56, 189, 248, 0.15); color: #bae6fd; }
+.rk-badge.read i { animation: rkRead 2.4s ease-in-out infinite; }
+.rk-badge.work { background: rgba(34, 197, 94, 0.15); color: #bbf7d0; }
+.rk-badge.work i { animation: rkFlex 1.2s ease-in-out infinite; }
+@keyframes rkFlex { 50% { transform: scale(1.25) rotate(-10deg); } }
+.rk-badge.go { background: rgba(167, 139, 250, 0.15); color: #ddd6fe; }
+.rk-badge.go i { animation: rkRocket 1.8s ease-in-out infinite; }
+@keyframes rkRocket { 50% { transform: translate(3px, -3px); } }
+.rk-badge.sleep { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; }
+.rk-badge.sleep i { animation: rkSleep 3s ease-in-out infinite; }
+@keyframes rkSleep { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg) translateY(1px); } }
+.zzz { position: absolute; left: 18px; top: -6px; font-style: normal; font-size: 0.7rem; font-weight: 900; color: #93c5fd; pointer-events: none; }
+.zzz, .zzz b, .zzz u { text-decoration: none; }
+.zzz b, .zzz u { position: absolute; font-weight: 900; }
+.zzz { animation: rkZ 2.4s ease-out infinite; }
+.zzz b { left: 6px; top: -6px; font-size: 0.85rem; animation: rkZ 2.4s ease-out 0.5s infinite; }
+.zzz u { left: 13px; top: -13px; font-size: 1rem; animation: rkZ 2.4s ease-out 1s infinite; }
+@keyframes rkZ { 0% { opacity: 0; transform: translate(0, 4px); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(6px, -10px); } }
+@media (prefers-reduced-motion: reduce) {
+  .rk-act { opacity: 1 !important; transform: none !important; animation: none !important; }
+  .rk-book, .rk-pen, .rk-sweat, .rk-badge i, .zzz, .zzz b, .zzz u { animation: none !important; }
+}
+@media (max-width: 640px) { .rk-th { display: none; } }

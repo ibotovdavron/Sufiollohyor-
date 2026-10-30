@@ -68,10 +68,19 @@
               <span class="rk-rays"></span>
               <span class="rk-cup">🏆</span>
               <span class="rk-arms"><i>🙌</i></span>
-            </div>` : `<span class="rk-medal">${["🥇", "🥈", "🥉"][Math.min(s.rank, 3) - 1]}</span>`}
+            </div>` : place === 2 ? `
+            <div class="rk-act read" title="Kitob o‘qiyapti">
+              <span class="rk-medal">${["🥇", "🥈", "🥉"][Math.min(s.rank, 3) - 1]}</span>
+              <span class="rk-book">📖</span>
+            </div>` : `
+            <div class="rk-act work" title="Mehnat qilyapti">
+              <span class="rk-medal">${["🥇", "🥈", "🥉"][Math.min(s.rank, 3) - 1]}</span>
+              <span class="rk-pen">✍️</span><span class="rk-sweat">💦</span>
+            </div>`}
           <div class="rk-ava">${place === 1 ? '<span class="rk-crown">👑</span>' : ""}<b>${esc(initials(s.name))}</b></div>
           <b class="rk-name">${esc(s.name)}</b>
           <small class="rk-cls">${esc(s.cls)}</small>
+          <span class="rk-role">${["🏆 A’lochi", "📖 Kitobxon", "💪 Mehnatkash"][place - 1]}</span>
           <div class="rk-block"><span class="rk-stars">⭐ <b data-to="${s.stars}">0</b></span><em>${s.rank}</em></div>
         </div>`;
     }).join("");
@@ -107,18 +116,31 @@
     $("#rkTabs").innerHTML = [["all", "Hammasi"], ...classes.map((c) => [c, c])].map(([id, t]) =>
       `<button class="${cls === id ? "on" : ""}" data-cls="${esc(id)}">${esc(t)}</button>`).join("");
   }
+  // Unvonlar: eng ko'p yulduzga nisbatan
+  function title(r, max) {
+    if (r.stars <= 0) return ["sleep", "😴", "Uyg‘onish vaqti!"];
+    if (r.stars >= max) return ["champ", "🏆", "A’lochi"];
+    if (r.stars >= max * 0.5) return ["read", "📖", "Kitobxon"];
+    if (r.stars >= max * 0.2) return ["work", "💪", "Mehnatkash"];
+    return ["go", "🚀", "Harakatda"];
+  }
   function renderList() {
     const q = norm($("#rkSearch").value);
     const max = Math.max(1, rows[0] ? rows[0].stars : 1);
     const list = rows.filter((r) => (cls === "all" || r.cls === cls) && norm(r.name + " " + r.cls).includes(q));
-    $("#rkList").innerHTML = list.map((r, i) => `
-      <li class="rk-row ${r.rank <= 3 ? "top t" + r.rank : ""}" style="--c:${CLS[r.cls] || "#a78bfa"};--d:${Math.min(i, 20) * 45}ms">
-        <span class="rk-rank">${r.rank <= 3 ? ["🥇", "🥈", "🥉"][r.rank - 1] : r.rank}</span>
-        <span class="rk-av">${esc(initials(r.name))}</span>
-        <span class="rk-who"><b>${esc(r.name)}</b><small>${esc(r.cls)}</small></span>
-        <span class="rk-bar"><i style="--w:${(r.stars / max) * 100}%"></i></span>
-        <span class="rk-pts">${r.stars}<small>⭐</small></span>
-      </li>`).join("") || `<li class="rk-empty">Hech kim topilmadi</li>`;
+    $("#rkList").innerHTML = `
+      <li class="rk-th"><span>O‘rin</span><span></span><span>O‘quvchi</span><span>Yulduz</span><span>Unvon</span></li>` +
+      (list.map((r, i) => {
+        const [k, ic, label] = title(r, max);
+        return `
+        <li class="rk-row ${r.rank <= 3 ? "top t" + r.rank : ""}" style="--c:${CLS[r.cls] || "#a78bfa"};--d:${Math.min(i, 20) * 45}ms">
+          <span class="rk-rank">${r.rank <= 3 ? ["🥇", "🥈", "🥉"][r.rank - 1] : r.rank}</span>
+          <span class="rk-av">${esc(initials(r.name))}</span>
+          <span class="rk-who"><b>${esc(r.name)}</b><small>${esc(r.cls)}</small><span class="rk-bar"><i style="--w:${(r.stars / max) * 100}%"></i></span></span>
+          <span class="rk-pts">${r.stars}<small>⭐</small></span>
+          <span class="rk-badge ${k}"><i>${ic}</i>${k === "sleep" ? '<em class="zzz">z<b>z</b><u>z</u></em>' : ""}<span>${label}</span></span>
+        </li>`;
+      }).join("") || `<li class="rk-empty">Hech kim topilmadi</li>`);
     // Ekranga chiqqanda pastdan ko'tarilish
     if (!("IntersectionObserver" in window)) { document.querySelectorAll(".rk-row").forEach((r) => r.classList.add("in")); return; }
     const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: 0.1 });
