@@ -1419,3 +1419,434 @@ img {
   }
 }
 
+
+/* =========================================
+   ZAMONAVIY KO‘RINISH VA ANIMATSIYALAR
+========================================= */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(22px) scale(0.985);
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.2s,
+    box-shadow 0.3s;
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+
+.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+
+.reveal.in:hover {
+  transition-delay: 0s;
+}
+
+/* Sahifa sarlavhasi */
+.pagehead {
+  position: relative;
+  overflow: hidden;
+  margin: 24px 0 8px;
+  padding: clamp(22px, 4vw, 40px);
+  padding-right: clamp(22px, 30vw, 300px);
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 88% 50%, rgba(0, 245, 155, 0.2), transparent 38%),
+    linear-gradient(135deg, #072217, #03100b);
+  box-shadow: var(--glow);
+  animation: phIn 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.pagehead h1 {
+  margin: 12px 0 8px;
+  font-size: clamp(2rem, 6vw, 3.3rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.pagehead p {
+  max-width: 620px;
+  color: var(--muted);
+}
+
+@keyframes phIn {
+  from { opacity: 0; transform: translateY(-14px); }
+}
+
+.pagehead-art {
+  position: absolute;
+  right: clamp(16px, 6vw, 70px);
+  top: 50%;
+  width: clamp(110px, 20vw, 190px);
+  aspect-ratio: 1;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+}
+
+.ph-ring {
+  position: absolute;
+  inset: 0;
+  border: 2px dashed rgba(0, 245, 155, 0.45);
+  border-radius: 50%;
+  animation: phSpin 22s linear infinite;
+}
+
+.ph-icon {
+  font-size: clamp(48px, 9vw, 86px);
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.45));
+  animation: phBob 3s ease-in-out infinite;
+}
+
+.ph-dot {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 14px var(--green);
+  animation: phBob 2.6s ease-in-out infinite;
+}
+
+.ph-dot.d1 { top: 6%; left: 18%; }
+.ph-dot.d2 { bottom: 10%; right: 6%; background: #fde047; box-shadow: 0 0 14px #fde047; animation-delay: -1s; }
+.ph-dot.d3 { bottom: 20%; left: 0; width: 8px; height: 8px; animation-delay: -1.8s; }
+
+@keyframes phSpin { to { transform: rotate(360deg); } }
+@keyframes phBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Kartalar: yorug‘lik va ikonka harakati */
+.card,
+.competition-card,
+.teacher-card,
+.product-card,
+.stat,
+.subject,
+.value {
+  position: relative;
+}
+
+.competition-card:hover,
+.teacher-card:hover,
+.product-card:hover,
+.shop-card:hover,
+.contact-item:hover,
+.stat:hover,
+.value:hover {
+  transform: translateY(-5px);
+  border-color: var(--green);
+  box-shadow: 0 16px 40px rgba(0, 245, 155, 0.16);
+}
+
+.competition-card:hover .avatar,
+.teacher-card:hover .avatar,
+.stat:hover .emoji,
+.subject:hover .emoji,
+.value:hover span {
+  animation: iconPop 0.6s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+@keyframes iconPop {
+  40% { transform: scale(1.25) rotate(-8deg); }
+}
+
+.btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.6s;
+  pointer-events: none;
+}
+
+.btn:hover::after {
+  left: 130%;
+}
+
+/* Bosh sahifa */
+.home-hero .hero-copy h1 {
+  animation: phIn 0.8s both;
+}
+
+.hero-photo {
+  margin: 0;
+  padding: 18px;
+  min-height: 0;
+}
+
+.hero-photo img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: auto;
+  border-radius: 18px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  animation: photoIn 1s cubic-bezier(0.2, 0.8, 0.2, 1) both, photoFloat 7s ease-in-out 1s infinite;
+}
+
+@keyframes photoIn {
+  from { opacity: 0; transform: scale(0.94) rotate(-1.5deg); }
+}
+
+@keyframes photoFloat {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-6px) rotate(0.4deg); }
+}
+
+.about-home {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.about-home .panel {
+  margin: 0;
+}
+
+.about-text h2 {
+  margin: 10px 0 12px;
+  font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+}
+
+.about-text p {
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.check-list {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.check-list li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.check-list li::before {
+  content: "✓";
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 245, 155, 0.15);
+  color: var(--green);
+  font-weight: 900;
+  font-size: 13px;
+}
+
+.leader {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  text-align: center;
+}
+
+.leader-photo {
+  position: relative;
+  width: min(240px, 80%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  padding: 6px;
+  background: conic-gradient(from 0deg, var(--green), #0ea5e9, #fde047, var(--green));
+  animation: phSpin 8s linear infinite;
+}
+
+.leader-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  border-radius: 50%;
+  border: 4px solid #04140c;
+  animation: phSpin 8s linear infinite reverse;
+}
+
+.leader blockquote {
+  margin: 10px 0 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--mint);
+}
+
+.values {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 10px 0 20px;
+}
+
+.value {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: linear-gradient(145deg, #08271b, #03110b);
+  transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+}
+
+.value span {
+  display: inline-block;
+  font-size: 32px;
+}
+
+.value b {
+  display: block;
+  margin: 8px 0 4px;
+  font-size: 1.05rem;
+}
+
+.value p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.math-logo {
+  width: 84px;
+  height: 84px;
+  border-radius: 20px;
+  background: #fff;
+  object-fit: contain;
+  padding: 6px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.math-panel > div {
+  flex: 1;
+  min-width: 200px;
+}
+
+.contact-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.contact-strip > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.contact-strip span {
+  font-size: 24px;
+}
+
+.contact-strip a,
+.contact-strip small {
+  color: var(--green);
+  font-weight: 700;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.contact-strip small {
+  color: var(--muted);
+}
+
+.page-photo {
+  margin: 18px 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: var(--glow);
+}
+
+.page-photo img {
+  width: 100%;
+  height: auto;
+  transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.page-photo:hover img {
+  transform: scale(1.03);
+}
+
+@media (max-width: 850px) {
+  .about-home,
+  .contact-strip {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .about-home {
+    grid-template-columns: 1fr;
+  }
+
+  .values {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .pagehead {
+    padding-right: clamp(22px, 4vw, 40px);
+    padding-top: 110px;
+  }
+
+  .pagehead-art {
+    top: 16px;
+    right: 16px;
+    width: 86px;
+    transform: none;
+  }
+
+  .ph-icon {
+    font-size: 42px;
+  }
+
+  .hero-photo {
+    min-height: 0;
+  }
+
+  .contact-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .math-logo {
+    width: 64px;
+    height: 64px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .pagehead,
+  .ph-ring,
+  .ph-icon,
+  .ph-dot,
+  .hero-photo img,
+  .leader-photo,
+  .leader-photo img {
+    animation: none !important;
+  }
+}

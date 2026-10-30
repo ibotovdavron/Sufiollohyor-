@@ -9,7 +9,7 @@
     ["competitions.html", "🏆", "Musobaqalar"],
     ["teachers.html", "🎓", "Ustozlar"],
     ["ranking.html", "📊", "Reyting"],
-    ["bilmasvoy.html", "🎮", "Bilmasvoy"],
+    ["games.html", "🎮", "O‘yinlar"],
     ["schedule.html", "🗓️", "Jadval"],
     ["shop.html", "🛍️", "Do‘kon"],
     ["about.html", "❓", "Kunlik savol"],
@@ -297,6 +297,65 @@
     el.target = "_blank";
     el.rel = "noopener noreferrer";
   });
+
+  // Raqamlarni sanab chiqish animatsiyasi
+  document.querySelectorAll("[data-count]").forEach((el) => {
+    const target = Number(D[el.dataset.count] ?? el.textContent) || 0;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      el.textContent = target;
+      return;
+    }
+    const start = performance.now();
+    const tick = (now) => {
+      const p = Math.min(1, (now - start) / 1200);
+      el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+
+  // Sahifa sarlavhasini bezash
+  const head = document.querySelector(".pagehead");
+  if (head && !head.querySelector(".pagehead-art")) {
+    const eyebrow = head.querySelector(".eyebrow");
+    const icon = eyebrow ? [...eyebrow.textContent.trim()][0] : "✨";
+    head.insertAdjacentHTML("beforeend", `
+      <div class="pagehead-art" aria-hidden="true">
+        <span class="ph-ring"></span>
+        <span class="ph-icon">${esc(icon)}</span>
+        <span class="ph-dot d1"></span><span class="ph-dot d2"></span><span class="ph-dot d3"></span>
+      </div>`);
+  }
+
+  // Ekranga chiqqanda paydo bo'lish animatsiyasi
+  const revealSel = [
+    ".panel", ".stat", ".subject", ".card", ".value", ".competition-card",
+    ".teacher-card", ".product-card", ".result-row", ".g-rules > div",
+    ".contact-item", ".shop-card", ".daily-card", ".daily-intro", "tbody tr"
+  ].join(",");
+  const revealAll = () => {
+    const items = [...document.querySelectorAll(revealSel)].filter((el) => !el.classList.contains("reveal"));
+    if (!("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("in");
+        io.unobserve(entry.target);
+      });
+    }, { threshold: 0.08, rootMargin: "0px 0px -30px 0px" });
+    items.forEach((el) => {
+      const siblings = el.parentElement ? [...el.parentElement.children] : [];
+      el.style.setProperty("--i", Math.min(siblings.indexOf(el), 8));
+      el.classList.add("reveal");
+      io.observe(el);
+    });
+  };
+  revealAll();
+  // Keyinroq chiziladigan kartalar uchun (masalan, reyting Supabase'dan kelganda)
+  new MutationObserver(() => {
+    clearTimeout(revealAll.t);
+    revealAll.t = setTimeout(revealAll, 60);
+  }).observe(document.body, { childList: true, subtree: true });
 
   // Matematika Telegram kanali
   document.querySelectorAll("[data-math-telegram]").forEach((el) => {

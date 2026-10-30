@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#020b09">
   <meta name="description" content="So‘fi Ollohyor o‘quv markazi reytingi">
   <title>Reyting | So‘fi Ollohyor</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 <header class="topbar">
@@ -74,7 +74,7 @@
 <nav class="bottom-nav" id="bottomNav" aria-label="Asosiy menyu"></nav>
 
 <script src="config.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="lib/supabase.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
 
@@ -130,6 +130,7 @@
                     student.class_name ||
                     student.grade ||
                     student.sinf ||
+                    student.group ||
                     "",
         baseStars: Number(
           student.stars ??
@@ -212,6 +213,22 @@
       bonusStars[key] =
         (bonusStars[key] || 0) + Number(winner.stars || 0);
     });
+
+    // O‘yinlardan olingan yulduzlar (games.sql o‘rnatilgan bo‘lsa)
+    const games = await db
+      .from("game_stars")
+      .select("student_name, stars");
+
+    if (games.error) {
+      console.warn("game_stars jadvali topilmadi:", games.error.message);
+    } else {
+      (games.data || []).forEach(row => {
+        const key = normalizeName(row.student_name);
+
+        bonusStars[key] =
+          (bonusStars[key] || 0) + Number(row.stars || 0);
+      });
+    }
 
     statusElement.textContent =
       "Reyting muvaffaqiyatli yangilandi.";

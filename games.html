@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#020b09">
+  <meta name="description" content="So‘fi Ollohyor o‘quv markazi — bilim o‘yinlari: Sirli quti, Bilimlar poygasi, Bilmasvoyga o‘rgat">
+  <title>O‘yinlar | So‘fi Ollohyor</title>
+  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="games/games.css?v=1">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topinner">
+    <a class="brand" href="index.html">
+      <img class="brand-image" src="assets/markaz-logo.png" alt="Markaz logotipi">
+      <span class="brand-name">SO‘FI OLLOHYOR<small>O‘QUV MARKAZI</small></span>
+    </a>
+    <div id="gPlayer"></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="g-hero">
+    <span class="eyebrow">🎮 Bilim o‘yinlari</span>
+    <h1>O‘yinlar <span class="green">markazi</span></h1>
+    <p>Yakka o‘zingiz yoki sinfdoshingiz bilan bir vaqtda bellashing. Yulduzlarni faqat eng zo‘rlar oladi!</p>
+    <div class="g-hero-row">
+      <span class="g-online" id="gOnline"><span class="g-spinner"></span> Ulanmoqda...</span>
+    </div>
+    <span class="float f1">⭐</span><span class="float f2">🏆</span><span class="float f3">🧠</span>
+  </section>
+
+  <section class="g-grid">
+    <article class="g-card" style="--d:.05s">
+      <span class="g-num">1-o‘yin</span>
+      <div class="g-art a1">
+        <div class="art-boxes">
+          <div class="art-box"><span class="l"></span><span class="b"></span><span class="r"></span><span class="qm">?</span></div>
+          <div class="art-box y"><span class="l"></span><span class="b"></span><span class="r"></span><span class="qm">?</span></div>
+          <div class="art-box b2"><span class="l"></span><span class="b"></span><span class="r"></span><span class="qm">?</span></div>
+        </div>
+      </div>
+      <div class="g-card-body">
+        <h2>🎁 Sirli quti</h2>
+        <p>Uchta qutidan birini oching: ichida 10, 20, 30 ball yoki bomba! Savolga to‘g‘ri javob bersangiz ball sizniki.</p>
+        <div class="g-feats"><span>10 raund</span><span>15 soniya</span><span>💣 bomba</span></div>
+        <button class="btn g-start" data-start="sirli-quti">▶ Boshlash</button>
+      </div>
+    </article>
+
+    <article class="g-card" style="--d:.15s">
+      <span class="g-num">2-o‘yin</span>
+      <div class="g-art a2">
+        <div class="art-road"></div>
+        <div class="art-car c1"><span>Siz</span></div>
+        <div class="art-car c2"><span>Do‘st</span></div>
+      </div>
+      <div class="g-card-body">
+        <h2>🏎️ Bilimlar poygasi</h2>
+        <p>Mashinangizni boshqaring, to‘siqlardan qoching va to‘g‘ri javob yozilgan darvozadan o‘tib nitro oling!</p>
+        <div class="g-feats"><span>1500 m</span><span>7 darvoza</span><span>🔥 nitro</span></div>
+        <button class="btn g-start" data-start="poyga">▶ Boshlash</button>
+      </div>
+    </article>
+
+    <article class="g-card" style="--d:.25s">
+      <span class="g-num">3-o‘yin</span>
+      <div class="g-art a3">
+        <div class="art-board">7 × 8 = 54 ?</div>
+        <div class="art-bv" id="artBv"></div>
+      </div>
+      <div class="g-card-body">
+        <h2>🧢 Bilmasvoyga o‘rgat</h2>
+        <p>Do‘ppili Bilmasvoy hamma narsani “biladi”. Uning javobi to‘g‘rimi? Xato bo‘lsa — to‘g‘ri javobni o‘rgating!</p>
+        <div class="g-feats"><span>10 savol</span><span>❤️ 3 jon</span><span>🎓 ustoz bo‘ling</span></div>
+        <button class="btn g-start" data-start="bilmasvoy">▶ Boshlash</button>
+      </div>
+    </article>
+  </section>
+
+  <section class="panel">
+    <div class="section-head"><div>
+      <span class="section-kicker">QOIDALAR</span>
+      <h2>⭐ Yulduz qanday olinadi?</h2>
+      <p>Yulduzlar oson berilmaydi — har bir o‘yinda yuqori natija kerak.</p>
+    </div></div>
+    <div class="g-rules">
+      <div><b>🎁 Sirli quti</b><span>10 savoldan kamida 9 tasi to‘g‘ri. Do‘st bilan: g‘alaba + kamida 8 ta to‘g‘ri.</span></div>
+      <div><b>🏎️ Poyga</b><span>Kamida 6 ta to‘g‘ri darvoza va ko‘pi bilan 2 ta to‘qnashuv. Do‘st bilan: birinchi kelish + 5 ta darvoza.</span></div>
+      <div><b>🧢 Bilmasvoy</b><span>10 savoldan kamida 9 tasi to‘g‘ri, jonlar tugamasin. Do‘st bilan: g‘alaba + 8 ta.</span></div>
+    </div>
+    <p class="muted" style="margin:14px 0 0">Har bir o‘yindan kuniga ko‘pi bilan 2 ⭐ olish mumkin. Bitta ism bilan bir vaqtda faqat bitta kishi o‘ynay oladi.</p>
+  </section>
+</main>
+
+<footer class="footer wrap">
+  <div class="footer-brand">SO‘FI OLLOHYOR<span>O‘QUV MARKAZI</span></div>
+  <p>© 2026 So‘fi Ollohyor o‘quv markazi · Oltinsoy tumani</p>
+</footer>
+
+<nav class="bottom-nav" id="bottomNav" aria-label="Asosiy menyu"></nav>
+
+<div class="g-stage" id="gStage" hidden></div>
+<div class="g-modal" id="gModal" hidden></div>
+<div class="g-toasts" id="gToasts" aria-live="polite"></div>
+
+<script src="lib/supabase.js"></script>
+<script src="config.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script src="games/net.js"></script>
+<script src="games/questions.js"></script>
+<script src="games/core.js"></script>
+<script src="games/mystery.js"></script>
+<script src="games/race.js"></script>
+<script src="games/bilmasvoy.js"></script>
+<script>
+  document.getElementById("artBv").innerHTML = window.SofiBilmasvoyArt || "🧢";
+  window.SofiGames.boot();
+</script>
+</body>
+</html>
