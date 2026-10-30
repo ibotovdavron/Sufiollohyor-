@@ -204,8 +204,3 @@ students: [
   }
 ]
 };
-window.DAILY_QUESTION = {
-  id: "savol-004",
-  text: "Uch xonali ABC soni raqamlari yig‘indisining 37 baravariga teng. Raqamlari teskari yozilganda hosil bo‘lgan son dastlabki sondan 396 ga kichik. ABC sonini toping.",
-  answer: "Bunday son mavjud emas"
-};

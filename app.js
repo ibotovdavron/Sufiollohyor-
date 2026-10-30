@@ -13,6 +13,7 @@
     calendar: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>',
     bag: '<path d="M5 8h14l-1 13H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
     question: '<circle cx="12" cy="12" r="9.5"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6"/><circle cx="12" cy="17.2" r=".6" fill="currentColor"/>',
+    flask: '<path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/><path d="M7.5 15h9"/>',
     phone: '<path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2Z"/>'
   };
   const icon = (name) =>
@@ -27,7 +28,7 @@
     ["games.html", "game", "O‘yinlar", "O‘yinlar"],
     ["schedule.html", "calendar", "Jadval", "Jadval"],
     ["shop.html", "bag", "Do‘kon", "Do‘kon"],
-    ["about.html", "question", "Kunlik savol", "Savol"],
+    ["amaliy.html", "flask", "Amaliy dars", "Amaliy"],
     ["contact.html", "phone", "Aloqa", "Aloqa"]
   ];
 
@@ -353,7 +354,7 @@
     ".contact-item", ".shop-card", ".daily-card", ".daily-intro", "tbody tr"
   ].join(",");
   const revealAll = () => {
-    const items = [...document.querySelectorAll(revealSel)].filter((el) => !el.classList.contains("reveal"));
+    const items = [...document.querySelectorAll(revealSel)].filter((el) => !el.classList.contains("reveal") && !el.closest("#amaliyApp, .g-stage, .g-modal"));
     if (!("IntersectionObserver" in window)) return;
     const io = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
