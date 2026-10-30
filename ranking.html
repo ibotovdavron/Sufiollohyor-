@@ -1,248 +1,66 @@
-
 <!doctype html>
 <html lang="uz">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#020b09">
-  <meta name="description" content="So‘fi Ollohyor o‘quv markazi reytingi">
+  <meta name="theme-color" content="#0c0a03">
+  <meta name="description" content="So‘fi Ollohyor o‘quv markazi — o‘quvchilar reytingi va chempionlar">
   <title>Reyting | So‘fi Ollohyor</title>
-  <link rel="stylesheet" href="style.css?v=11">
+  <link rel="stylesheet" href="style.css?v=12">
+  <link rel="stylesheet" href="ranking.css?v=1">
 </head>
-<body>
+<body class="rk-page">
+
 <header class="topbar">
   <div class="wrap topinner">
     <a class="brand" href="index.html">
-      <img src="assets/markaz-logo.png" alt="So‘fi Ollohyor"
-           onerror="this.style.display='none'">
-      <span class="brand-mark">S<span class="green">O</span></span>
-      <span class="brand-name">SO‘FI OLLOHYOR
-        <small>O‘QUV MARKAZI</small>
-      </span>
+      <img class="brand-image" src="assets/markaz-logo.png" alt="Markaz logotipi">
+      <span class="brand-name">SO‘FI OLLOHYOR<small>O‘QUV MARKAZI</small></span>
     </a>
-    <div class="social">
-      <a data-telegram href="https://t.me/sufi_ollohyor_uquv_markaz">✈️ Telegram</a>
-      <a data-instagram href="https://www.instagram.com/sufiollohyor/">📸</a>
-    </div>
+    <span class="rk-status" id="rkStatus"><i></i> Yuklanmoqda</span>
   </div>
 </header>
 
 <main class="wrap">
-  <section class="pagehead">
-    <span class="eyebrow">⭐ Yutuqlar va rag‘bat</span>
-    <h1>O‘quvchilar <span class="green">reytingi</span></h1>
-    <p>Kunlik savol g‘oliblarining yulduzlari ham hisoblanadi.</p>
-    <p id="rankingStatus" class="muted" aria-live="polite">
-      Reyting yuklanmoqda...
-    </p>
+
+  <section class="rk-stage" aria-label="Chempionlar">
+    <div class="rk-beams" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="rk-confetti" id="rkConfetti" aria-hidden="true"></div>
+    <div class="rk-title">
+      <span>⭐ YULDUZLAR REYTINGI</span>
+      <h1>Chempionlar <em>shohsupasi</em></h1>
+    </div>
+    <div class="rk-podium" id="rkPodium"></div>
+    <p class="rk-tie" id="rkTie"></p>
   </section>
 
-  <section class="panel">
-    <div class="toolbar">
-      <input id="studentSearch"
-             placeholder="🔎 Ism yoki sinf bo‘yicha qidirish..."
-             aria-label="O‘quvchini qidirish">
+  <section class="rk-board">
+    <div class="rk-tools">
+      <div class="rk-search"><span>🔎</span><input id="rkSearch" type="search" placeholder="Ismingizni qidiring..." aria-label="O‘quvchini qidirish"></div>
+      <div class="rk-tabs" id="rkTabs"></div>
     </div>
-    <div class="table-wrap">
-      <table class="ranking-table">
-        <thead>
-          <tr>
-            <th>O‘rin</th>
-            <th>O‘quvchi</th>
-            <th>Sinf</th>
-            <th>Yulduz</th>
-            <th>Natija</th>
-          </tr>
-        </thead>
-        <tbody id="rankingRows"></tbody>
-      </table>
-    </div>
+    <ol class="rk-list" id="rkList"></ol>
   </section>
 
-  <section class="panel">
-    <h2>Yulduz berish qoidalari</h2>
-    <p class="muted">Kunlik savolning har bir yangi g‘olibiga 2 yulduz.</p>
-    <div id="starRules"></div>
+  <section class="rk-rules">
+    <h2>⭐ Yulduz qanday olinadi?</h2>
+    <div id="rkRules"></div>
+    <p class="rk-small">Reytingga darsdagi yulduzlar, kunlik savol va o‘yinlarda yutilgan yulduzlar qo‘shiladi.</p>
   </section>
+
 </main>
 
 <footer class="footer wrap">
-  © 2026 So‘fi Ollohyor o‘quv markazi · Oltinsoy tumani
-  <br><span class="smallprint">Bilim · Tarbiya · Natija</span>
+  <div class="footer-brand">SO‘FI OLLOHYOR<span>O‘QUV MARKAZI</span></div>
+  <p>© 2026 So‘fi Ollohyor o‘quv markazi · Oltinsoy tumani</p>
 </footer>
 
 <nav class="bottom-nav" id="bottomNav" aria-label="Asosiy menyu"></nav>
 
-<script src="config.js"></script>
 <script src="lib/supabase.js"></script>
+<script src="config.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
-
-<script>
-(async function () {
-  const rowsElement = document.getElementById("rankingRows");
-  const searchElement = document.getElementById("studentSearch");
-  const statusElement = document.getElementById("rankingStatus");
-
-  let students = [];
-  let bonusStars = {};
-
-  function normalizeName(value) {
-    return String(value || "")
-      .trim()
-      .replace(/\s+/g, " ")
-      .toLocaleLowerCase("uz");
-  }
-
-  function escapeHTML(value) {
-    return String(value ?? "").replace(/[&<>"']/g, char => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    })[char]);
-  }
-
-  function getStudentList() {
-    const center = window.CENTER_DATA || {};
-
-    // data.js ichidagi ro‘yxat nomi sizda boshqacha bo‘lishi mumkin.
-    const list =
-      center.students ||
-      window.STUDENTS ||
-      window.students ||
-      [];
-
-    return list.map(student => {
-      if (typeof student === "string") {
-        return { name: student, className: "", baseStars: 0 };
-      }
-
-      return {
-        ...student,
-        name: student.name ||
-              student.full_name ||
-              student.fullName ||
-              student.student_name ||
-              "",
-        className: student.className ||
-                    student.class_name ||
-                    student.grade ||
-                    student.sinf ||
-                    student.group ||
-                    "",
-        baseStars: Number(
-          student.stars ??
-          student.totalStars ??
-          student.total_stars ??
-          0
-        ) || 0
-      };
-    }).filter(student => student.name);
-  }
-
-  function getTotalStars(student) {
-    return student.baseStars +
-      (bonusStars[normalizeName(student.name)] || 0);
-  }
-
-  function renderRanking() {
-    const query = normalizeName(searchElement.value);
-
-    const filtered = students
-      .filter(student =>
-        normalizeName(student.name + " " + student.className)
-          .includes(query)
-      )
-      .sort((a, b) => getTotalStars(b) - getTotalStars(a));
-
-    rowsElement.innerHTML = "";
-
-    if (!filtered.length) {
-      rowsElement.innerHTML =
-        '<tr><td colspan="5">O‘quvchilar topilmadi.</td></tr>';
-      return;
-    }
-
-    filtered.forEach((student, index) => {
-      const total = getTotalStars(student);
-      const tr = document.createElement("tr");
-
-      tr.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${escapeHTML(student.name)}</td>
-        <td>${escapeHTML(student.className || "—")}</td>
-        <td>⭐ ${total}</td>
-        <td>${total > 0 ? "🏆 Faol" : "⭐ Yulduz kutilmoqda"}</td>
-      `;
-
-      rowsElement.appendChild(tr);
-    });
-  }
-
-  searchElement.addEventListener("input", renderRanking);
-
-  try {
-    students = getStudentList();
-
-    const config = window.SUFIOLLOHYOR_CONFIG;
-
-    if (!config?.SUPABASE_URL || !config?.SUPABASE_ANON_KEY) {
-      throw new Error("config.js sozlamalari topilmadi.");
-    }
-
-    if (!window.supabase?.createClient) {
-      throw new Error("Supabase kutubxonasi yuklanmadi.");
-    }
-
-    const db = window.supabase.createClient(
-      config.SUPABASE_URL,
-      config.SUPABASE_ANON_KEY
-    );
-
-    const { data, error } = await db
-      .from("question_winners")
-      .select("student_name, stars");
-
-    if (error) throw error;
-
-    (data || []).forEach(winner => {
-      const key = normalizeName(winner.student_name);
-
-      bonusStars[key] =
-        (bonusStars[key] || 0) + Number(winner.stars || 0);
-    });
-
-    // O‘yinlardan olingan yulduzlar (games.sql o‘rnatilgan bo‘lsa)
-    const games = await db
-      .from("game_stars")
-      .select("student_name, stars");
-
-    if (games.error) {
-      console.warn("game_stars jadvali topilmadi:", games.error.message);
-    } else {
-      (games.data || []).forEach(row => {
-        const key = normalizeName(row.student_name);
-
-        bonusStars[key] =
-          (bonusStars[key] || 0) + Number(row.stars || 0);
-      });
-    }
-
-    statusElement.textContent =
-      "Reyting muvaffaqiyatli yangilandi.";
-
-    renderRanking();
-  } catch (error) {
-    console.error("Reyting yuklash xatosi:", error);
-
-    statusElement.textContent =
-      "Supabase yulduzlarini yuklab bo‘lmadi. Konsol va sozlamalarni tekshiring.";
-
-    renderRanking();
-  }
-})();
-</script>
+<script src="ranking.js"></script>
 </body>
 </html>
