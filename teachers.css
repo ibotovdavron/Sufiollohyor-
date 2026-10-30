@@ -1,0 +1,139 @@
+/* Ustozlar — faxriylar zali (to'q ko'k va oltin) */
+
+body.hall-page {
+  --gold: #f5c84c;
+  --gold2: #b8860b;
+  --ink: #0a0f1f;
+  background:
+    radial-gradient(ellipse at 50% -10%, rgba(245, 200, 76, 0.22), transparent 50%),
+    radial-gradient(ellipse at 100% 60%, rgba(59, 130, 246, 0.12), transparent 45%),
+    radial-gradient(ellipse at 0% 90%, rgba(245, 200, 76, 0.08), transparent 40%),
+    var(--ink);
+}
+.hall-page .topbar { background: rgba(10, 15, 31, 0.88); border-bottom-color: rgba(245, 200, 76, 0.25); }
+.hl-top-btn { padding: 9px 14px; border-radius: 999px; border: 1px solid rgba(245, 200, 76, 0.5); color: var(--gold); font-weight: 800; font-size: 0.85rem; background: rgba(245, 200, 76, 0.08); }
+
+.hl-serif, .hl-hero h1, .hl-card h3, .hl-sheet h2, .hl-head h2, .hl-quote blockquote, .hl-proverb {
+  font-family: "Playfair Display", "Georgia", "Times New Roman", serif;
+}
+
+/* Hero */
+.hl-hero {
+  position: relative; overflow: hidden; margin: 22px 0 10px; padding: clamp(30px, 6vw, 64px) clamp(18px, 5vw, 56px);
+  text-align: center; border-radius: 32px;
+  border: 1px solid rgba(245, 200, 76, 0.35);
+  background: radial-gradient(circle at 50% 0%, rgba(245, 200, 76, 0.18), transparent 55%), linear-gradient(180deg, #111a33, #0a0f1f);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+.hl-glow { position: absolute; left: 50%; top: -120px; width: 520px; height: 320px; transform: translateX(-50%); background: radial-gradient(ellipse, rgba(245, 200, 76, 0.35), transparent 65%); filter: blur(10px); animation: hlGlow 6s ease-in-out infinite; pointer-events: none; }
+@keyframes hlGlow { 50% { opacity: 0.55; transform: translateX(-50%) scale(1.1); } }
+.hl-dust { position: absolute; inset: 0; pointer-events: none; }
+.hl-dust i { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); opacity: 0; animation: hlDust ease-in-out infinite; }
+@keyframes hlDust { 0%, 100% { opacity: 0; transform: translateY(10px); } 50% { opacity: 0.9; transform: translateY(-14px); } }
+.hl-laurel { position: relative; display: block; font-size: 52px; margin-bottom: 6px; filter: drop-shadow(0 6px 16px rgba(245, 200, 76, 0.45)); animation: hlRise 0.9s both; }
+.hl-kicker { position: relative; display: inline-block; letter-spacing: 0.35em; font-size: 0.75rem; font-weight: 900; color: var(--gold); animation: hlRise 0.9s 0.1s both; }
+.hl-hero h1 { position: relative; margin: 10px 0 12px; font-size: clamp(2.6rem, 9vw, 5rem); line-height: 1; font-weight: 800; color: #fff; animation: hlRise 0.9s 0.2s both; }
+.hl-hero h1 em { font-style: italic; background: linear-gradient(90deg, #fde68a, var(--gold), #fff3c4, var(--gold2)); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: hlShimmer 4s linear infinite; }
+@keyframes hlShimmer { to { background-position: 200% center; } }
+@keyframes hlRise { from { opacity: 0; transform: translateY(18px); } }
+.hl-sub { position: relative; max-width: 600px; margin: 0 auto; color: #cbd5e1; line-height: 1.7; animation: hlRise 0.9s 0.3s both; }
+.hl-quote { position: relative; max-width: 640px; margin: 24px auto 0; padding: 18px 20px; border-radius: 20px; border: 1px solid rgba(245, 200, 76, 0.3); background: rgba(245, 200, 76, 0.06); animation: hlRise 0.9s 0.45s both; }
+.hl-quote blockquote { margin: 0; font-size: clamp(1rem, 3.2vw, 1.3rem); font-style: italic; line-height: 1.6; color: #fef3c7; }
+.hl-quote figcaption { margin-top: 8px; color: var(--gold); font-weight: 800; font-size: 0.9rem; }
+.hl-stats { position: relative; display: flex; justify-content: center; gap: clamp(10px, 4vw, 40px); margin-top: 24px; animation: hlRise 0.9s 0.6s both; }
+.hl-stats div { min-width: 90px; }
+.hl-stats b { display: block; font-size: clamp(1.8rem, 6vw, 2.6rem); font-weight: 900; color: var(--gold); line-height: 1.1; }
+.hl-stats span { color: #94a3b8; font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase; }
+
+/* Sarlavha chizig'i */
+.hl-section { margin: 34px 0; }
+.hl-head { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+.hl-head h2 { margin: 0; white-space: nowrap; font-size: clamp(1.4rem, 4.5vw, 2rem); color: #fff; }
+.hl-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+
+/* Kartalar */
+.hl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 18px; }
+.hl-card {
+  position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px;
+  padding: 26px 20px 22px; border-radius: 26px; cursor: pointer;
+  border: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--c) 18%, transparent), transparent 60%), linear-gradient(180deg, #131c36, #0b1122);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  transition: transform 0.25s ease, box-shadow 0.3s;
+  animation: hlCard 0.8s both; animation-delay: var(--d);
+  transform-style: preserve-3d;
+}
+@keyframes hlCard { from { opacity: 0; transform: translateY(30px) scale(0.96); } }
+.hl-card:hover { box-shadow: 0 26px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px var(--c), 0 0 40px color-mix(in srgb, var(--c) 30%, transparent); }
+.hl-card:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.hl-shine { position: absolute; inset: 0; background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.14) 50%, transparent 65%); transform: translateX(-120%); transition: transform 0.9s; pointer-events: none; }
+.hl-card:hover .hl-shine { transform: translateX(120%); }
+.hl-num { position: absolute; top: 14px; left: 18px; font-family: Georgia, serif; font-size: 2rem; font-weight: 700; color: color-mix(in srgb, var(--c) 30%, transparent); }
+
+.hl-portrait { position: relative; width: 140px; height: 140px; margin: 4px 0 8px; display: grid; place-items: center; }
+.hl-portrait.big { width: 170px; height: 170px; }
+.hl-ring { position: absolute; inset: -6px; border-radius: 50%; background: conic-gradient(from 0deg, var(--c), #fff7d6, var(--gold2), var(--c)); animation: hlSpin 7s linear infinite; }
+.hl-ring::after { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: #0b1122; }
+@keyframes hlSpin { to { transform: rotate(360deg); } }
+.hl-portrait img, .hl-mono { position: relative; z-index: 1; width: calc(100% - 10px); height: calc(100% - 10px); border-radius: 50%; object-fit: cover; }
+.hl-mono {
+  display: grid; place-items: center; font-family: Georgia, serif; font-size: 3rem; font-weight: 700; color: #1a1205;
+  background: radial-gradient(circle at 35% 30%, #fff7d6, var(--c) 55%, var(--gold2));
+  box-shadow: inset 0 -8px 20px rgba(0, 0, 0, 0.25);
+}
+.hl-portrait.big .hl-mono { font-size: 3.8rem; }
+.hl-mono.sil { background: radial-gradient(circle at 35% 30%, #334155, #1e293b); font-size: 3.2rem; filter: grayscale(1); }
+.hl-crest { position: absolute; z-index: 2; right: 0; bottom: 4px; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: #0b1122; border: 2px solid var(--c); font-size: 20px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4); }
+.hl-subject { padding: 4px 12px; border-radius: 999px; background: color-mix(in srgb, var(--c) 18%, transparent); color: var(--c); font-weight: 900; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.hl-card h3 { margin: 4px 0 0; font-size: 1.55rem; color: #fff; line-height: 1.2; }
+.hl-title { margin: 0; color: #94a3b8; font-size: 0.9rem; }
+.hl-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 4px; }
+.hl-badges span { padding: 5px 10px; border-radius: 999px; background: linear-gradient(90deg, rgba(245, 200, 76, 0.22), rgba(245, 200, 76, 0.08)); border: 1px solid rgba(245, 200, 76, 0.5); color: #fde68a; font-weight: 800; font-size: 0.8rem; }
+.hl-exp { margin: 0; color: #cbd5e1; font-size: 0.85rem; }
+.hl-q { margin: 4px 0 0; font-family: Georgia, serif; font-style: italic; color: #e2e8f0; }
+.hl-more { margin-top: auto; padding: 10px 16px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--c) 60%, transparent); background: transparent; color: var(--c); font-weight: 800; transition: background 0.2s; }
+.hl-card:hover .hl-more { background: color-mix(in srgb, var(--c) 15%, transparent); }
+.hl-card.soon { cursor: default; opacity: 0.75; border-style: dashed; }
+.hl-card.soon .hl-ring { animation: none; background: #334155; }
+.hl-card.soon h3 { font-size: 1.2rem; color: #cbd5e1; }
+
+/* Qadriyatlar */
+.hl-values { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.hl-values div { padding: 22px 18px; border-radius: 22px; text-align: center; border: 1px solid rgba(245, 200, 76, 0.25); background: linear-gradient(180deg, rgba(245, 200, 76, 0.07), transparent); }
+.hl-values span { font-size: 38px; }
+.hl-values b { display: block; margin: 8px 0 4px; font-family: Georgia, serif; font-size: 1.35rem; color: var(--gold); }
+.hl-values p { margin: 0; color: #cbd5e1; line-height: 1.6; font-size: 0.92rem; }
+.hl-proverb { margin: 26px 0 0; text-align: center; font-size: clamp(1.6rem, 5vw, 2.4rem); font-style: italic; color: var(--gold); text-shadow: 0 0 30px rgba(245, 200, 76, 0.35); }
+
+/* Profil oynasi */
+.hl-modal { position: fixed; inset: 0; z-index: 1100; display: grid; place-items: center; padding: 16px; background: rgba(3, 6, 15, 0); transition: background 0.3s; }
+.hl-modal.open { background: rgba(3, 6, 15, 0.75); backdrop-filter: blur(6px); }
+.hl-sheet {
+  position: relative; width: min(480px, 100%); max-height: calc(100vh - 32px); overflow: auto;
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;
+  padding: 30px 22px 24px; border-radius: 30px; border: 1px solid color-mix(in srgb, var(--c) 55%, transparent);
+  background: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--c) 22%, transparent), transparent 55%), linear-gradient(180deg, #131c36, #0a0f1f);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
+  transform: scale(0.9) translateY(20px); opacity: 0; transition: transform 0.35s cubic-bezier(0.2, 1.3, 0.4, 1), opacity 0.25s;
+}
+.hl-modal.open .hl-sheet { transform: none; opacity: 1; }
+.hl-x { position: absolute; top: 14px; right: 14px; width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, 0.1); color: #fff; }
+.hl-sheet h2 { margin: 4px 0 0; font-size: 2rem; color: #fff; }
+.hl-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; width: 100%; margin: 10px 0 4px; }
+.hl-info div { padding: 12px 8px; border-radius: 16px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.06); }
+.hl-info span { font-size: 22px; }
+.hl-info b { display: block; color: var(--gold); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.hl-info small { color: #e2e8f0; font-weight: 700; }
+.hl-bio { margin: 6px 0 0; color: #cbd5e1; line-height: 1.7; }
+.hl-q.big { font-size: 1.15rem; margin: 6px 0; }
+.hl-cta { width: 100%; margin-top: 10px; padding: 14px; border-radius: 16px; background: linear-gradient(90deg, var(--gold2), var(--gold), #fde68a); color: #1a1205; font-weight: 900; }
+
+@media (max-width: 760px) {
+  .hl-values { grid-template-columns: 1fr; }
+  .hl-grid { grid-template-columns: 1fr; }
+  .hl-top-btn { display: none; }
+  .hl-head h2 { white-space: normal; text-align: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hl-ring, .hl-glow, .hl-dust i, .hl-hero h1 em, .hl-card { animation: none !important; }
+}

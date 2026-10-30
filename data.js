@@ -84,13 +84,16 @@ students: [
     {name:"Xursanov Xumoyiddin", group:"8-sinf", stars:0, result:"Natija hali kiritilmagan"},
     {name:"Haqnazarova Munisa", group:"8-sinf", stars:0, result:"Natija hali kiritilmagan"}
 ],
+  // Ustozlar. photo: "assets/ustoz-ism.jpg" ko'rinishida rasm yo'lini yozing.
+  // achievements — yutuq va sertifikatlar ro'yxati, quote — ustozning shiori.
   teachers: [
-    {name:"Ibotov Davron", subject:"Matematika", bio:"Matematik.", icon:"🧮"},
-    {name:"Sheraliyev Jahongir", subject:"Ona tili", bio:"B+ sertifikat.", icon:"📝"},
-    {name:"Ustoz 3", subject:"Ingliz tili", bio:"Ustoz haqida ma’lumot keyin qo‘shiladi.", icon:"👨‍🏫"},
-    {name:"Ustoz 4", subject:"Ona tili", bio:"Ustoz haqida ma’lumot keyin qo‘shiladi.", icon:"👩‍🏫"},
-    {name:"Ustoz 5", subject:"Fan keyin belgilanadi", bio:"Ustoz haqida ma’lumot keyin qo‘shiladi.", icon:"👨‍🏫"}
+    {name:"Ibotov Davron", subject:"Matematika", title:"Matematika ustozi", bio:"Matematik.", icon:"🧮", photo:"", experience:"", achievements:[], quote:""},
+    {name:"Sheraliyev Jahongir", subject:"Ona tili", title:"Ona tili ustozi", bio:"Ona tili fanidan saboq beradi.", icon:"📝", photo:"", experience:"", achievements:["B+ sertifikat"], quote:""},
+    {name:"Ustoz 3", subject:"Ingliz tili", bio:"Ustoz haqida ma’lumot keyin qo‘shiladi.", icon:"🇬🇧"},
+    {name:"Ustoz 4", subject:"Ona tili", bio:"Ustoz haqida ma’lumot keyin qo‘shiladi.", icon:"📖"},
+    {name:"Ustoz 5", subject:"Fan keyin belgilanadi", bio:"Ustoz haqida ma’lumot keyin qo‘shiladi.", icon:"🎓"}
   ],
+
   // date: "2026-11-14T10:00" ko'rinishida yozilsa, sahifada ortga sanash (taymer) chiqadi.
   competitions: [
     {name:"Zakovat musobaqasi", type:"Jamoaviy bellashuv", description:"Mantiqiy fikrlash va jamoaviy bilimni sinovdan o‘tkazish. Jamoalar savollarga vaqt bilan javob beradi.", icon:"🧠", status:"Reja / e’lon", date:"", format:"Jamoa · 6 kishi"},
