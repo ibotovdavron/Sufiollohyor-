@@ -11,6 +11,7 @@
     chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
     game: '<rect x="2" y="7" width="20" height="12" rx="6"/><path d="M7 11v4M5 13h4"/><circle cx="16" cy="12" r="1.2" fill="currentColor"/><circle cx="18.5" cy="14.5" r="1.2" fill="currentColor"/>',
     calendar: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+    book: '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5v-15Z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5M9 8h7M9 11.5h5"/>',
     bag: '<path d="M5 8h14l-1 13H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
     question: '<circle cx="12" cy="12" r="9.5"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6"/><circle cx="12" cy="17.2" r=".6" fill="currentColor"/>',
     flask: '<path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/><path d="M7.5 15h9"/>',
@@ -26,7 +27,7 @@
     ["teachers.html", "cap", "Ustozlar", "Ustozlar"],
     ["ranking.html", "chart", "Reyting", "Reyting"],
     ["games.html", "game", "O‘yinlar", "O‘yinlar"],
-    ["schedule.html", "calendar", "Jadval", "Jadval"],
+    ["kurslar.html", "book", "Kurslar", "Kurslar"],
     ["shop.html", "bag", "Do‘kon", "Do‘kon"],
     ["amaliy.html", "flask", "Amaliy dars", "Amaliy"],
     ["contact.html", "phone", "Aloqa", "Aloqa"]
@@ -116,10 +117,10 @@
       "Bilimlar sarguzashti"
     ],
     [
-      "schedule.html",
-      "🗓️",
-      "Dars jadvali",
-      "Darslar va guruhlar"
+      "kurslar.html",
+      "📚",
+      "Kurslar",
+      "Narxlar va dars vaqtlari"
     ],
     [
       "shop.html",

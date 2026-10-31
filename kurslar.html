@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#070a1f">
+  <meta name="description" content="So‘fi Ollohyor o‘quv markazi kurslari: Matematika repetitor, Ona tili, Mental arifmetika — oyiga 100 000 so‘m. Onlayn anketa orqali yoziling.">
+  <title>Kurslar | So‘fi Ollohyor</title>
+  <link rel="stylesheet" href="style.css?v=14">
+  <link rel="stylesheet" href="kurslar.css?v=1">
+</head>
+<body class="ks-page">
+
+<header class="topbar">
+  <div class="wrap topinner">
+    <a class="brand" href="index.html">
+      <img class="brand-image" src="assets/markaz-logo.png" alt="Markaz logotipi">
+      <span class="brand-name">SO‘FI OLLOHYOR<small>O‘QUV MARKAZI</small></span>
+    </a>
+    <button class="ks-top-btn" type="button" data-apply="matematika">📝 Anketa</button>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- HERO -->
+  <section class="ks-hero">
+    <div class="ks-sky" aria-hidden="true" id="ksSky"></div>
+    <div class="ks-hero-copy">
+      <span class="ks-kicker">🎓 YANGI O‘QUV MAVSUMI</span>
+      <h1>Bilim — <em>eng foydali</em><br>sarmoya</h1>
+      <p>Tajribali ustozlar, kichik guruhlar va natijaga yo‘naltirilgan darslar. Farzandingiz uchun eng to‘g‘ri kursni tanlang.</p>
+      <div class="ks-price-hero">
+        <span>oyiga atigi</span>
+        <b><i id="ksPriceCount">100 000</i> so‘m</b>
+      </div>
+      <div class="ks-actions">
+        <button class="ks-btn" type="button" data-apply="matematika">🚀 Anketa to‘ldirish</button>
+        <a class="ks-btn ghost" href="#jadval">🗓️ Dars jadvali</a>
+      </div>
+    </div>
+    <div class="ks-orbit" aria-hidden="true">
+      <div class="ks-core">🎓</div>
+      <span class="ks-planet p1">🧮</span>
+      <span class="ks-planet p2">📚</span>
+      <span class="ks-planet p3">🧠</span>
+      <i class="ks-ring r1"></i><i class="ks-ring r2"></i>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="ks-stats">
+    <div><b data-count="3">0</b><span>yo‘nalish</span></div>
+    <div><b data-count="3">0</b><span>dars kuni haftada</span></div>
+    <div><b data-count="100" data-suffix=" ming">0</b><span>so‘m / oy</span></div>
+    <div><b data-count="15" data-prefix="≤">0</b><span>o‘quvchi guruhda</span></div>
+  </section>
+
+  <!-- KURSLAR -->
+  <section class="ks-section">
+    <div class="ks-head">
+      <span class="ks-kicker">KURSLARIMIZ</span>
+      <h2>Farzandingiz qaysi <em>cho‘qqini</em> zabt etadi?</h2>
+      <p>Har bir kurs — aniq reja, mehribon ustoz va sezilarli natija.</p>
+    </div>
+    <div class="ks-cards" id="ksCards"></div>
+  </section>
+
+  <!-- KEYINGI DARS -->
+  <section class="ks-next" id="ksNext">
+    <div class="ks-next-head"><span class="ks-pulse"></span><b>Eng yaqin dars</b></div>
+    <div class="ks-next-body">
+      <div class="ks-next-when" id="ksNextWhen"></div>
+      <div class="ks-count" id="ksCount"></div>
+    </div>
+  </section>
+
+  <!-- JADVAL -->
+  <section class="ks-section" id="jadval">
+    <div class="ks-head">
+      <span class="ks-kicker">HAFTALIK JADVAL</span>
+      <h2>Dars <em>kunlari</em> va vaqtlari</h2>
+    </div>
+    <div class="ks-week" id="ksWeek"></div>
+    <p class="ks-note">⏰ Darsga 5 daqiqa oldin keling. Mental arifmetika guruhi vaqtini anketa orqali kelishamiz.</p>
+  </section>
+
+  <!-- MENTAL ARIFMETIKA -->
+  <section class="ks-mental">
+    <div class="ks-mental-copy">
+      <span class="ks-kicker">🧠 MENTAL ARIFMETIKA · 5–7-SINF</span>
+      <h2>Kalkulyatordan <em>tezroq</em> hisoblay oladimi?</h2>
+      <p>Mental arifmetika — abakus (cho‘t) yordamida sonlarni ko‘z oldiga keltirib, xayolda hisoblash usuli. Bola avval cho‘t bilan, keyin cho‘tni tasavvur qilib hisoblaydi. Natijada miyaning ikkala yarim shari faol ishlaydi.</p>
+      <ul class="ks-checks">
+        <li>⚡ 3–4 xonali sonlarni bir necha soniyada qo‘shish-ayirish</li>
+        <li>🎯 Diqqat va e’tibor jamlanadi, xatolar kamayadi</li>
+        <li>🧩 Xotira, mantiq va tasavvur rivojlanadi</li>
+        <li>🏅 Maktabdagi matematika osonlashadi, o‘ziga ishonch oshadi</li>
+      </ul>
+      <button class="ks-btn" type="button" data-apply="mental">🧠 Mental arifmetikaga yozilish</button>
+    </div>
+    <div class="ks-abacus-wrap">
+      <div class="ks-abacus" id="ksAbacus" aria-label="Abakus — sonni ko‘rsatadi"></div>
+      <div class="ks-abacus-num">Abakusda: <b id="ksAbacusNum">0</b></div>
+      <div class="ks-quiz">
+        <span>Sinab ko‘ring:</span>
+        <b id="ksQuizQ">…</b>
+        <input id="ksQuizA" inputmode="numeric" aria-label="Javob" placeholder="?">
+        <button type="button" id="ksQuizBtn">Tekshirish</button>
+        <small id="ksQuizRes" role="status"></small>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEGA BIZ -->
+  <section class="ks-section">
+    <div class="ks-head">
+      <span class="ks-kicker">NEGA AYNAN BIZ?</span>
+      <h2>Ota-onalar bizni <em>tanlashining</em> sabablari</h2>
+    </div>
+    <div class="ks-why">
+      <div style="--d:0s"><span>👨‍🏫</span><b>Tajribali ustozlar</b><p>Fanini sevadigan, bolaga til topa oladigan ustozlar.</p></div>
+      <div style="--d:.1s"><span>👥</span><b>Kichik guruhlar</b><p>Har bir o‘quvchiga e’tibor — hech kim chetda qolmaydi.</p></div>
+      <div style="--d:.2s"><span>🧪</span><b>Amaliy darslar</b><p>Mavzular hayotiy misollar va jonli tajribalar bilan.</p></div>
+      <div style="--d:.3s"><span>🎮</span><b>Bilim o‘yinlari</b><p>Saytdagi o‘yinlar bilan uyda ham takrorlaydi.</p></div>
+      <div style="--d:.4s"><span>⭐</span><b>Yulduz va sovg‘alar</b><p>Faollik uchun yulduz — do‘konda sovg‘aga almashadi.</p></div>
+      <div style="--d:.5s"><span>📊</span><b>Ochiq natija</b><p>Reyting orqali farzandingiz o‘sishini kuzatasiz.</p></div>
+    </div>
+  </section>
+
+  <!-- QANDAY YOZILAMAN -->
+  <section class="ks-section">
+    <div class="ks-head">
+      <span class="ks-kicker">3 QADAM</span>
+      <h2>Qanday <em>yoziladi?</em></h2>
+    </div>
+    <ol class="ks-steps">
+      <li><span>1</span><b>Anketani to‘ldiring</b><p>Kursni tanlab, “Anketa” tugmasini bosing.</p></li>
+      <li><span>2</span><b>Telegramda yuboring</b><p>Anketa tayyor holda ochiladi — “Yuborish”ni bosasiz.</p></li>
+      <li><span>3</span><b>Darsga keling</b><p>Ustoz siz bilan bog‘lanib, guruhni aytadi.</p></li>
+    </ol>
+  </section>
+
+  <!-- FAQ -->
+  <section class="ks-section">
+    <div class="ks-head"><span class="ks-kicker">SAVOL-JAVOB</span><h2>Ko‘p so‘raladigan <em>savollar</em></h2></div>
+    <div class="ks-faq" id="ksFaq"></div>
+  </section>
+
+  <!-- CTA -->
+  <section class="ks-cta">
+    <div class="ks-aurora" aria-hidden="true"><i></i><i></i></div>
+    <h2>Joylar soni <em>cheklangan!</em></h2>
+    <p>Guruhlar kichik — farzandingizga joyni hoziroq band qiling.</p>
+    <div class="ks-actions center">
+      <button class="ks-btn" type="button" data-apply="matematika">🧮 Matematika</button>
+      <button class="ks-btn pink" type="button" data-apply="onatili">📚 Ona tili</button>
+      <button class="ks-btn violet" type="button" data-apply="mental">🧠 Mental arifmetika</button>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer wrap">
+  <div class="footer-brand">SO‘FI OLLOHYOR<span>O‘QUV MARKAZI</span></div>
+  <p>© 2026 So‘fi Ollohyor o‘quv markazi · Oltinsoy tumani</p>
+</footer>
+
+<nav class="bottom-nav" id="bottomNav" aria-label="Asosiy menyu"></nav>
+
+<div class="ks-modal" id="ksModal" hidden>
+  <div class="ks-sheet" role="dialog" aria-modal="true" aria-labelledby="ksFormTitle">
+    <button class="ks-x" type="button" data-close aria-label="Yopish">✕</button>
+    <div class="ks-sheet-head">
+      <span class="ks-sheet-icon" id="ksFormIcon">📝</span>
+      <div><h3 id="ksFormTitle">Kursga anketa</h3><p id="ksFormTo"></p></div>
+    </div>
+    <form class="ks-form" id="ksForm" novalidate>
+      <label class="full"><span>Kurs</span><select name="course" id="ksCourse"></select></label>
+      <label><span>O‘quvchi ismi familiyasi</span><input name="student" autocomplete="off" placeholder="Masalan: Aliyev Jasur" required></label>
+      <label><span>Sinfi</span><select name="cls" id="ksCls"></select></label>
+      <label><span>Ota-ona ismi</span><input name="parent" autocomplete="name" placeholder="Masalan: Dilnoza"></label>
+      <label><span>Telefon raqam</span><input name="phone" type="tel" autocomplete="tel" placeholder="+998 __ ___ __ __" required></label>
+      <label class="full"><span>Izoh (ixtiyoriy)</span><textarea name="note" rows="2" placeholder="Masalan: olimpiadaga tayyorlanmoqchi"></textarea></label>
+      <p class="ks-err full" id="ksErr" role="alert"></p>
+      <div class="ks-preview full"><small>Yuboriladigan anketa:</small><pre id="ksPreview"></pre></div>
+      <button class="ks-btn full" type="submit" id="ksSend">✈️ Telegramga yuborish</button>
+      <button class="ks-copy full" type="button" id="ksCopy">📋 Anketani nusxalash</button>
+      <p class="ks-hint full">Telegram anketa yozilgan holda ochiladi — faqat “Yuborish” tugmasini bosing.</p>
+    </form>
+  </div>
+</div>
+<div class="ks-toast" id="ksToast" aria-live="polite"></div>
+
+<script src="data.js?v=4"></script>
+<script src="app.js?v=3"></script>
+<script src="kurslar.js?v=1"></script>
+</body>
+</html>

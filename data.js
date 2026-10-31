@@ -84,17 +84,25 @@ students: [
     {name:"Xursanov Xumoyiddin", group:"8-sinf", stars:0, result:"Natija hali kiritilmagan"},
     {name:"Haqnazarova Munisa", group:"8-sinf", stars:0, result:"Natija hali kiritilmagan"}
 ],
-  // Dars jadvali. Kunlar: "Dushanba" ... "Yakshanba". Vaqt — dars boshlanishi.
-  schedule: {
-    group: "Matematika 144",
-    days: ["Chorshanba", "Shanba"],
-    slots: [
-      {cls:"6-sinf", time:"11:00"},
-      {cls:"5-sinf", time:"12:00"},
-      {cls:"8-sinf", time:"15:30"}
-    ],
-    note: "Diqqat, o‘quvchilar! Hamma o‘z vaqtida kelsin — dars o‘z vaqtida boshlanadi."
-  },
+  // Kurslar. price — oylik narx (so'm), null bo'lsa "narxini so'rang".
+  // telegram — anketa yuboriladigan Telegram username; phone — Telegram raqami.
+  courses: [
+    {id:"matematika", name:"Matematika", tag:"Repetitor", icon:"🧮", color:"#38bdf8",
+     price:100000, grades:"5–11-sinf", telegram:"ibotov_davron",
+     about:"Maktab dasturini mustahkamlash, mavzularni oddiy tilda tushuntirish, test va olimpiadaga tayyorlov.",
+     perks:["Mavzular hayotiy misollar bilan","Har darsdan keyin mini-test","Olimpiada va DTM masalalari","Ota-onaga natija hisoboti"],
+     lessons:[{day:"Seshanba",from:"09:30",to:"10:30"},{day:"Payshanba",from:"09:30",to:"11:00"},{day:"Yakshanba",from:"10:00",to:"12:00"}]},
+    {id:"onatili", name:"Ona tili", tag:"va adabiyot", icon:"📚", color:"#f472b6",
+     price:100000, grades:"5–11-sinf", phone:"+998932212604",
+     about:"Imlo va tinish belgilari, grammatika, insho yozish, chiroyli va ravon nutq.",
+     perks:["Savodli yozish sirlari","Insho va bayon yozish","Ifodali o‘qish va nutq","Test topshiriqlari bilan ishlash"],
+     lessons:[{day:"Yakshanba",from:"10:00",to:"12:00"}]},
+    {id:"mental", name:"Mental arifmetika", tag:"Yangi", icon:"🧠", color:"#a78bfa",
+     price:null, grades:"5–7-sinf", telegram:"ibotov_davron",
+     about:"Abakus (cho‘t) yordamida xayolda tez hisoblash. Diqqat, xotira va mantiqni kuchaytiradi.",
+     perks:["Ko‘p xonali sonlarni xayolda qo‘shish","Diqqat va xotira mashqlari","Tezlik bo‘yicha bellashuvlar","Matematikaga qiziqish oshadi"],
+     lessons:[]}
+  ],
   // O'yinlar bo'limiga ustoz sifatida kirish kodi (SHA-256 xeshi). Kodni o'zgartirish uchun yangi xesh yozing.
   teacherPinHash: "87c26dfeb14448c6d312063e49057ad0f5f6e16281350c572922f814c265d338",
   // Ustozlar. photo: "assets/ustoz-ism.jpg" ko'rinishida rasm yo'lini yozing.
