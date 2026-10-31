@@ -24,7 +24,7 @@ students: [
     {name:"Ismatullayev Samandarbek", group:"5-sinf", stars:1, result:"Natija hali kiritilmagan"},
     {name:"Jo‘rayeva Shoira", group:"5-sinf", stars:1, result:"Natija hali kiritilmagan"},
     {name:"Jumayev Behro‘zbek", group:"5-sinf", stars:1, result:"Natija hali kiritilmagan"},
-    {name:"Narmamatov Murodbek", group:"5-sinf", stars:6, result:"Natija hali kiritilmagan"},
+    {name:"Narmamatov Murodbek", group:"5-sinf", stars:11, result:"Natija hali kiritilmagan"},
     {name:"Qurbonov Javlon", group:"5-sinf", stars:16, result:"Natija hali kiritilmagan"},
     {name:"Raxmatov Abubakr", group:"5-sinf", stars:1, result:"Natija hali kiritilmagan"},
     {name:"Saydullayev Alibek", group:"5-sinf", stars:1, result:"Natija hali kiritilmagan"},
