@@ -6,7 +6,7 @@
   const root = document.getElementById("amaliyApp");
   const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
-  const CLASS_ART = { "5": ["🔢", "#22c55e"], "6": ["➗", "#3b82f6"], "8": ["📐", "#a855f7"] };
+  const CLASS_ART = { "5": ["🔢", "#22c55e"], "6": ["➗", "#3b82f6"], "8": ["📐", "#a855f7"], "10": ["🌍", "#0ea5e9"] };
 
   function crumbs(parts) {
     return `<nav class="am-crumbs">${parts.map(([href, t], i) => i < parts.length - 1 ? `<a href="${href}">${esc(t)}</a><span>›</span>` : `<b>${esc(t)}</b>`).join("")}</nav>`;
