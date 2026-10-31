@@ -7,8 +7,12 @@
   const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const D = window.CENTER_DATA || {};
   const STUDENTS = (D.students || []).map((s) => ({ name: s.name, cls: s.group }));
-  const CLASSES = [...new Set(STUDENTS.map((s) => s.cls))].sort((a, b) => parseInt(a) - parseInt(b));
-  const LEVEL = { "5-sinf": 1, "6-sinf": 2, "8-sinf": 3 };
+  const TEACHERS = (D.teachers || []).filter((t) => !/^Ustoz \d+$/.test(t.name)).map((t) => ({ name: t.name, cls: "Ustoz", role: "teacher", subject: t.subject }));
+  const TEACHER_TAB = "Ustoz";
+  const CLASSES = [...new Set(STUDENTS.map((s) => s.cls))].sort((a, b) => parseInt(a) - parseInt(b)).concat(TEACHERS.length ? [TEACHER_TAB] : []);
+  const PEOPLE = STUDENTS.concat(TEACHERS);
+  const LEVEL = { "5-sinf": 1, "6-sinf": 2, "8-sinf": 3, "Ustoz": 3 };
+  const listeners = { msg: [], presence: [] };
 
   // Yulduz qoidalari: bitta o'yindan kuniga ko'pi bilan 2 ta yulduz.
   const DAILY_CAP = 2;
@@ -19,6 +23,7 @@
     cid: null,
     name: null,
     cls: null,
+    role: "student",
     at: 0,
     status: "idle",
     game: null
@@ -69,7 +74,7 @@
 
   // ---------- Onlayn ro'yxat ----------
   function meta() {
-    return { cid: session.cid, name: session.name, cls: session.cls, at: session.at, status: session.status, game: session.game };
+    return { cid: session.cid, name: session.name, cls: session.cls, role: session.role, at: session.at, status: session.status, game: session.game };
   }
   function syncMeta() {
     if (lobby) lobby.track(meta());
@@ -93,11 +98,14 @@
       }
     }
     renderOnlineCount();
+    listeners.presence.forEach((fn) => fn(online));
     document.dispatchEvent(new CustomEvent("sofi:presence"));
   }
 
   function onLobbyMsg(m) {
-    if (!m || !session.name) return;
+    if (!m) return;
+    listeners.msg.forEach((fn) => { try { fn(m); } catch (e) { console.error(e); } });
+    if (!session.name) return;
     if (m.t === "invite" && m.toCid === session.cid) receiveInvite(m);
     else if (m.t === "reply" && m.toCid === session.cid) inviteAnswered(m);
     else if (m.t === "cancel" && m.toCid === session.cid && incoming && incoming.id === m.id) {
@@ -112,15 +120,17 @@
     if (holderOf(student.name)) return false;
     session.name = student.name;
     session.cls = student.cls;
+    session.role = student.role || "student";
     session.at = Date.now();
     session.status = "idle";
-    store.set("sofi_games_me", { name: session.name, cls: session.cls });
+    store.set("sofi_games_me", { name: session.name, cls: session.cls, role: session.role });
     syncMeta();
     return true;
   }
   function releaseName() {
     session.name = null;
     session.cls = null;
+    session.role = "student";
     session.at = 0;
     session.status = "idle";
     session.game = null;
@@ -133,16 +143,16 @@
     let query = "";
     const draw = () => {
       const q = query.toLowerCase();
-      const rows = STUDENTS.filter((s) => s.cls === cls && s.name.toLowerCase().includes(q));
+      const rows = PEOPLE.filter((s) => s.cls === cls && s.name.toLowerCase().includes(q));
       container.querySelector(".g-tabs").innerHTML = CLASSES.map((c) =>
-        `<button class="g-tab ${c === cls ? "on" : ""}" data-cls="${esc(c)}">${esc(c)}</button>`).join("");
+        `<button class="g-tab ${c === cls ? "on" : ""}" data-cls="${esc(c)}">${c === TEACHER_TAB ? "👨‍🏫 Ustozlar" : esc(c)}</button>`).join("");
       container.querySelector(".g-names").innerHTML = rows.map((s) => {
         const holder = holderOf(s.name);
         const me = s.name === session.name;
         let state = "", label = "", disabled = false;
         if (mode === "pick") {
           if (holder) { state = "busy"; label = "🔒 band"; disabled = true; }
-          else label = "Tanlash";
+          else label = s.role === "teacher" ? "🔑 Kod bilan" : "Tanlash";
         } else {
           if (me) { state = "me"; label = "Siz"; disabled = true; }
           else if (!holder) { state = "off"; label = "onlayn emas"; disabled = true; }
@@ -160,12 +170,39 @@
       const tab = e.target.closest("[data-cls]");
       if (tab) { cls = tab.dataset.cls; draw(); return; }
       const btn = e.target.closest(".g-name");
-      if (btn && !btn.disabled) onPick(STUDENTS.find((s) => s.name === btn.dataset.name));
+      if (btn && !btn.disabled) onPick(PEOPLE.find((s) => s.name === btn.dataset.name));
     });
     container.querySelector(".g-search").addEventListener("input", (e) => { query = e.target.value.trim(); draw(); });
     const refresh = () => container.isConnected ? draw() : document.removeEventListener("sofi:presence", refresh);
     document.addEventListener("sofi:presence", refresh);
     draw();
+  }
+
+  async function sha256(text) {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+    return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  }
+  // Ustoz kodi modal ichida so'raladi
+  function askPin(card, teacher) {
+    return new Promise((resolve) => {
+      const box = document.createElement("form");
+      box.className = "g-pin";
+      box.innerHTML = `<b>🔑 ${esc(teacher.name)} — ustoz kodi</b>
+        <input type="password" inputmode="numeric" autocomplete="off" placeholder="Kodni kiriting" aria-label="Ustoz kodi">
+        <div class="g-pin-row"><button class="btn" type="submit">Kirish</button><button class="btn secondary" type="button" data-pin-cancel>Bekor</button></div>
+        <small class="g-pin-err"></small>`;
+      card.querySelector(".g-list").before(box);
+      const input = box.querySelector("input");
+      input.focus();
+      const done = (v) => { box.remove(); resolve(v); };
+      box.querySelector("[data-pin-cancel]").onclick = () => done(false);
+      box.onsubmit = async (e) => {
+        e.preventDefault();
+        const ok = D.teacherPinHash && (await sha256(input.value.trim())) === D.teacherPinHash;
+        if (ok) done(true);
+        else { box.querySelector(".g-pin-err").textContent = "Kod noto‘g‘ri."; input.value = ""; input.focus(); }
+      };
+    });
   }
 
   function askName() {
@@ -177,10 +214,11 @@
         <div class="g-list"></div>`, { wide: true });
       studentList(card.querySelector(".g-list"), {
         mode: "pick",
-        onPick(student) {
+        async onPick(student) {
+          if (student.role === "teacher" && !(await askPin(card, student))) return;
           if (!claimName(student)) { toast("Bu ism hozirgina band qilindi.", "bad"); return; }
           closeModal();
-          toast(`Xush kelibsiz, ${student.name}! 🎉`, "good");
+          toast(student.role === "teacher" ? `Xush kelibsiz, ustoz ${student.name}! 👨‍🏫` : `Xush kelibsiz, ${student.name}! 🎉`, "good");
           resolve(true);
         }
       });
@@ -439,6 +477,7 @@
         if (finished) return;
         finished = true;
         let star = null;
+        if (session.role === "teacher") { result.earnStar = false; result.starHint = "Ustozlar yulduz olmaydi — yulduzlar o‘quvchilar uchun."; }
         if (result.earnStar) star = await awardStar(game.id);
         showResult(game, result, star, friend);
       }
@@ -610,16 +649,18 @@
       chip.innerHTML = `<button class="g-chip" data-pick>👤 Ismni tanlash</button>`;
     } else {
       const total = Object.keys(GAMES).reduce((n, g) => n + earnedToday(g), 0);
-      chip.innerHTML = `<div class="g-chip on"><span class="av">${esc(session.name[0])}</span>
-        <span><b>${esc(session.name)}</b><small>${esc(session.cls)} · bugun ⭐ ${total}</small></span>
+      const teacher = session.role === "teacher";
+      chip.innerHTML = `<div class="g-chip on ${teacher ? "teacher" : ""}"><span class="av">${teacher ? "👨‍🏫" : esc(session.name[0])}</span>
+        <span><b>${esc(session.name)}</b><small>${teacher ? "Ustoz · nazoratchi" : `${esc(session.cls)} · bugun ⭐ ${total}`}</small></span>
         <button class="g-link" data-change>almashtirish</button></div>`;
     }
   }
   function renderOnlineCount() {
     const el = $("#gOnline");
     if (!el) return;
-    const n = online.filter((p) => p.name).length;
-    el.innerHTML = `<span class="g-live ${SofiNet.kind}"></span> ${SofiNet.kind === "online" ? "Onlayn" : "Faqat shu qurilma"} · ${n} o‘quvchi o‘yinda`;
+    const n = online.filter((p) => p.name && p.role !== "teacher").length;
+    const t = online.filter((p) => p.name && p.role === "teacher").length;
+    el.innerHTML = `<span class="g-live ${SofiNet.kind}"></span> ${SofiNet.kind === "online" ? "Onlayn" : "Faqat shu qurilma"} · ${n} o‘quvchi${t ? ` · ${t} ustoz 👨‍🏫` : ""}`;
   }
 
   async function boot() {
@@ -643,7 +684,7 @@
     const me = store.get("sofi_games_me", null);
     if (me && me.name) {
       setTimeout(() => {
-        const student = STUDENTS.find((s) => s.name === me.name);
+        const student = PEOPLE.find((s) => s.name === me.name);
         if (student && !session.name && !claimName(student)) toast(`“${me.name}” ismi hozir band.`, "bad");
       }, 1500);
     }
@@ -653,6 +694,24 @@
   window.SofiGames = {
     register(game) { GAMES[game.id] = game; },
     boot,
-    get session() { return session; }
+    get session() { return session; },
+    // Chat va boshqa qo'shimchalar uchun
+    api: {
+      get online() { return online; },
+      send(m) { if (lobby) lobby.send(m); },
+      onMsg(fn) { listeners.msg.push(fn); },
+      onPresence(fn) { listeners.presence.push(fn); },
+      toast,
+      beep: (...a) => beep(...a),
+      askName: () => askName(),
+      invite(name) {
+        const p = PEOPLE.find((x) => x.name === name);
+        const holder = holderOf(name);
+        if (!p || !holder) { toast("Bu foydalanuvchi hozir onlayn emas."); return; }
+        openModal(`<div class="g-modal-head"><span class="g-big">🎮</span><h2>${esc(name.split(" ")[1] || name)} bilan qaysi o‘yin?</h2></div>
+          <div class="g-modes">${Object.values(GAMES).map((g) => `<button class="g-mode" data-inv="${g.id}"><span>${g.icon}</span><b>${esc(g.title)}</b></button>`).join("")}</div>`);
+        modalRoot().querySelectorAll("[data-inv]").forEach((b) => (b.onclick = () => { closeModal(); sendInvite(GAMES[b.dataset.inv], p); }));
+      }
+    }
   };
 })();

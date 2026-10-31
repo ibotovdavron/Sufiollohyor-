@@ -315,3 +315,64 @@ body.g-playing .bottom-nav { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .g-card, .art-box, .art-bv, .box, .bv-char .bv-boy, .bv-arm, .g-hero .float { animation: none !important; }
 }
+
+/* Ustoz kirish kodi */
+.g-pin { display: grid; gap: 8px; margin: 0 0 12px; padding: 14px; border-radius: 16px; border: 1px solid rgba(245, 200, 76, 0.5); background: rgba(245, 200, 76, 0.08); }
+.g-pin b { color: #fde68a; }
+.g-pin input { padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.35); color: var(--white); font-size: 1.1rem; letter-spacing: 0.3em; text-align: center; }
+.g-pin-row { display: flex; gap: 8px; }
+.g-pin-row .btn { flex: 1; justify-content: center; }
+.g-pin-err { color: #fca5a5; font-weight: 700; min-height: 1em; }
+.g-chip.teacher { border-color: rgba(245, 200, 76, 0.6); background: rgba(245, 200, 76, 0.1); }
+.g-chip.teacher .av { background: linear-gradient(135deg, #fde68a, #f59e0b); }
+
+/* Chat */
+.ch-fab { position: fixed; right: 16px; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); z-index: 1050; width: 58px; height: 58px; border-radius: 50%; border: 0; font-size: 26px; background: linear-gradient(135deg, #00f59b, #0ea5e9); box-shadow: 0 12px 30px rgba(0, 245, 155, 0.4); transition: transform 0.2s; }
+.ch-fab:hover { transform: scale(1.06); }
+.ch-fab.on { transform: rotate(-10deg) scale(0.95); }
+.ch-fab b { position: absolute; top: -2px; right: -2px; min-width: 22px; height: 22px; padding: 0 6px; display: grid; place-items: center; border-radius: 11px; background: #ef4444; color: #fff; font-size: 12px; animation: gBeat 1.2s infinite; }
+body.g-playing .ch-fab { bottom: 100px; right: 12px; width: 48px; height: 48px; font-size: 21px; }
+.ch-panel { position: fixed; right: 16px; bottom: calc(164px + env(safe-area-inset-bottom, 0px)); z-index: 1050; width: min(380px, calc(100% - 24px)); height: min(560px, calc(100vh - 200px)); display: flex; flex-direction: column; border-radius: 22px; border: 1px solid var(--line); background: linear-gradient(180deg, #0a2a1c, #04140c); box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6); overflow: hidden; animation: gPop 0.3s; }
+.ch-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.ch-x { width: 32px; height: 32px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, 0.1); color: #fff; }
+.ch-tabs { display: flex; gap: 6px; padding: 8px 10px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+.ch-tabs::-webkit-scrollbar { display: none; }
+.ch-tabs button { flex: none; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--white); font-size: 0.8rem; font-weight: 800; }
+.ch-tabs button.on { background: var(--green); color: #02130c; border-color: var(--green); }
+.ch-body { flex: 1; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.ch-msg { align-self: flex-start; max-width: 82%; padding: 8px 11px; border-radius: 16px 16px 16px 4px; background: rgba(255, 255, 255, 0.07); animation: gRise 0.25s; }
+.ch-msg.mine { align-self: flex-end; border-radius: 16px 16px 4px 16px; background: linear-gradient(135deg, #059669, #0d9488); }
+.ch-msg.t { border: 1px solid rgba(245, 200, 76, 0.6); background: rgba(245, 200, 76, 0.1); }
+.ch-msg.ann { border: 1px solid #f59e0b; background: rgba(245, 158, 11, 0.18); }
+.ch-who { display: block; font-size: 0.72rem; font-weight: 900; color: #a7f3d0; margin-bottom: 2px; }
+.ch-msg.t .ch-who { color: #fde68a; }
+.ch-text { display: block; overflow-wrap: anywhere; line-height: 1.45; }
+.ch-meta { display: block; margin-top: 3px; font-size: 0.65rem; color: rgba(255, 255, 255, 0.55); text-align: right; }
+.ch-meta button { border: 0; background: none; padding: 0; color: #fca5a5; font-size: 0.68rem; font-weight: 800; text-decoration: underline; }
+.ch-pin { position: sticky; top: -10px; z-index: 1; margin: -10px -12px 4px; padding: 8px 12px; background: rgba(245, 158, 11, 0.22); border-bottom: 1px solid #f59e0b; font-size: 0.85rem; }
+.ch-quick { display: flex; gap: 6px; overflow-x: auto; padding: 6px 10px 0; scrollbar-width: none; }
+.ch-quick::-webkit-scrollbar { display: none; }
+.ch-quick button { flex: none; padding: 5px 10px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.05); color: var(--white); font-size: 0.78rem; }
+.ch-form { display: flex; align-items: center; gap: 6px; padding: 8px 10px; }
+.ch-form input#chInput { flex: 1; min-width: 0; padding: 11px 13px; border-radius: 999px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.35); color: var(--white); }
+.ch-send { width: 42px; height: 42px; border-radius: 50%; border: 0; background: var(--green); color: #02130c; font-size: 18px; font-weight: 900; }
+.ch-send:disabled { opacity: 0.4; }
+.ch-ann { display: flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 800; color: #fde68a; white-space: nowrap; }
+.ch-note { margin: 0; padding: 0 12px 10px; font-size: 0.68rem; color: var(--muted); }
+.ch-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; flex: 1; padding: 20px; text-align: center; color: var(--muted); }
+.ch-empty span { font-size: 40px; }
+.ch-empty.small span { font-size: 30px; }
+.ch-person { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 14px; background: rgba(255, 255, 255, 0.04); }
+.ch-av { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #00f59b, #0ea5e9); color: #02130c; font-weight: 900; }
+.ch-av.t { background: linear-gradient(135deg, #fde68a, #f59e0b); }
+.ch-pn { flex: 1; min-width: 0; }
+.ch-pn b { display: block; font-size: 0.88rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.ch-pn small { color: var(--muted); font-size: 0.72rem; }
+.ch-person button { width: 36px; height: 36px; border-radius: 12px; border: 1px solid var(--line); background: transparent; font-size: 16px; }
+@media (max-width: 560px) {
+  .ch-panel { right: 8px; left: 8px; width: auto; bottom: calc(90px + env(safe-area-inset-bottom, 0px)); height: min(70vh, calc(100vh - 140px)); }
+  .ch-fab { right: 12px; bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
+}
+/* Taklif va boshqa oynalar chatdan yuqorida turadi */
+.g-modal { z-index: 1200; }
+.g-toasts { z-index: 1300; }

@@ -7,7 +7,7 @@
   <meta name="description" content="So‘fi Ollohyor o‘quv markazi — bilim o‘yinlari: Sirli quti, Bilimlar poygasi, Bilmasvoyga o‘rgat">
   <title>O‘yinlar | So‘fi Ollohyor</title>
   <link rel="stylesheet" href="style.css?v=14">
-  <link rel="stylesheet" href="games/games.css?v=1">
+  <link rel="stylesheet" href="games/games.css?v=3">
 </head>
 <body>
 
@@ -91,7 +91,7 @@
       <div><b>🏎️ Poyga</b><span>Kamida 6 ta to‘g‘ri darvoza va ko‘pi bilan 2 ta to‘qnashuv. Do‘st bilan: birinchi kelish + 5 ta darvoza.</span></div>
       <div><b>🧢 Bilmasvoy</b><span>10 savoldan kamida 9 tasi to‘g‘ri, jonlar tugamasin. Do‘st bilan: g‘alaba + 8 ta.</span></div>
     </div>
-    <p class="muted" style="margin:14px 0 0">Har bir o‘yindan kuniga ko‘pi bilan 2 ⭐ olish mumkin. Bitta ism bilan bir vaqtda faqat bitta kishi o‘ynay oladi.</p>
+    <p class="muted" style="margin:14px 0 0">Har bir o‘yindan kuniga ko‘pi bilan 2 ⭐ olish mumkin. Bitta ism bilan bir vaqtda faqat bitta kishi o‘ynay oladi.<br>💬 Pastdagi chat tugmasi orqali onlayn o‘quvchilar va ustozlar bilan yozishish mumkin. 👨‍🏫 Ustozlar maxsus kod bilan kiradi va chatni kuzatib boradi.</p>
   </section>
 </main>
 
@@ -108,17 +108,18 @@
 
 <script src="lib/supabase.js"></script>
 <script src="config.js"></script>
-<script src="data.js?v=2"></script>
+<script src="data.js?v=3"></script>
 <script src="app.js?v=2"></script>
-<script src="games/net.js"></script>
-<script src="games/questions.js"></script>
-<script src="games/core.js"></script>
-<script src="games/mystery.js"></script>
-<script src="games/race.js"></script>
-<script src="games/bilmasvoy.js"></script>
+<script src="games/net.js?v=2"></script>
+<script src="games/questions.js?v=2"></script>
+<script src="games/core.js?v=2"></script>
+<script src="games/mystery.js?v=2"></script>
+<script src="games/race.js?v=2"></script>
+<script src="games/bilmasvoy.js?v=2"></script>
 <script>
   document.getElementById("artBv").innerHTML = window.SofiBilmasvoyArt || "🧢";
   window.SofiGames.boot();
 </script>
+<script src="games/chat.js?v=1"></script>
 </body>
 </html>

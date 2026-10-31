@@ -95,6 +95,8 @@ students: [
     ],
     note: "Diqqat, o‘quvchilar! Hamma o‘z vaqtida kelsin — dars o‘z vaqtida boshlanadi."
   },
+  // O'yinlar bo'limiga ustoz sifatida kirish kodi (SHA-256 xeshi). Kodni o'zgartirish uchun yangi xesh yozing.
+  teacherPinHash: "87c26dfeb14448c6d312063e49057ad0f5f6e16281350c572922f814c265d338",
   // Ustozlar. photo: "assets/ustoz-ism.jpg" ko'rinishida rasm yo'lini yozing.
   // achievements — yutuq va sertifikatlar ro'yxati, quote — ustozning shiori.
   teachers: [
