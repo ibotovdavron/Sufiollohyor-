@@ -329,3 +329,31 @@ b.v { color: #fde047; }
   .ge-cats { grid-template-columns: 1fr 1fr; }
   .ge-opts { grid-template-columns: 1fr; }
 }
+
+/* ===== Oq to'plam ===== */
+.am-sec { grid-column: 1 / -1; margin: 18px 0 4px; padding: 8px 12px; border-radius: 12px; font-size: 0.95rem; color: #fde68a; background: rgba(245, 200, 76, 0.08); border-left: 4px solid #f5c84c; }
+.am-sec.hidden { display: none; }
+.am-tip { margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.35); line-height: 1.6; }
+.am-book { margin: 4px 0 14px; padding: 12px 14px; border-radius: 14px; background: rgba(245, 200, 76, 0.08); border: 1px dashed rgba(245, 200, 76, 0.45); color: #fde68a; font-size: 0.92rem; }
+.am-text table.oq-t { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.92rem; }
+.am-text table.oq-t td, .am-text table.oq-t th { border: 1px solid rgba(255, 255, 255, 0.12); padding: 7px 9px; text-align: center; }
+.am-text table.oq-t th { background: rgba(255, 255, 255, 0.06); }
+.am-text .f { display: inline-block; padding: 2px 8px; margin: 2px 0; border-radius: 8px; background: rgba(255, 255, 255, 0.07); font-weight: 700; white-space: nowrap; }
+.am-text .fb { display: block; margin: 8px 0; padding: 10px 14px; border-radius: 12px; background: rgba(255, 255, 255, 0.06); border-left: 3px solid var(--c); font-weight: 700; font-size: 1.02rem; overflow-x: auto; }
+.oq-chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.oq-chip { display: grid; gap: 2px; padding: 10px; border-radius: 12px; border: 1px solid var(--line); }
+.oq-chip.ok { background: rgba(34, 197, 94, 0.14); border-color: #22c55e; }
+.oq-chip.no { background: rgba(248, 113, 113, 0.08); }
+.oq-chip small { color: var(--muted); font-size: 0.75rem; }
+.oq-input { padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.3); color: #fff; font: inherit; font-size: 16px; }
+.oq-cycle { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 10px 0; }
+.oq-cycle span { display: grid; place-items: center; min-width: 64px; padding: 10px; border-radius: 14px; background: rgba(255, 255, 255, 0.05); font-size: 1.6rem; font-weight: 900; border: 1px solid var(--line); }
+.oq-cycle span small { font-size: 0.7rem; color: var(--muted); font-weight: 600; }
+.oq-cycle span.on { background: rgba(253, 224, 71, 0.18); border-color: #fde047; color: #fde047; transform: scale(1.08); }
+.oq-mix { display: flex; align-items: flex-end; justify-content: center; gap: 10px; padding: 10px 0; }
+.oq-mix > span { font-size: 1.6rem; font-weight: 900; color: var(--muted); align-self: center; }
+.oq-mix .jar { position: relative; width: 74px; height: 120px; border: 3px solid #94a3b8; border-top: 0; border-radius: 0 0 16px 16px; overflow: hidden; display: grid; align-content: end; justify-items: center; }
+.oq-mix .jar.big { width: 96px; height: 150px; }
+.oq-mix .jar i { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, #38bdf8, #0ea5e9); opacity: 0.7; transition: height 0.4s; }
+.oq-mix .jar b, .oq-mix .jar small { position: relative; z-index: 1; font-weight: 900; text-shadow: 0 1px 3px #000; }
+.oq-mix .jar small { margin-bottom: 6px; color: #fde047; }

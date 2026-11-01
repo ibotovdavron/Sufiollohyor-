@@ -5,7 +5,7 @@ window.AMALIY_ADD = function (classId, className, subject) {
   if (!cls) {
     cls = { id: classId, name: className, subjects: [] };
     window.AMALIY.classes.push(cls);
-    window.AMALIY.classes.sort((a, b) => Number(a.id) - Number(b.id));
+    window.AMALIY.classes.sort((a, b) => (isNaN(a.id) ? 1e9 : Number(a.id)) - (isNaN(b.id) ? 1e9 : Number(b.id)));
   }
   cls.subjects.push(subject);
 };

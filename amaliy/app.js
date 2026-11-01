@@ -6,7 +6,7 @@
   const root = document.getElementById("amaliyApp");
   const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
-  const CLASS_ART = { "5": ["🔢", "#22c55e"], "6": ["➗", "#3b82f6"], "8": ["📐", "#a855f7"], "10": ["🌍", "#0ea5e9"] };
+  const CLASS_ART = { "5": ["🔢", "#22c55e"], "6": ["➗", "#3b82f6"], "8": ["📐", "#a855f7"], "10": ["🌍", "#0ea5e9"], "oq": ["📗", "#f5c84c"] };
 
   function crumbs(parts) {
     return `<nav class="am-crumbs">${parts.map(([href, t], i) => i < parts.length - 1 ? `<a href="${href}">${esc(t)}</a><span>›</span>` : `<b>${esc(t)}</b>`).join("")}</nav>`;
@@ -49,14 +49,15 @@
       <h2 class="am-step"><span>3</span> Mavzuni tanlang</h2>
       <input class="am-search" type="search" placeholder="🔎 Mavzu qidirish..." aria-label="Mavzu qidirish">
       <div class="am-topics">
-        ${sub.topics.map((t, i) => `<a class="am-topic" href="#${cls.id}/${sub.id}/${t.id}" style="--c:${sub.color};--d:${Math.min(i, 12) * 40}ms">
-          <span class="n">${i + 1}</span><span class="t"><b>${esc(t.title)}</b><small>${rich(esc(t.tag || ""))}</small></span>
+        ${sub.topics.map((t, i) => `${t.sec && (i === 0 || sub.topics[i - 1].sec !== t.sec) ? `<h3 class="am-sec">${esc(t.sec)}</h3>` : ""}<a class="am-topic" href="#${cls.id}/${sub.id}/${t.id}" style="--c:${sub.color};--d:${Math.min(i, 12) * 40}ms">
+          <span class="n">${esc(t.code || i + 1)}</span><span class="t"><b>${esc(t.title)}</b><small>${rich(esc(t.tag || ""))}</small></span>
           <span class="ic">${(t.demos || []).length ? "🔬" : "📖"}</span></a>`).join("")}
       </div>`;
     const search = root.querySelector(".am-search");
     search.addEventListener("input", () => {
       const q = search.value.toLowerCase().trim();
       root.querySelectorAll(".am-topic").forEach((a) => a.classList.toggle("hidden", !a.textContent.toLowerCase().includes(q)));
+      root.querySelectorAll(".am-sec").forEach((hd) => { let n = hd.nextElementSibling, any = false; while (n && !n.classList.contains("am-sec")) { if (!n.classList.contains("hidden")) any = true; n = n.nextElementSibling; } hd.classList.toggle("hidden", !any); });
     });
   }
 
@@ -93,16 +94,18 @@
       ${crumbs([["#", "Amaliy darslar"], ["#" + cls.id, cls.name], ["#" + cls.id + "/" + sub.id, sub.name], ["", t.title]])}
       <article class="am-lesson" style="--c:${sub.color}">
         <header class="am-lhead">
-          <span class="tag">${esc(cls.name)} · ${esc(sub.name)} · ${idx + 1}-mavzu</span>
+          <span class="tag">${esc(cls.name)} · ${esc(sub.name)} · ${t.code ? esc(t.code) : idx + 1 + "-mavzu"}</span>
           <h1>${esc(t.title)}</h1>
           ${t.tag ? `<p>${rich(esc(t.tag))}</p>` : ""}
         </header>
-        <section class="am-block life"><h2>🌍 Hayotda qayerda uchraydi?</h2><div>${rich(t.life)}</div></section>
+        ${t.life ? `<section class="am-block life"><h2>${t.code ? "🎯 Nega kerak?" : "🌍 Hayotda qayerda uchraydi?"}</h2><div>${rich(t.life)}</div></section>` : ""}
         <section class="am-block"><h2>📖 Tushuntirish</h2><div class="am-text">${rich(t.explain)}</div>
-          ${t.rule ? `<div class="am-rule">📌 ${rich(t.rule)}</div>` : ""}</section>
+          ${t.rule ? `<div class="am-rule">📌 ${rich(t.rule)}</div>` : ""}
+          ${t.tip ? `<div class="am-tip">⚠️ <b>Diqqat:</b> ${rich(t.tip)}</div>` : ""}</section>
         ${(t.demos || []).length ? `<section class="am-block demo-block"><h2>🔬 Jonli tajriba</h2><p class="muted">Tugma va surgichlarni o‘zgartiring — natija darhol o‘zgaradi.</p><div class="am-demos"></div></section>` : ""}
         ${(t.examples || []).length ? `<section class="am-block"><h2>✍️ Ishlangan misollar</h2><div class="am-examples"></div></section>` : ""}
         ${(t.quiz || []).length ? `<section class="am-block"><h2>✅ O‘zingizni sinang</h2><div class="am-quiz"></div></section>` : ""}
+        ${t.p1 ? `<p class="am-book">📗 Bu mavzu bo‘yicha test topshiriqlari: <b>Oq to‘plam (1996–2007)</b>, ${t.p1 === t.p2 ? t.p1 + "-bet" : t.p1 + "–" + t.p2 + "-betlar"}.</p>` : ""}
         <nav class="am-pager">
           ${prev ? `<a href="#${cls.id}/${sub.id}/${prev.id}">← ${esc(prev.title)}</a>` : "<span></span>"}
           ${next ? `<a class="next" href="#${cls.id}/${sub.id}/${next.id}">${esc(next.title)} →</a>` : `<a class="next" href="#${cls.id}/${sub.id}">Barcha mavzular →</a>`}
