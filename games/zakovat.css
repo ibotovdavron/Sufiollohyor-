@@ -287,3 +287,91 @@ body.zk-open .ch-fab, body.zk-open .ch-panel { display: none !important; }
 }
 .g-rules { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 .zk-card-body { padding-top: 46px; }
+
+/* ===== Onlayn xona: jonli ro'yxat, stol, avtomatik natija ===== */
+.zk-live { display: grid; gap: 6px; }
+.zk-live:empty { display: none; }
+.zk-live-head { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 14px; color: #fde68a; }
+.zk-live-head.muted { color: #9aa0cc; font-weight: 600; font-size: 13px; }
+.zk-dot { width: 9px; height: 9px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 0 rgba(74, 222, 128, .6); animation: zkPing 1.4s infinite; }
+@keyframes zkPing { to { box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); } }
+.zk-room:disabled { opacity: .5; cursor: not-allowed; }
+.zk-fill { display: inline-block; vertical-align: middle; width: 60px; height: 6px; margin: 0 4px; border-radius: 6px; background: rgba(255, 255, 255, .12); overflow: hidden; }
+.zk-fill i { display: block; height: 100%; background: linear-gradient(90deg, #4ade80, #f5c84c); border-radius: 6px; transition: width .4s; }
+.zk-lbl { font-size: 12px; font-weight: 800; color: #9aa0cc; margin-bottom: -4px; }
+
+.zk-cap-bar { position: relative; max-width: 420px; height: 26px; margin: 14px auto 8px; border-radius: 999px; background: rgba(255, 255, 255, .08); border: 1px solid var(--line); overflow: hidden; }
+.zk-cap-bar i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #22c55e, #f5c84c); transition: width .5s cubic-bezier(.3, 1.3, .5, 1); }
+.zk-cap-bar span { position: relative; display: grid; place-items: center; height: 100%; font-weight: 900; font-size: 13px; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, .6); }
+.zk-startin { display: inline-block; margin-top: 6px; padding: 10px 18px; border-radius: 999px; background: rgba(34, 197, 94, .18); border: 1px solid #22c55e; color: #bbf7d0; font-weight: 800; animation: zkPulse 1s ease-in-out infinite; }
+.zk-startin b { font-size: 22px; color: #fff; }
+.zk-lteam.full { opacity: .85; }
+.zk-hostbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; margin: 14px auto 0; padding: 10px 14px; border-radius: 16px; border: 1px dashed rgba(245, 200, 76, .45); background: rgba(245, 200, 76, .06); max-width: 520px; }
+.zk-hostbar > span { color: #fde68a; font-size: 13px; font-weight: 800; }
+
+/* Stol */
+.zk-table { position: relative; height: 270px; margin: 4px 0; }
+.zk-desk {
+  position: absolute; left: 50%; top: 50%; width: 46%; height: 42%; transform: translate(-50%, -50%); border-radius: 50%;
+  display: grid; place-content: center; text-align: center;
+  background: radial-gradient(ellipse at 50% 35%, #8b5a2b, #5b3716 70%, #3b230d); border: 4px solid #a0703c;
+  box-shadow: inset 0 -8px 20px rgba(0, 0, 0, .45), 0 16px 30px rgba(0, 0, 0, .5);
+}
+.zk-desk span { font-size: 30px; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .5)); }
+.zk-desk small { color: #fde8c8; font-weight: 800; font-size: 11px; }
+.zk-seat { position: absolute; display: grid; justify-items: center; gap: 3px; width: 90px; transform: translate(-50%, -50%); transition: transform .3s; }
+.zk-table.n2 .s0, .zk-table.n4 .s0, .zk-table.n3 .s0 { left: 50%; top: 13%; }
+.zk-table.n2 .s1 { left: 50%; top: 87%; }
+.zk-table.n3 .s1 { left: 85%; top: 72%; } .zk-table.n3 .s2 { left: 15%; top: 72%; }
+.zk-table.n4 .s1 { left: 88%; top: 50%; } .zk-table.n4 .s2 { left: 50%; top: 87%; } .zk-table.n4 .s3 { left: 12%; top: 50%; }
+.zk-seat .av { position: relative; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; font-size: 20px; color: #0b0e26; background: linear-gradient(135deg, color-mix(in srgb, var(--c) 50%, #fff), var(--c)); border: 3px solid rgba(255, 255, 255, .25); box-shadow: 0 6px 16px rgba(0, 0, 0, .45); }
+.zk-seat .av i { position: absolute; top: -16px; font-style: normal; font-size: 18px; animation: zkFloat 2.4s ease-in-out infinite; }
+.zk-seat.cap .av { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(245, 200, 76, .35), 0 6px 16px rgba(0, 0, 0, .45); }
+.zk-seat.me .av { outline: 2px dashed #fff; outline-offset: 3px; }
+.zk-seat.off { opacity: .4; }
+.zk-seat.empty .av { background: rgba(255, 255, 255, .06); color: #6b7099; border-style: dashed; box-shadow: none; }
+.zk-seat small { font-size: 11px; font-weight: 800; color: #e2e4f6; white-space: nowrap; max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
+.zk-seat.talk .av { animation: zkTalk .5s ease-in-out 3; }
+@keyframes zkTalk { 50% { transform: scale(1.12); } }
+.zk-seat .bub {
+  position: absolute; z-index: 2; bottom: calc(100% + 6px); left: 50%; width: max-content; max-width: 150px; padding: 7px 10px; border-radius: 14px;
+  background: #fff; color: #111827; font-size: 12px; font-weight: 700; line-height: 1.35; text-align: center; word-break: break-word;
+  transform: translateX(-50%) scale(.5); opacity: 0; transition: .25s cubic-bezier(.3, 1.5, .5, 1); pointer-events: none; box-shadow: 0 8px 20px rgba(0, 0, 0, .4);
+}
+.zk-seat .bub::after { content: ""; position: absolute; left: 50%; top: 100%; border: 6px solid transparent; border-top-color: #fff; transform: translateX(-50%); }
+.zk-seat .bub.show { opacity: 1; transform: translateX(-50%) scale(1); }
+.zk-seat .bub.final { background: #fde68a; }
+.zk-seat .bub.final::after { border-top-color: #fde68a; }
+/* Pastdagi o'rindiq: pufakcha yuqoriga emas, o'ng tomonga */
+.zk-table.n2 .s1 .bub, .zk-table.n4 .s2 .bub { bottom: auto; top: 50%; left: calc(100% + 4px); transform: translateY(-50%) scale(.5); }
+.zk-table.n2 .s1 .bub.show, .zk-table.n4 .s2 .bub.show { transform: translateY(-50%) scale(1); }
+.zk-table.n2 .s1 .bub::after, .zk-table.n4 .s2 .bub::after { left: auto; right: 100%; top: 50%; border-top-color: transparent; border-right-color: #fff; transform: translateY(-50%); }
+.zk-table.n2 .s1 .bub.final::after, .zk-table.n4 .s2 .bub.final::after { border-right-color: #fde68a; border-top-color: transparent; }
+.zk-log summary { cursor: pointer; color: #9aa0cc; font-size: 13px; font-weight: 700; }
+.zk-log .zk-chat { height: 150px; margin-top: 6px; }
+
+/* Avtomatik natija */
+.zk-verdict {
+  position: fixed; left: 50%; top: 45%; z-index: 1150; display: grid; justify-items: center; gap: 4px; padding: 26px 40px; border-radius: 28px;
+  transform: translate(-50%, -50%) scale(.3); opacity: 0; animation: zkVerdict .6s cubic-bezier(.3, 1.6, .5, 1) forwards; pointer-events: none; text-align: center;
+}
+.zk-verdict.ok { background: linear-gradient(135deg, #16a34a, #22c55e); box-shadow: 0 0 80px rgba(34, 197, 94, .7); }
+.zk-verdict.no { background: linear-gradient(135deg, #b91c1c, #ef4444); box-shadow: 0 0 80px rgba(239, 68, 68, .6); }
+.zk-verdict b { font-size: clamp(30px, 8vw, 54px); color: #fff; letter-spacing: .04em; text-shadow: 0 4px 14px rgba(0, 0, 0, .35); }
+.zk-verdict small { color: #fff; font-weight: 800; font-size: 16px; opacity: .92; }
+.zk-verdict.out { animation: zkVerdictOut .5s ease-in forwards; }
+@keyframes zkVerdict { to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+@keyframes zkVerdictOut { from { transform: translate(-50%, -50%) scale(1); opacity: 1; } to { transform: translate(-50%, -80%) scale(.8); opacity: 0; } }
+.zk-jrow .vd { font-size: 15px; white-space: nowrap; }
+.zk-jrow .tog { padding: 6px 10px; }
+.zk-nextin { position: relative; height: 34px; border-radius: 999px; overflow: hidden; background: rgba(255, 255, 255, .07); border: 1px solid var(--line); }
+.zk-nextin i { position: absolute; inset: 0 auto 0 0; width: 0; background: linear-gradient(90deg, rgba(245, 200, 76, .35), rgba(245, 200, 76, .6)); }
+.zk-nextin span { position: relative; display: grid; place-items: center; height: 100%; font-weight: 800; font-size: 14px; }
+@media (max-width: 760px) {
+  .zk-table { height: 240px; }
+  .zk-seat .bub { max-width: 120px; }
+}
+.zk-nextin span { display: flex; align-items: center; justify-content: center; gap: 5px; }
+.zk-table { height: 290px; margin-top: 18px; }
+.zk-table.n2 .s0, .zk-table.n4 .s0, .zk-table.n3 .s0 { top: 18%; }
+.zk-tb-head small { max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

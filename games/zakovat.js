@@ -227,7 +227,7 @@
           </button>
           <button class="zk-mode" data-m="online" type="button">
             <span class="ic">🌐</span><b>Onlayn xona</b>
-            <small>Har kim o‘z telefonidan kiradi. Guruh ichida yashirin chat, sardor javobni yuboradi.</small>
+            <small>Xona hammaga ko‘rinadi, har kim o‘z telefonidan kiradi. Joylar to‘lsa o‘yin o‘zi boshlanadi, guruh stol atrofida muhokama qiladi, natija avtomatik aytiladi.</small>
           </button>
         </div>
       </section>`;
@@ -375,12 +375,60 @@
 
   // =========================================================
   //  ONLAYN XONA
+  //  Xona ochilganda hammaga ko'rinadi. Joylar to'lsa o'yin o'zi boshlanadi.
+  //  Guruh stol atrofida muhokama qiladi, sardor javob beradi, natija avtomatik e'lon qilinadi.
   // =========================================================
+  const START_DELAY = 5000;  // hamma joy to'lgach, boshlanishgacha
+  const REVEAL_MS = 9000;    // natijani ko'rsatish vaqti, keyin keyingi savol
+
   const rooms = new Map(); // lobbydagi ochiq xonalar
+  const seenRooms = new Set();
+  const liveRooms = () => {
+    const now = Date.now();
+    for (const [k, r] of rooms) if (now - r.seen > 9000) rooms.delete(k);
+    return [...rooms.values()].filter((r) => r.phase === "lobby");
+  };
   api.onMsg((m) => {
-    if (m.t === "zk-room") { rooms.set(m.code, { ...m, seen: Date.now() }); document.dispatchEvent(new CustomEvent("zk:rooms")); }
-    else if (m.t === "zk-room-close") { rooms.delete(m.code); document.dispatchEvent(new CustomEvent("zk:rooms")); }
+    if (m.t === "zk-room") {
+      rooms.set(m.code, { ...m, seen: Date.now() });
+      if (!seenRooms.has(m.code)) {
+        seenRooms.add(m.code);
+        if (!root && m.phase === "lobby" && m.hostCid !== G.session.cid) {
+          api.toast(`🦉 ${m.host} Zakovat xonasini ochdi (#${m.code}). Zakovat kartasidagi “Kirish”ni bosing!`, "good");
+          api.beep(784, 0.12, "triangle", 0.05);
+        }
+      }
+      document.dispatchEvent(new CustomEvent("zk:rooms"));
+    } else if (m.t === "zk-room-close") {
+      rooms.delete(m.code);
+      document.dispatchEvent(new CustomEvent("zk:rooms"));
+    }
   });
+
+  const roomRow = (r) => `
+    <button class="zk-room" type="button" data-code="${esc(r.code)}" ${r.players >= r.cap ? "disabled" : ""}>
+      <span class="code">#${esc(r.code)}</span>
+      <span><b>Boshlovchi: ${esc(r.host)}</b><small>${r.teams} guruh × ${r.size} kishi · <i class="zk-fill"><i style="width:${Math.round((r.players / r.cap) * 100)}%"></i></i> ${r.players}/${r.cap} joy</small></span>
+      <span class="go">${r.players >= r.cap ? "To‘lgan" : "Kirish →"}</span>
+    </button>`;
+
+  // O'yinlar sahifasidagi kartada jonli xonalar ro'yxati
+  function drawLive() {
+    const box = document.getElementById("zkLive");
+    if (!box) return;
+    const list = liveRooms();
+    box.innerHTML = list.length
+      ? `<div class="zk-live-head"><span class="zk-dot"></span> Ochiq xonalar — kiring!</div>${list.map(roomRow).join("")}`
+      : `<div class="zk-live-head muted">Hozircha ochiq xona yo‘q — birinchi bo‘lib xona oching!</div>`;
+    box.querySelectorAll("[data-code]").forEach((b) => (b.onclick = async () => {
+      if (!(await needName())) return;
+      openRoot();
+      joinRoom(b.dataset.code);
+    }));
+  }
+  document.addEventListener("zk:rooms", drawLive);
+  setInterval(drawLive, 3000);
+  setTimeout(drawLive, 300);
 
   async function needName() {
     if (G.session.name) return true;
@@ -393,29 +441,25 @@
     const local = window.SofiNet && SofiNet.kind !== "online";
     const draw = () => {
       if (!root || !m.isConnected) return;
-      const now = Date.now();
-      for (const [k, r] of rooms) if (now - r.seen > 9000) rooms.delete(k);
-      const list = [...rooms.values()].filter((r) => r.phase === "lobby");
       const box = m.querySelector("#zkRooms");
       if (!box) return;
-      box.innerHTML = list.length ? list.map((r) => `
-        <button class="zk-room" type="button" data-code="${esc(r.code)}">
-          <span class="code">#${esc(r.code)}</span>
-          <span><b>Boshlovchi: ${esc(r.host)}</b><small>${r.teams} ta guruh · ${r.players} o‘yinchi</small></span>
-          <span class="go">Kirish →</span>
-        </button>`).join("") : `<p class="zk-muted">Hozircha ochiq xona yo‘q. Ustoz yoki do‘stingiz xona ochsin — u shu yerda paydo bo‘ladi.</p>`;
+      const list = liveRooms();
+      box.innerHTML = list.length ? list.map(roomRow).join("") : `<p class="zk-muted">Hozircha ochiq xona yo‘q. Ustoz yoki do‘stingiz xona ochsin — u shu yerda paydo bo‘ladi.</p>`;
       box.querySelectorAll("[data-code]").forEach((b) => (b.onclick = () => joinRoom(b.dataset.code)));
     };
-    m.dataset.v = "om";
     m.innerHTML = `
       <section class="zk-online-menu">
         <h2>🌐 Onlayn xona</h2>
         ${local ? `<p class="zk-warn">⚠️ Hozir internet aloqasi “faqat shu qurilma” rejimida — boshqa telefonlar bilan bog‘lanmaydi.</p>` : ""}
         <div class="zk-om-grid">
           <div class="zk-om-card">
-            <span class="ic">🎙️</span><b>Xona ochish</b><small>Siz boshlovchi bo‘lasiz: savollarni ko‘rsatasiz va javoblarni baholaysiz.</small>
+            <span class="ic">🎙️</span><b>Xona ochish</b><small>Xona hammaga ko‘rinadi. Barcha joylar to‘lishi bilan o‘yin o‘zi boshlanadi. Siz ham guruhga qo‘shilib o‘ynashingiz mumkin.</small>
+            <label class="zk-lbl">Guruhlar soni</label>
             <div class="zk-seg" id="zkCount">${[2, 3].map((n) => `<button type="button" data-n="${n}" class="${n === 2 ? "on" : ""}">${n} guruh</button>`).join("")}</div>
-            <div class="zk-seg" id="zkN">${[6, 10, 15].map((n) => `<button type="button" data-v="${n}" class="${n === 10 ? "on" : ""}">${n} savol</button>`).join("")}</div>
+            <label class="zk-lbl">Har bir guruhda</label>
+            <div class="zk-seg" id="zkSize">${[2, 3, 4].map((n) => `<button type="button" data-n="${n}" class="${n === 4 ? "on" : ""}">${n} kishi</button>`).join("")}</div>
+            <label class="zk-lbl">Savollar</label>
+            <div class="zk-seg" id="zkN">${[6, 10, 15].map((n) => `<button type="button" data-v="${n}" class="${n === 10 ? "on" : ""}">${n} ta</button>`).join("")}</div>
             <div class="zk-seg" id="zkCat">${[["mix", "Aralash"], ["Tarix", "Tarix"], ["Mantiq", "Mantiq"]].map(([v, l]) => `<button type="button" data-v="${v}" class="${v === "mix" ? "on" : ""}">${l}</button>`).join("")}</div>
             <button class="zk-btn" id="zkHost" type="button">🎙️ Xona ochish</button>
           </div>
@@ -426,11 +470,12 @@
           </div>
         </div>
       </section>`;
-    ["#zkCount", "#zkN", "#zkCat"].forEach((id) => m.querySelectorAll(`${id} button`).forEach((b) => (b.onclick = () => {
+    ["#zkCount", "#zkSize", "#zkN", "#zkCat"].forEach((id) => m.querySelectorAll(`${id} button`).forEach((b) => (b.onclick = () => {
       m.querySelectorAll(`${id} button`).forEach((x) => x.classList.remove("on")); b.classList.add("on");
     })));
     m.querySelector("#zkHost").onclick = () => hostRoom({
       count: +m.querySelector("#zkCount .on").dataset.n,
+      size: +m.querySelector("#zkSize .on").dataset.n,
       n: +m.querySelector("#zkN .on").dataset.v,
       cat: m.querySelector("#zkCat .on").dataset.v
     });
@@ -440,59 +485,68 @@
       joinRoom(c);
     };
     draw();
-    const onRooms = () => draw();
-    document.addEventListener("zk:rooms", onRooms);
+    document.addEventListener("zk:rooms", draw);
     const iv = setInterval(draw, 3000);
-    onClose(() => { document.removeEventListener("zk:rooms", onRooms); clearInterval(iv); });
+    onClose(() => { document.removeEventListener("zk:rooms", draw); clearInterval(iv); });
   }
 
-  // ---------- Boshlovchi (xona egasi) ----------
+  // ---------- Xona dvigateli (xonani ochgan qurilmada ishlaydi) ----------
   async function hostRoom(opt) {
     const me = G.session;
     const code = String(1000 + ((Math.random() * 9000) | 0));
     const S = {
-      code, phase: "lobby",
+      code, phase: "lobby", size: opt.size,
       host: { cid: me.cid, name: me.name },
       teams: TEAMS.slice(0, opt.count).map((t) => ({ ...t, captain: null, members: [], score: 0 })),
-      qs: pickQuestions(opt.n, opt.cat), i: 0, endsAt: 0, answers: {}, verdict: {}
+      qs: pickQuestions(opt.n, opt.cat), i: 0, endsAt: 0, startsAt: 0, nextAt: 0, answers: {}, verdict: {}
     };
-    let room;
+    let room = null, ui = null;
     busy(true);
     main().innerHTML = `<div class="zk-wait"><span class="g-spinner"></span><p>Xona ochilmoqda…</p></div>`;
     try {
-      room = await SofiNet.join("zk-" + code, { meta: { cid: me.cid, name: me.name, role: "host" }, onMsg, onPresence });
+      room = await SofiNet.join("zk-" + code, {
+        meta: { cid: me.cid, name: me.name, role: "host" },
+        onMsg: (m) => { onMsg(m); ui && ui.onMsg(m); },
+        onPresence: (l) => { onPresence(l); ui && ui.onPresence(l); }
+      });
     } catch (e) {
       api.toast("Xona ochib bo‘lmadi. Internetni tekshiring.", "bad");
       openMenu();
       return;
     }
+
     const teamOf = (cid) => S.teams.find((t) => t.members.some((m) => m.cid === cid));
+    const players = () => S.teams.reduce((n, t) => n + t.members.length, 0);
+    const allFull = () => S.teams.every((t) => t.members.length >= S.size);
     const snap = () => {
       const q = S.phase === "lobby" ? null : qById(S.qs[S.i]);
       const reveal = S.phase === "reveal" || S.phase === "final";
+      const now = Date.now();
       return {
-        t: "state", code, phase: S.phase, host: S.host, i: S.i, total: S.qs.length,
+        t: "state", code, phase: S.phase, host: S.host, size: S.size, i: S.i, total: S.qs.length,
         teams: S.teams.map((t) => ({ id: t.id, name: t.name, emb: t.emb, color: t.color, captain: t.captain, members: t.members, score: t.score })),
         q: q ? (reveal ? { q: q.q, cat: q.cat, a: q.a, note: q.note } : { q: q.q, cat: q.cat }) : null,
-        left: S.phase === "question" ? Math.max(0, S.endsAt - Date.now()) : 0,
+        left: S.phase === "question" ? Math.max(0, S.endsAt - now) : 0,
+        startLeft: S.phase === "lobby" && S.startsAt ? Math.max(0, S.startsAt - now) : 0,
+        nextLeft: S.phase === "reveal" ? Math.max(0, S.nextAt - now) : 0,
         answered: Object.fromEntries(S.teams.map((t) => [t.id, !!S.answers[t.id]])),
         answers: reveal ? S.answers : null,
         verdict: reveal ? S.verdict : null
       };
     };
-    const push = () => { room && room.send(snap()); render(); };
-    const announce = () => api.send({ t: "zk-room", code, host: me.name, teams: S.teams.length, players: S.teams.reduce((n, t) => n + t.members.length, 0), phase: S.phase });
+    const deliver = (m) => { room && room.send(m); ui && ui.onMsg(m); };
+    const push = () => deliver(snap());
+    const announce = () => api.send({ t: "zk-room", code, host: me.name, hostCid: me.cid, teams: S.teams.length, size: S.size, players: players(), cap: S.teams.length * S.size, phase: S.phase });
 
     function onMsg(m) {
       if (!m || m.code !== code) return;
-      if (m.t === "hello") { room.send(snap()); return; }
+      if (m.t === "hello") { room && room.send(snap()); return; }
       if (m.t === "join") {
         const team = S.teams.find((t) => t.id === m.team);
-        if (!team) return;
+        if (!team || S.phase !== "lobby") { push(); return; }
         const cur = teamOf(m.cid);
-        if (cur === team) { room.send(snap()); return; }
-        if (S.phase !== "lobby" && cur) { room.send(snap()); return; } // o'yin paytida guruh almashtirilmaydi
-        if (team.members.length >= TEAM_MAX) { room.send({ t: "full", code, to: m.cid }); return; }
+        if (cur === team) { push(); return; }
+        if (team.members.length >= S.size) { deliver({ t: "full", code, to: m.cid }); return; }
         if (cur) { cur.members = cur.members.filter((x) => x.cid !== m.cid); if (cur.captain === m.cid) cur.captain = cur.members[0] ? cur.members[0].cid : null; }
         team.members.push({ cid: m.cid, name: m.name, at: Date.now() });
         if (!team.captain) team.captain = m.cid;
@@ -508,8 +562,9 @@
         const team = S.teams.find((t) => t.id === m.team);
         if (!team || team.captain !== m.cid) return;
         S.answers[team.id] = String(m.text || "").slice(0, 80);
+        // Hamma guruh javob bersa — 3 soniyadan keyin natija
+        if (S.teams.every((t) => S.answers[t.id] || !t.members.some((x) => !x.off))) S.endsAt = Math.min(S.endsAt, Date.now() + 3000);
         push();
-        if (S.teams.every((t) => S.answers[t.id] || !t.members.length)) setTimeout(() => { if (S.phase === "question") S.endsAt = Math.min(S.endsAt, Date.now() + 3000); push(); }, 300);
       }
     }
     let present = new Set();
@@ -519,8 +574,7 @@
       let changed = false;
       S.teams.forEach((t) => {
         t.members.forEach((m) => {
-          // Yangi qo'shilgan o'yinchi presence'da hali ko'rinmasligi mumkin — 6 soniya kutamiz.
-          const off = !present.has(m.cid) && now - (m.at || 0) > 6000;
+          const off = m.cid !== me.cid && !present.has(m.cid) && now - (m.at || 0) > 6000;
           if (!!m.off !== off) { m.off = off; changed = true; }
         });
         if (S.phase === "lobby") {
@@ -538,33 +592,41 @@
       if (changed) { push(); if (S.phase === "lobby") announce(); }
     }
 
+    const startGame = () => {
+      S.teams = S.teams.filter((t) => t.members.length);
+      S.startsAt = 0;
+      api.send({ t: "zk-room-close", code });
+      startQuestion();
+    };
     const startQuestion = () => {
       S.phase = "question"; S.answers = {}; S.verdict = {};
       S.endsAt = Date.now() + QTIME * 1000;
       push();
     };
     const toReveal = () => {
-      if (S.phase !== "question") return;
       S.phase = "reveal";
       const q = qById(S.qs[S.i]);
       S.teams.forEach((t) => { S.verdict[t.id] = check(q, S.answers[t.id]); });
-      sfx.open();
+      S.teams.forEach((t) => { if (S.verdict[t.id]) t.score++; });
+      S.nextAt = Date.now() + REVEAL_MS;
       push();
     };
     const next = () => {
-      S.teams.forEach((t) => { if (S.verdict[t.id]) t.score++; });
       S.i++;
-      if (S.i >= S.qs.length) { S.phase = "final"; push(); api.send({ t: "zk-room-close", code }); busy(false); }
+      if (S.i >= S.qs.length) { S.phase = "final"; push(); busy(false); }
       else startQuestion();
     };
-
-    const iv = setInterval(() => {
-      prune();
-      if (S.phase === "question" && Date.now() >= S.endsAt) toReveal();
-      room && room.send(snap());
-      if (S.phase === "lobby") announce();
-    }, 2000);
-    const clockIv = setInterval(() => { if (S.phase === "question" && Date.now() >= S.endsAt) toReveal(); }, 250);
+    const tick = () => {
+      const now = Date.now();
+      if (S.phase === "lobby") {
+        if (allFull() && !S.startsAt) { S.startsAt = now + START_DELAY; push(); }
+        else if (!allFull() && S.startsAt) { S.startsAt = 0; push(); }
+        else if (S.startsAt && now >= S.startsAt) startGame();
+      } else if (S.phase === "question" && now >= S.endsAt) toReveal();
+      else if (S.phase === "reveal" && now >= S.nextAt) next();
+    };
+    const iv = setInterval(() => { prune(); push(); if (S.phase === "lobby") announce(); }, 2000);
+    const clockIv = setInterval(tick, 250);
     onClose(() => {
       clearInterval(iv); clearInterval(clockIv);
       api.send({ t: "zk-room-close", code });
@@ -572,140 +634,123 @@
       room = null;
     });
 
-    let lastKey = "", stopClock = null;
-    function render() {
-      if (!root) return;
-      const m = main();
-      const key = S.phase + ":" + S.i;
-      $("#zkBarR", root).innerHTML = `<span class="zk-codebadge">Xona <b>#${code}</b></span>`;
-      if (S.phase === "lobby") {
-        const total = S.teams.reduce((n, t) => n + t.members.length, 0);
-        m.innerHTML = `
-          <section class="zk-lobby">
-            <div class="zk-lobby-head">
-              <span class="zk-bigcode">#${code}</span>
-              <p>O‘quvchilar “O‘yinlar → Zakovat → Onlayn xona” bo‘limida shu xonani tanlab yoki kodni kiritib kiradi.</p>
-            </div>
-            ${lobbyTeams(S.teams, null, true)}
-            <div class="zk-ctrl center">
-              <button class="zk-btn big" id="zkBegin" type="button" ${S.teams.filter((t) => t.members.length).length < 2 ? "disabled" : ""}>🚀 O‘yinni boshlash (${total} o‘yinchi)</button>
-            </div>
-            <p class="zk-muted center">Boshlash uchun kamida 2 ta guruhda o‘yinchi bo‘lishi kerak. Sardorni almashtirish uchun a’zo ustiga bosing.</p>
-          </section>`;
-        m.querySelectorAll("[data-cap]").forEach((b) => (b.onclick = () => {
-          const [tid, cid] = b.dataset.cap.split("|");
-          const t = S.teams.find((x) => x.id === tid);
-          if (t) { t.captain = cid; push(); }
-        }));
-        const begin = $("#zkBegin", root);
-        if (begin) begin.onclick = () => { S.teams = S.teams.filter((t) => t.members.length); startQuestion(); };
-        lastKey = key;
-        return;
+    // Boshlovchi uchun boshqaruv
+    const control = {
+      canStart: () => S.phase === "lobby" && S.teams.filter((t) => t.members.length).length >= 2,
+      start() { if (control.canStart()) startGame(); },
+      endTime() { if (S.phase === "question") { S.endsAt = Date.now(); tick(); } },
+      skip() { if (S.phase === "reveal") next(); },
+      toggle(id) {
+        if (S.phase !== "reveal") return;
+        S.verdict[id] = !S.verdict[id];
+        const t = S.teams.find((x) => x.id === id);
+        if (t) t.score += S.verdict[id] ? 1 : -1;
+        push();
       }
-      if (S.phase === "final") {
-        if (lastKey !== key) {
-          m.innerHTML = podium(S.teams) + `<div class="zk-ctrl center"><button class="zk-btn" id="zkMenu" type="button">Menyu</button></div>`;
-          $("#zkMenu", root).onclick = () => { closeRoot(); openMenu(); };
-        }
-        lastKey = key;
-        return;
-      }
-      const q = qById(S.qs[S.i]);
-      if (lastKey !== key) {
-        if (stopClock) stopClock();
-        m.innerHTML = `
-          <div id="zkSB"></div>
-          <section class="zk-stage">
-            ${questionCard(q, S.i, S.qs.length)}
-            ${S.phase === "question" ? `<div class="zk-mid">${timerHTML()}<div class="zk-phase" id="zkPhase"></div></div>
-              <div class="zk-ctrl"><button class="zk-btn ghost" id="zkEnd" type="button">⏹ Vaqtni tugatish</button></div>
-              <div class="zk-host-ans" id="zkHostAns"></div>` : `<div id="zkReveal"></div>`}
-          </section>`;
-        if (S.phase === "question") {
-          typeIn(m.querySelector(".zk-q"));
-          $("#zkEnd", root).onclick = () => { S.endsAt = Date.now(); };
-          stopClock = runClock(() => S.endsAt, null);
-        }
-        lastKey = key;
-      }
-      $("#zkSB", root).innerHTML = scoreboard(S.teams, S.phase === "question" ? { answered: snap().answered } : { plus: S.verdict });
-      if (S.phase === "question") {
-        $("#zkHostAns", root).innerHTML = S.teams.map((t) => `
-          <div class="zk-ha ${S.answers[t.id] ? "done" : ""}" style="--c:${t.color}">${t.emb} <b>${esc(t.name)}</b>
-          <span>${S.answers[t.id] ? "✅ Sardor javob berdi" : "⏳ muhokama qilmoqda…"}</span></div>`).join("");
-      } else {
-        $("#zkReveal", root).innerHTML = `
-          <div class="zk-judge">
-            <h3>Guruhlar javoblari — kerak bo‘lsa bahoni o‘zgartiring:</h3>
-            <div class="zk-judge-rows">${S.teams.map((t) => `
-              <div class="zk-jrow ${S.verdict[t.id] ? "is-ok" : "is-no"}" style="--c:${t.color}">
-                <span class="em">${t.emb}</span><b>${esc(t.name)}</b>
-                <span class="ans">${S.answers[t.id] ? `“${esc(S.answers[t.id])}”` : "<i>javob yo‘q</i>"}</span>
-                <button type="button" class="tog" data-tog="${t.id}">${S.verdict[t.id] ? "✓ To‘g‘ri" : "✗ Xato"}</button>
-              </div>`).join("")}</div>
-            ${answerFlip(q, true)}
-            <div class="zk-ctrl"><button class="zk-btn" id="zkNext" type="button">${S.i + 1 < S.qs.length ? "Keyingi savol →" : "🏆 Natijalar"}</button></div>
-          </div>`;
-        root.querySelectorAll("[data-tog]").forEach((b) => (b.onclick = () => { S.verdict[b.dataset.tog] = !S.verdict[b.dataset.tog]; push(); }));
-        $("#zkNext", root).onclick = next;
-      }
-    }
+    };
+    ui = joinRoom(code, { room, engine: onMsg, control });
     push(); announce();
   }
 
-  function lobbyTeams(teams, myCid, host) {
-    return `<div class="zk-lteams">${teams.map((t) => {
+  function lobbyTeams(S, myCid) {
+    return `<div class="zk-lteams">${S.teams.map((t) => {
       const mine = t.members.some((m) => m.cid === myCid);
-      return `<div class="zk-lteam ${mine ? "mine" : ""}" style="--c:${t.color}">
-        <div class="hd"><span class="em">${t.emb}</span><b>${esc(t.name)}</b><small>${t.members.length}/${TEAM_MAX}</small></div>
-        <ul>${Array.from({ length: TEAM_MAX }, (_, k) => {
+      const full = t.members.length >= S.size;
+      return `<div class="zk-lteam ${mine ? "mine" : ""} ${full ? "full" : ""}" style="--c:${t.color}">
+        <div class="hd"><span class="em">${t.emb}</span><b>${esc(t.name)}</b><small>${t.members.length}/${S.size}</small></div>
+        <ul>${Array.from({ length: S.size }, (_, k) => {
           const m = t.members[k];
           if (!m) return `<li class="empty">bo‘sh joy</li>`;
           const cap = t.captain === m.cid;
-          const inner = `${cap ? "👑 " : ""}${esc(m.name)}${m.cid === myCid ? " (siz)" : ""}${m.off ? " 📴" : ""}`;
-          return host ? `<li><button type="button" data-cap="${t.id}|${m.cid}" class="${cap ? "cap" : ""}">${inner}</button></li>` : `<li class="${cap ? "cap" : ""}">${inner}</li>`;
+          return `<li class="${cap ? "cap" : ""}">${cap ? "👑 " : ""}${esc(m.name)}${m.cid === myCid ? " (siz)" : ""}${m.off ? " 📴" : ""}</li>`;
         }).join("")}</ul>
-        ${host ? "" : mine ? `<span class="zk-in">✓ Siz shu guruhdasiz</span>` : `<button class="zk-btn" type="button" data-join="${t.id}" ${t.members.length >= TEAM_MAX ? "disabled" : ""}>${t.members.length >= TEAM_MAX ? "To‘lgan" : "Qo‘shilish"}</button>`}
+        ${mine ? `<span class="zk-in">✓ Siz shu guruhdasiz</span>` : `<button class="zk-btn" type="button" data-join="${t.id}" ${full ? "disabled" : ""}>${full ? "To‘lgan" : "Qo‘shilish"}</button>`}
       </div>`;
     }).join("")}</div>`;
   }
 
-  // ---------- O'yinchi ----------
-  async function joinRoom(code) {
+  /** Stol atrofidagi o'rindiqlar: muhokama shu yerda ko'rinadi. */
+  function tableHTML(t, size, myCid) {
+    const seats = Array.from({ length: Math.max(size, t.members.length) }, (_, k) => t.members[k] || null);
+    return `
+      <div class="zk-table n${seats.length}" style="--c:${t.color}">
+        <div class="zk-desk"><span>${t.emb}</span><small>${esc(t.name)}</small></div>
+        ${seats.map((m, k) => m ? `
+          <div class="zk-seat s${k} ${t.captain === m.cid ? "cap" : ""} ${m.cid === myCid ? "me" : ""} ${m.off ? "off" : ""}" data-seat="${esc(m.cid)}">
+            <div class="bub"></div>
+            <div class="av">${t.captain === m.cid ? "<i>👑</i>" : ""}${esc((m.name.split(" ")[1] || m.name)[0])}</div>
+            <small>${esc(m.name.split(" ")[1] || m.name)}${m.cid === myCid ? " (siz)" : ""}</small>
+          </div>` : `<div class="zk-seat s${k} empty"><div class="av">·</div></div>`).join("")}
+      </div>`;
+  }
+
+  /** Natijani ovoz bilan aytish (qurilmada o'zbekcha ovoz bo'lsa). */
+  function speak(text) {
+    try {
+      const v = speechSynthesis.getVoices().find((x) => /^uz/i.test(x.lang));
+      if (!v) return;
+      const u = new SpeechSynthesisUtterance(text);
+      u.voice = v; u.lang = v.lang;
+      speechSynthesis.speak(u);
+    } catch (e) { /* bo'sh */ }
+  }
+  function verdictBanner(ok, sub) {
+    if (!root) return;
+    const el = document.createElement("div");
+    el.className = "zk-verdict " + (ok ? "ok" : "no");
+    el.innerHTML = `<b>${ok ? "✅ TO‘G‘RI!" : "❌ NOTO‘G‘RI"}</b>${sub ? `<small>${esc(sub)}</small>` : ""}`;
+    root.appendChild(el);
+    setTimeout(() => el.classList.add("out"), 2600);
+    setTimeout(() => el.remove(), 3200);
+    if (ok) { sfx.good(); confetti(60); } else sfx.bad();
+    speak(ok ? "To‘g‘ri javob!" : "Noto‘g‘ri javob");
+  }
+
+  // ---------- O'yinchi ekrani (xona ochgan qurilmada ham shu ishlaydi) ----------
+  function joinRoom(code, hostCtx = null) {
     const me = G.session;
-    let room, S = null, endsAt = 0, lastKey = "", stopClock = null, hostSeen = Date.now(), ended = false;
+    const isHost = !!hostCtx;
+    let room = hostCtx ? hostCtx.room : null;
+    let S = null, endsAt = 0, startAt = 0, nextAt = 0, lastKey = "", stopClock = null, hostSeen = Date.now(), ended = false;
     const chat = [];
+    const bubbleTimers = {};
     let myAnswer = "";
     busy(true);
-    main().innerHTML = `<div class="zk-wait"><span class="g-spinner"></span><p>#${esc(code)} xonasiga ulanmoqda…</p></div>`;
-    try {
-      room = await SofiNet.join("zk-" + code, { meta: { cid: me.cid, name: me.name, role: "player" }, onMsg, onPresence });
-    } catch (e) {
-      api.toast("Xonaga ulanib bo‘lmadi.", "bad");
-      openMenu();
-      return;
+
+    const send = (d) => {
+      const msg = { ...d, code, cid: me.cid, name: me.name };
+      if (room) room.send(msg);
+      if (isHost) hostCtx.engine(msg);
+    };
+
+    if (!isHost) {
+      main().innerHTML = `<div class="zk-wait"><span class="g-spinner"></span><p>#${esc(code)} xonasiga ulanmoqda…</p></div>`;
+      SofiNet.join("zk-" + code, { meta: { cid: me.cid, name: me.name, role: "player" }, onMsg, onPresence }).then((r) => {
+        if (!root) { r.leave(); return; }
+        room = r;
+        send({ t: "hello" });
+      }).catch(() => { api.toast("Xonaga ulanib bo‘lmadi.", "bad"); openMenu(); });
+      const hello = setInterval(() => { if (!S && room) send({ t: "hello" }); }, 900);
+      const notFound = setTimeout(() => { if (!S && root) { api.toast("Bunday xona topilmadi.", "bad"); openMenu(); } }, 9000);
+      const watch = setInterval(() => {
+        if (S && !ended && S.phase !== "final" && Date.now() - hostSeen > 12000) gone("Xona egasi chiqib ketdi. O‘yin to‘xtadi.");
+      }, 2000);
+      onClose(() => {
+        clearInterval(hello); clearInterval(watch); clearTimeout(notFound);
+        if (room) { send({ t: "leave" }); room.leave(); }
+        room = null;
+      });
     }
-    const send = (d) => room && room.send({ ...d, code, cid: me.cid, name: me.name });
-    const hello = setInterval(() => { if (!S) send({ t: "hello" }); }, 900);
-    send({ t: "hello" });
-    const notFound = setTimeout(() => { if (!S && root) { api.toast("Bunday xona topilmadi.", "bad"); closeRoot(); openMenu(); } }, 9000);
-    const watch = setInterval(() => {
-      if (S && !ended && S.phase !== "final" && Date.now() - hostSeen > 12000) gone("Boshlovchi chiqib ketdi. O‘yin to‘xtadi.");
-    }, 2000);
-    onClose(() => {
-      clearInterval(hello); clearInterval(watch); clearTimeout(notFound);
-      if (room) { send({ t: "leave" }); room.leave(); }
-      room = null;
-    });
     const gone = (text) => {
       ended = true; busy(false);
       if (stopClock) stopClock();
       main().innerHTML = `<div class="zk-wait"><span class="g-big">📴</span><p>${esc(text)}</p><button class="zk-btn" id="zkMenu" type="button">Menyu</button></div>`;
-      $("#zkMenu", root).onclick = () => { closeRoot(); openMenu(); };
+      $("#zkMenu", root).onclick = openMenu;
     };
 
     const myTeam = () => S && S.teams.find((t) => t.members.some((m) => m.cid === me.cid));
     const amCaptain = () => { const t = myTeam(); return !!t && t.captain === me.cid; };
+    const syncClock = (target, left, force) => { const e = Date.now() + left; return force || !target || Math.abs(e - target) > 1500 ? e : target; };
 
     function onMsg(m) {
       if (!m || m.code !== code || ended) return;
@@ -713,27 +758,40 @@
         hostSeen = Date.now();
         const prev = S;
         S = m;
-        if (S.phase === "question") {
-          const e = Date.now() + S.left;
-          if (!endsAt || Math.abs(e - endsAt) > 1500 || !prev || prev.i !== S.i || prev.phase !== S.phase) endsAt = e;
-        }
-        if (prev && (prev.i !== S.i || prev.phase !== S.phase) && S.phase === "question") myAnswer = "";
-        render();
+        const changed = !prev || prev.i !== S.i || prev.phase !== S.phase;
+        if (S.phase === "question") endsAt = syncClock(endsAt, S.left, changed);
+        if (S.phase === "reveal") nextAt = syncClock(nextAt, S.nextLeft, changed);
+        startAt = S.startLeft ? syncClock(startAt, S.startLeft, !prev || !prev.startLeft) : 0;
+        if (changed && S.phase === "question") myAnswer = "";
+        render(prev);
       } else if (m.t === "full" && m.to === me.cid) {
-        api.toast("Bu guruh to‘lgan (4 kishi). Boshqasini tanlang.", "bad");
+        api.toast("Bu guruhda joy qolmadi. Boshqasini tanlang.", "bad");
       } else if (m.t === "tchat") {
         const t = myTeam();
         if (t && m.team === t.id) {
           chat.push(m);
           drawChat();
+          bubble(m);
           if (m.cid !== me.cid) beep(880, 0.06, "sine", 0.03);
         }
-      } else if (m.t === "closed") {
-        if (S && S.phase !== "final") gone("Boshlovchi xonani yopdi.");
+      } else if (m.t === "closed" && !isHost) {
+        if (S && S.phase !== "final") gone("Xona yopildi.");
       }
     }
     function onPresence(list) {
       if (S && list.some((p) => p && p.cid === S.host.cid)) hostSeen = Date.now();
+    }
+
+    function bubble(c) {
+      if (!root || !S || c.qi !== S.i) return;
+      const seat = root.querySelector(`[data-seat="${CSS.escape(c.cid)}"]`);
+      if (!seat) return;
+      const b = seat.querySelector(".bub");
+      b.textContent = (c.kind === "final" ? "👑 Javob: " : "") + c.text;
+      b.className = "bub show" + (c.kind === "final" ? " final" : "");
+      seat.classList.add("talk");
+      clearTimeout(bubbleTimers[c.cid]);
+      bubbleTimers[c.cid] = setTimeout(() => { b.classList.remove("show"); seat.classList.remove("talk"); }, c.kind === "final" ? 15000 : 7000);
     }
 
     function drawChat() {
@@ -747,7 +805,7 @@
           <small>${c.cid === (t && t.captain) ? "👑 " : ""}${esc(c.name.split(" ")[1] || c.name)}</small>
           <span>${c.kind === "final" ? "Yakuniy javob: " : ""}${esc(c.text)}</span>
           ${cap && c.kind !== "final" && c.cid !== me.cid ? `<button type="button" data-use="${esc(c.text)}">↥ javob qilish</button>` : ""}
-        </div>`).join("") : `<p class="zk-muted">Fikringizni yozing — faqat o‘z guruhingiz ko‘radi.</p>`;
+        </div>`).join("") : `<p class="zk-muted">Stol atrofida fikr bildiring — faqat o‘z guruhingiz ko‘radi.</p>`;
       box.scrollTop = box.scrollHeight;
       box.querySelectorAll("[data-use]").forEach((b) => (b.onclick = () => {
         const inp = $("#zkFinal", root);
@@ -755,38 +813,50 @@
       }));
     }
 
-    function render() {
+    const hostBar = (html) => isHost ? `<div class="zk-hostbar"><span>🎙️ Siz xona egasisiz</span>${html}</div>` : "";
+
+    function render(prev) {
       if (!root || ended) return;
       const m = main();
       $("#zkBarR", root).innerHTML = `<span class="zk-codebadge">Xona <b>#${esc(code)}</b></span>`;
       const t = myTeam();
-      const key = S.phase + ":" + S.i + ":" + (t ? t.id : "-") + ":" + (amCaptain() ? "c" : "p");
+      const key = S.phase + ":" + S.i + ":" + (t ? t.id : "-") + ":" + (amCaptain() ? "c" : "p") + ":" + (t ? t.members.length : 0);
+
       if (S.phase === "lobby") {
+        const filled = S.teams.reduce((n, x) => n + x.members.length, 0), cap = S.teams.length * S.size;
+        const startIn = startAt ? Math.max(0, Math.ceil((startAt - Date.now()) / 1000)) : 0;
         m.innerHTML = `
           <section class="zk-lobby">
             <div class="zk-lobby-head">
               <span class="zk-bigcode">#${esc(code)}</span>
-              <p>Boshlovchi: <b>${esc(S.host.name)}</b>. Guruhni tanlang — birinchi qo‘shilgan a’zo sardor bo‘ladi.</p>
+              <p>Xona egasi: <b>${esc(S.host.name)}</b>. Xona hammaga ochiq — guruhni tanlang. Birinchi qo‘shilgan a’zo 👑 sardor bo‘ladi.</p>
+              <div class="zk-cap-bar"><i style="width:${Math.round((filled / cap) * 100)}%"></i><span>${filled} / ${cap} joy band</span></div>
+              ${startIn ? `<div class="zk-startin">🚀 Hamma joy to‘ldi! O‘yin <b id="zkStartN">${startIn}</b> soniyada boshlanadi…</div>` : `<p class="zk-muted">Barcha joylar to‘lishi bilan o‘yin avtomatik boshlanadi.</p>`}
             </div>
-            ${lobbyTeams(S.teams, me.cid, false)}
-            <p class="zk-muted center">⏳ Boshlovchi o‘yinni boshlashini kuting…</p>
+            ${lobbyTeams(S, me.cid)}
+            ${hostBar(`<button class="zk-btn" id="zkStartNow" type="button" ${hostCtx && hostCtx.control.canStart() ? "" : "disabled"}>▶ Kutmasdan boshlash</button>`)}
           </section>`;
         m.querySelectorAll("[data-join]").forEach((b) => (b.onclick = () => send({ t: "join", team: b.dataset.join })));
+        const sn = $("#zkStartNow", root);
+        if (sn) sn.onclick = () => hostCtx.control.start();
+        if (startIn && (!prev || !prev.startLeft)) { sfx.open(); }
         lastKey = key;
         return;
       }
+
       if (S.phase === "final") {
         if (lastKey !== key) {
-          busy(false); ended = true;
+          busy(false); ended = !isHost;
           if (stopClock) stopClock();
-          const mineWon = t && t.score === Math.max(...S.teams.map((x) => x.score));
-          m.innerHTML = podium(S.teams, t ? (mineWon ? "🎉 Tabriklaymiz, guruhingiz g‘olib!" : "Yaxshi o‘yin! Keyingi safar albatta yutasiz 💪") : "") +
+          const top = Math.max(...S.teams.map((x) => x.score));
+          m.innerHTML = podium(S.teams, t ? (t.score === top ? "🎉 Tabriklaymiz, guruhingiz g‘olib!" : "Yaxshi o‘yin! Keyingi safar albatta yutasiz 💪") : "") +
             `<div class="zk-ctrl center"><button class="zk-btn" id="zkMenu" type="button">Menyu</button></div>`;
-          $("#zkMenu", root).onclick = () => { closeRoot(); openMenu(); };
+          $("#zkMenu", root).onclick = openMenu;
         }
         lastKey = key;
         return;
       }
+
       if (lastKey !== key) {
         if (stopClock) stopClock();
         const cap = amCaptain();
@@ -796,26 +866,30 @@
             <div class="zk-left">
               ${questionCard(S.q, S.i, S.total)}
               ${S.phase === "question" ? `<div class="zk-mid">${timerHTML()}<div class="zk-phase" id="zkPhase"></div></div>` : `<div id="zkReveal"></div>`}
+              ${S.phase === "question" ? hostBar(`<button class="zk-btn ghost" id="zkEnd" type="button">⏹ Vaqtni tugatish</button>`) : ""}
             </div>
             ${t ? `<aside class="zk-teambox" style="--c:${t.color}">
               <div class="zk-tb-head">${t.emb} <b>${esc(t.name)}</b> <small>${cap ? "👑 Siz sardorsiz" : `Sardor: ${esc((t.members.find((x) => x.cid === t.captain) || {}).name || "—")}`}</small></div>
-              <div class="zk-chat" id="zkChat"></div>
+              ${tableHTML(t, S.size, me.cid)}
               ${S.phase === "question" ? `
-                <form class="zk-say" id="zkSay"><input id="zkSayIn" maxlength="80" placeholder="Fikringiz / taklif…" autocomplete="off"><button type="submit" aria-label="Yuborish">➤</button></form>
-                ${cap ? `<form class="zk-cap" id="zkCap"><label>👑 Yakuniy javob</label><div><input id="zkFinal" maxlength="80" placeholder="Guruh javobi" autocomplete="off" value="${esc(myAnswer)}"><button type="submit" class="zk-btn">✅ Yuborish</button></div><small id="zkCapSt">${myAnswer ? "Yuborildi — vaqt tugaguncha o‘zgartirish mumkin" : "Sheriklaringizni tinglab, javobni yuboring"}</small></form>` :
+                <form class="zk-say" id="zkSay"><input id="zkSayIn" maxlength="80" placeholder="Stolga fikr ayting…" autocomplete="off"><button type="submit" aria-label="Yuborish">➤</button></form>
+                ${cap ? `<form class="zk-cap" id="zkCap"><label>👑 Guruh javobini siz aytasiz</label><div><input id="zkFinal" maxlength="80" placeholder="Yakuniy javob" autocomplete="off" value="${esc(myAnswer)}"><button type="submit" class="zk-btn">✅ Aytish</button></div><small id="zkCapSt">${myAnswer ? "Javob aytildi — vaqt tugaguncha o‘zgartirish mumkin" : "Sheriklaringizni tinglang va javobni ayting"}</small></form>` :
                   `<div class="zk-capwait" id="zkCapSt"></div>`}` : ""}
+              <details class="zk-log"><summary>💬 Muhokama tarixi</summary><div class="zk-chat" id="zkChat"></div></details>
             </aside>` : ""}
           </section>`;
         if (S.phase === "question") {
           typeIn(m.querySelector(".zk-q"));
           stopClock = runClock(() => endsAt, null);
+          const end = $("#zkEnd", root);
+          if (end) end.onclick = () => hostCtx.control.endTime();
           const say = $("#zkSay", root);
           if (say) say.onsubmit = (e) => {
             e.preventDefault();
             const inp = $("#zkSayIn", root), text = inp.value.trim();
             if (!text) return;
             const msg = { t: "tchat", code, team: t.id, cid: me.cid, name: me.name, text, qi: S.i, id: Math.random().toString(36).slice(2) };
-            room.send(msg); onMsg(msg);
+            room && room.send(msg); onMsg(msg);
             inp.value = "";
           };
           const capF = $("#zkCap", root);
@@ -826,18 +900,19 @@
             myAnswer = text;
             send({ t: "answer", team: t.id, text });
             const msg = { t: "tchat", code, team: t.id, cid: me.cid, name: me.name, text, qi: S.i, kind: "final", id: Math.random().toString(36).slice(2) };
-            room.send(msg); onMsg(msg);
-            $("#zkCapSt", root).textContent = "✅ Yuborildi — vaqt tugaguncha o‘zgartirish mumkin";
-            sfx.good();
+            room && room.send(msg); onMsg(msg);
+            $("#zkCapSt", root).textContent = "✅ Javob aytildi — vaqt tugaguncha o‘zgartirish mumkin";
           };
         }
         lastKey = key;
         drawChat();
+        chat.filter((c) => t && c.team === t.id && c.qi === S.i).slice(-4).forEach(bubble);
       }
+
       $("#zkSB", root).innerHTML = scoreboard(S.teams, S.phase === "question" ? { answered: S.answered, mine: t && t.id } : { plus: S.verdict, mine: t && t.id });
       if (S.phase === "question" && t && !amCaptain()) {
         const st = $("#zkCapSt", root);
-        if (st) st.innerHTML = S.answered[t.id] ? "👑 Sardor javobni yubordi ✅" : "👑 Sardor sizni tinglamoqda — fikringizni yozing!";
+        if (st) st.innerHTML = S.answered[t.id] ? "👑 Sardor javobni aytdi ✅" : "👑 Sardor sizni tinglamoqda — fikringizni ayting!";
       }
       if (S.phase === "reveal") {
         const box = $("#zkReveal", root);
@@ -847,18 +922,42 @@
               <div class="zk-jrow ${S.verdict[x.id] ? "is-ok" : "is-no"} ${t && t.id === x.id ? "mine" : ""}" style="--c:${x.color}">
                 <span class="em">${x.emb}</span><b>${esc(x.name)}</b>
                 <span class="ans">${S.answers[x.id] ? `“${esc(S.answers[x.id])}”` : "<i>javob yo‘q</i>"}</span>
-                <span class="vd">${S.verdict[x.id] ? "✓" : "✗"}</span>
+                <span class="vd">${S.verdict[x.id] ? "✓ To‘g‘ri" : "✗ Noto‘g‘ri"}</span>
+                ${isHost ? `<button type="button" class="tog" data-tog="${x.id}" title="Bahoni o‘zgartirish">↺</button>` : ""}
               </div>`).join("")}</div>
             ${answerFlip(S.q, true)}
-            <p class="zk-muted center">Boshlovchi keyingi savolni ochadi…</p>
+            <div class="zk-nextin"><i id="zkNextBar"></i><span>${S.i + 1 < S.total ? "Keyingi savol" : "Natijalar"} <b id="zkNextN"></b> soniyada…</span></div>
+            ${hostBar(`<button class="zk-btn" id="zkSkip" type="button">⏭ Hoziroq o‘tish</button>`)}
           </div>`;
         if (box && box.dataset.h !== html) {
           const first = !box.dataset.h;
           box.innerHTML = html; box.dataset.h = html;
-          if (first && t) S.verdict[t.id] ? (sfx.good(), confetti(50)) : sfx.bad();
+          root.querySelectorAll("[data-tog]").forEach((b) => (b.onclick = () => hostCtx.control.toggle(b.dataset.tog)));
+          const sk = $("#zkSkip", root);
+          if (sk) sk.onclick = () => hostCtx.control.skip();
+          if (first) {
+            if (t) verdictBanner(!!S.verdict[t.id], S.verdict[t.id] ? `${t.name} +1 ball` : `To‘g‘ri javob: ${S.q.a}`);
+            else sfx.open();
+          }
         }
       }
     }
+
+    // Sanoqlar (boshlanish va keyingi savol)
+    const cd = setInterval(() => {
+      if (!root || !S) return;
+      const sn = $("#zkStartN", root);
+      if (sn && startAt) { const v = Math.max(0, Math.ceil((startAt - Date.now()) / 1000)); if (sn.textContent !== String(v)) { sn.textContent = v; sfx.tick(); } }
+      const nn = $("#zkNextN", root), nb = $("#zkNextBar", root);
+      if (nn && nextAt) {
+        const left = Math.max(0, nextAt - Date.now());
+        nn.textContent = Math.ceil(left / 1000);
+        if (nb) nb.style.width = (100 * (1 - left / REVEAL_MS)) + "%";
+      }
+    }, 200);
+    onClose(() => clearInterval(cd));
+
+    return { onMsg, onPresence };
   }
 
   // ---------- Kirish nuqtasi ----------
