@@ -149,3 +149,6 @@ body.home-page {
 @media (prefers-reduced-motion: reduce) {
   .h-aurora i, .h-ring, .h-logo, .h-orb, .h-leader-ring, .h-gold { animation: none !important; }
 }
+
+/* Ilova o‘rnatilgan bo‘lsa tugmani yashirish */
+.is-app .h-install { display: none; }

@@ -1,0 +1,24 @@
+{
+  "name": "So‘fi Ollohyor o‘quv markazi",
+  "short_name": "So‘fi Ollohyor",
+  "description": "Kurslar, amaliy darslar, bilim o‘yinlari, reyting va sovg‘alar do‘koni",
+  "lang": "uz",
+  "id": "./",
+  "start_url": "./index.html?app=1",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#020b09",
+  "theme_color": "#020b09",
+  "categories": ["education", "kids"],
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Kurslar", "url": "./kurslar.html", "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "O‘yinlar", "url": "./games.html", "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Reyting", "url": "./ranking.html", "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

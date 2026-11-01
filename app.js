@@ -386,4 +386,102 @@
     el.rel = "noopener noreferrer";
   });
 
+
+  // ===== Ilova (PWA): telefonga o'rnatish =====
+  (() => {
+    const head = document.head;
+    const addLink = (rel, href, extra = {}) => {
+      if (head.querySelector(`link[rel="${rel}"]`)) return;
+      const l = document.createElement("link");
+      l.rel = rel; l.href = href;
+      Object.entries(extra).forEach(([k, v]) => l.setAttribute(k, v));
+      head.appendChild(l);
+    };
+    addLink("manifest", "manifest.webmanifest");
+    addLink("apple-touch-icon", "assets/icons/apple-touch-icon.png");
+    [["apple-mobile-web-app-capable", "yes"], ["mobile-web-app-capable", "yes"],
+     ["apple-mobile-web-app-title", "So‘fi Ollohyor"], ["apple-mobile-web-app-status-bar-style", "black-translucent"]]
+      .forEach(([n, c]) => { if (!head.querySelector(`meta[name="${n}"]`)) { const m = document.createElement("meta"); m.name = n; m.content = c; head.appendChild(m); } });
+
+    if ("serviceWorker" in navigator && location.protocol !== "file:") {
+      window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+    }
+
+    const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+    if (standalone) { document.documentElement.classList.add("is-app"); return; }
+
+    const store = {
+      get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
+      set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* bo'sh */ } }
+    };
+    const ua = navigator.userAgent;
+    const isIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    let deferred = null;
+
+    const css = document.createElement("style");
+    css.textContent = `
+      .pwa-pill{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));z-index:1100;transform:translate(-50%,20px);opacity:0;
+        display:flex;align-items:center;gap:10px;padding:8px 8px 8px 10px;border-radius:999px;max-width:calc(100% - 32px);
+        background:linear-gradient(135deg,#0f2a22,#0b1d33);border:1px solid rgba(245,200,76,.5);box-shadow:0 14px 40px rgba(0,0,0,.5);
+        color:#fff;font:600 .9rem system-ui,sans-serif;transition:.4s cubic-bezier(.3,1.4,.5,1)}
+      .pwa-pill.on{transform:translate(-50%,0);opacity:1}
+      .pwa-pill img{width:34px;height:34px;border-radius:10px;background:#fff;flex:none}
+      .pwa-pill span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .pwa-pill .go{border:0;border-radius:999px;padding:9px 14px;font:800 .85rem system-ui,sans-serif;cursor:pointer;color:#1a1300;
+        background:linear-gradient(135deg,#fde68a,#f5c84c);white-space:nowrap}
+      .pwa-pill .no{border:0;background:none;color:#9ca3af;font-size:1rem;cursor:pointer;padding:4px 6px}
+      .pwa-ios{position:fixed;inset:0;z-index:1250;display:grid;align-items:end;background:rgba(0,0,0,.6);padding:16px}
+      .pwa-ios>div{max-width:440px;margin:0 auto;width:100%;padding:20px;border-radius:22px;background:#0f1a2e;color:#e5e7eb;
+        border:1px solid rgba(245,200,76,.4);font:500 .95rem/1.55 system-ui,sans-serif}
+      .pwa-ios b{color:#fde68a}.pwa-ios ol{padding-left:20px;margin:10px 0 14px}
+      .pwa-ios button{width:100%;padding:12px;border:0;border-radius:12px;font:800 1rem system-ui,sans-serif;background:#f5c84c;color:#1a1300}
+      @media (min-width:900px){.pwa-pill{bottom:110px}}`;
+    head.appendChild(css);
+
+    const showIOSHelp = () => {
+      const m = document.createElement("div");
+      m.className = "pwa-ios";
+      m.innerHTML = `<div><b>📲 Ilovani iPhone'ga o‘rnatish</b>
+        <ol><li>Safari pastidagi <b>“Ulashish”</b> tugmasini bosing (kvadrat va yuqoriga strelka ⬆️).</li>
+        <li>Ro‘yxatdan <b>“Bosh ekranga qo‘shish”</b> (Add to Home Screen) ni tanlang.</li>
+        <li><b>“Qo‘shish”</b> ni bosing — ekraningizda markaz belgisi paydo bo‘ladi.</li></ol>
+        <button type="button">Tushunarli</button></div>`;
+      m.addEventListener("click", (e) => { if (e.target === m || e.target.tagName === "BUTTON") m.remove(); });
+      document.body.appendChild(m);
+    };
+
+    const pill = () => {
+      if (document.querySelector(".pwa-pill") || store.get("pwaHide") === "1") return;
+      const el = document.createElement("div");
+      el.className = "pwa-pill";
+      el.innerHTML = `<img src="assets/icons/icon-192.png" alt=""><span>Telefonga ilova</span>
+        <button class="go" type="button">📲 O‘rnatish</button><button class="no" type="button" aria-label="Yopish">✕</button>`;
+      el.querySelector(".no").onclick = () => { store.set("pwaHide", "1"); el.remove(); };
+      el.querySelector(".go").onclick = async () => {
+        if (deferred) {
+          deferred.prompt();
+          const r = await deferred.userChoice.catch(() => ({}));
+          deferred = null;
+          if (r && r.outcome === "accepted") el.remove();
+        } else if (isIOS) showIOSHelp();
+      };
+      document.body.appendChild(el);
+      setTimeout(() => el.classList.add("on"), 1200);
+    };
+
+    window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferred = e; pill(); });
+    window.addEventListener("appinstalled", () => { store.set("pwaHide", "1"); document.querySelector(".pwa-pill")?.remove(); });
+    if (isIOS && /safari/i.test(ua) && !/crios|fxios/i.test(ua)) pill();
+
+    // Istalgan sahifadagi [data-install] tugmasi
+    document.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-install]");
+      if (!b) return;
+      e.preventDefault();
+      if (deferred) { deferred.prompt(); deferred = null; }
+      else if (isIOS) showIOSHelp();
+      else alert("Brauzer menyusidan (⋮) “Ilovani o‘rnatish” yoki “Bosh ekranga qo‘shish” ni tanlang.");
+    });
+  })();
+
 })();
