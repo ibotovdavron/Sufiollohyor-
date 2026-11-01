@@ -156,3 +156,32 @@ body.sh-lock { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .sh-card, .sh-slide-art, .sh-detail-img .sh-emoji { animation: none !important; }
 }
+
+/* ===== Jonli 3D rasmlar ===== */
+.sh-img { perspective: 700px; }
+.sh-img::before { content: ""; position: absolute; inset: -40%; background: conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.18), transparent 30%); animation: shSpin 8s linear infinite; pointer-events: none; }
+@keyframes shSpin { to { transform: rotate(360deg); } }
+.sh-art { position: relative; z-index: 1; display: grid; place-items: center; width: 64%; aspect-ratio: 1; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transform-style: preserve-3d; transition: transform 0.25s ease-out; animation: shBob 4.2s ease-in-out infinite; animation-delay: calc(var(--d, 0ms) * 2); }
+.sh-img.tilt .sh-art { animation-play-state: paused; }
+@keyframes shBob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
+.sh-art img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 16px 18px rgba(0, 0, 0, 0.4)); transition: transform 0.45s cubic-bezier(0.2, 1.6, 0.4, 1); -webkit-user-drag: none; user-select: none; }
+.sh-art .sh-emoji { display: none; }
+.sh-art.fb img { display: none; }
+.sh-art.fb .sh-emoji { display: block; }
+.sh-card:hover .sh-art img { transform: scale(1.12) rotate(-5deg) translateZ(30px); }
+.sh-shine { position: absolute; inset: 0; pointer-events: none; border-radius: 30%; background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.55) 50%, transparent 65%); mix-blend-mode: overlay; opacity: 0; transform: translateX(-60%); }
+.sh-card:hover .sh-shine { animation: shShine 1s ease-out; }
+@keyframes shShine { 0% { opacity: 0; transform: translateX(-60%); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateX(60%); } }
+.sh-spark { position: absolute; z-index: 2; color: #fff; font-size: 14px; opacity: 0; pointer-events: none; text-shadow: 0 0 8px #fff; }
+.sh-spark.s1 { top: 22%; left: 20%; } .sh-spark.s2 { top: 30%; right: 18%; font-size: 18px; } .sh-spark.s3 { bottom: 26%; right: 26%; }
+.sh-card:hover .sh-spark { animation: shTw 1.4s ease-in-out infinite; }
+.sh-card:hover .sh-spark.s2 { animation-delay: 0.3s; } .sh-card:hover .sh-spark.s3 { animation-delay: 0.6s; }
+@keyframes shTw { 0%, 100% { opacity: 0; transform: scale(0.4) rotate(0); } 50% { opacity: 1; transform: scale(1.2) rotate(45deg); } }
+.sh-art.big { width: min(220px, 60%); }
+.sh-detail-img .sh-art.big { width: 190px; }
+.sh-slide-art .sh-art.big { width: clamp(110px, 24vw, 190px); animation: none; }
+.sh-cart-img .sh-art { width: 44px; animation: none; }
+.sh-cart-img .sh-art img { filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35)); }
+.sh-cart-img .sh-art.fb .sh-emoji { font-size: 28px; }
+.sh-detail-img .sh-art.fb .sh-emoji, .sh-slide-art .sh-art.fb .sh-emoji { font-size: 110px; }
+@media (prefers-reduced-motion: reduce) { .sh-art, .sh-img::before { animation: none !important; } }

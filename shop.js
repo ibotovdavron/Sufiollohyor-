@@ -21,6 +21,28 @@
   };
   const BADGE = { "Top": "🔥 Top", "Yangi": "✨ Yangi", "Bosh sovrin": "👑 Bosh sovrin" };
 
+  // Jonli 3D rasmlar (Microsoft Fluent Emoji, MIT litsenziyasi). Yuklanmasa — emoji ko'rsatiladi.
+  const FLUENT = {
+    "🖊️": "Pen", "📐": "Triangular ruler", "✏️": "Pencil", "📒": "Ledger", "🖍️": "Crayon", "👝": "Clutch bag",
+    "🧮": "Abacus", "📘": "Blue book", "📗": "Green book", "📚": "Books", "🌍": "Globe showing Europe-Africa",
+    "⚽": "Soccer ball", "♟️": "Chess pawn", "🏋️": ["Person lifting weights", true], "👕": "T-shirt", "🚲": "Bicycle",
+    "🎧": "Headphone", "🔋": "Battery", "🔊": "Speaker high volume", "💡": "Light bulb", "⌚": "Watch",
+    "📱": "Mobile phone", "🎒": "Backpack", "☕": "Hot beverage", "🧩": "Puzzle piece", "🏅": "Sports medal", "🏆": "Trophy", "🎁": "Wrapped gift"
+  };
+  const imgUrl = (icon) => {
+    const f = FLUENT[icon];
+    if (!f) return "";
+    const [name, tone] = Array.isArray(f) ? f : [f, false];
+    const file = name.toLowerCase().replace(/ /g, "_");
+    const base = "https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/" + encodeURIComponent(name);
+    return tone ? `${base}/Default/3D/${file}_3d_default.png` : `${base}/3D/${file}_3d.png`;
+  };
+  /** Mahsulot rasmi: 3D rasm + zaxira emoji */
+  const art = (icon, cls = "") => {
+    const url = imgUrl(icon);
+    return `<span class="sh-art ${cls} ${url ? "" : "fb"}">${url ? `<img src="${url}" alt="" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('fb')">` : ""}<span class="sh-emoji">${esc(icon || "🎁")}</span><i class="sh-shine"></i></span>`;
+  };
+
   const store = {
     get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
@@ -85,7 +107,8 @@
         <div class="sh-img" data-open>
           ${p.badge ? `<span class="sh-badge b-${esc(p.badge).replace(/\s/g, "")}">${BADGE[p.badge] || esc(p.badge)}</span>` : ""}
           <button class="sh-like ${likes[p.id] ? "on" : ""}" data-like aria-label="Yoqtirish">${likes[p.id] ? "❤️" : "🤍"}</button>
-          <span class="sh-emoji">${esc(p.icon || "🎁")}</span>
+          ${art(p.icon)}
+          <span class="sh-spark s1">✦</span><span class="sh-spark s2">✧</span><span class="sh-spark s3">✦</span>
         </div>
         <div class="sh-info">
           <small class="sh-cat">${esc(p.category)}</small>
@@ -141,7 +164,7 @@
       <div class="sh-slide ${s.cls}">
         <div><span class="sh-kicker">${s.kicker}</span><h2>${esc(s.title)}</h2><p>${esc(s.text)}</p>
           ${s.href ? `<a class="sh-cta" href="${s.href}">O‘ynash →</a>` : `<button class="sh-cta" data-show="${s.id}">Ko‘rish →</button>`}</div>
-        <span class="sh-slide-art">${s.icon}</span>
+        <span class="sh-slide-art">${art(s.icon, "big")}</span>
       </div>`).join("");
     $("#dots").innerHTML = slides.map((_, i) => `<button data-dot="${i}" aria-label="${i + 1}-slayd"></button>`).join("");
     const box = $("#slides");
@@ -160,6 +183,18 @@
     }, 4500);
     sync();
   }
+
+  // ---------- Kartadagi rasmni sichqoncha/barmoq bilan 3D burish ----------
+  document.addEventListener("pointermove", (e) => {
+    const box = e.target.closest && e.target.closest(".sh-img");
+    document.querySelectorAll(".sh-img.tilt").forEach((b) => { if (b !== box) { b.classList.remove("tilt"); b.style.removeProperty("--rx"); b.style.removeProperty("--ry"); } });
+    if (!box || e.pointerType === "touch") return;
+    const r = box.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+    box.classList.add("tilt");
+    box.style.setProperty("--rx", `${(-y * 18).toFixed(1)}deg`);
+    box.style.setProperty("--ry", `${(x * 22).toFixed(1)}deg`);
+  }, { passive: true });
 
   // ---------- Pastdan chiquvchi oyna ----------
   function openSheet(html) {
@@ -180,7 +215,7 @@
     const p = PRODUCTS[id];
     openSheet(`
       <div class="sh-detail" style="${catStyle(p.category)}">
-        <div class="sh-detail-img">${p.badge ? `<span class="sh-badge b-${p.badge.replace(/\s/g, "")}">${BADGE[p.badge] || p.badge}</span>` : ""}<span class="sh-emoji">${esc(p.icon)}</span></div>
+        <div class="sh-detail-img">${p.badge ? `<span class="sh-badge b-${p.badge.replace(/\s/g, "")}">${BADGE[p.badge] || p.badge}</span>` : ""}${art(p.icon, "big")}</div>
         <small class="sh-cat">${esc(p.category)}</small>
         <h2>${esc(p.name)}</h2>
         <p>${esc(p.description)}</p>
@@ -233,7 +268,7 @@
       <h2 class="sh-sheet-title">🛒 Savatingiz</h2>
       <div class="sh-cart">${rows.map(([id, q]) => { const p = PRODUCTS[id]; return `
         <div class="sh-cart-row" style="${catStyle(p.category)}">
-          <span class="sh-cart-img">${esc(p.icon)}</span>
+          <span class="sh-cart-img">${art(p.icon)}</span>
           <div><b>${esc(p.name)}</b><small>⭐ ${fmt(p.stars)}</small></div>
           <div class="sh-qty"><button data-dec="${id}" aria-label="Kamaytirish">−</button><b>${q}</b><button data-inc="${id}" aria-label="Ko‘paytirish">+</button></div>
         </div>`; }).join("")}</div>
