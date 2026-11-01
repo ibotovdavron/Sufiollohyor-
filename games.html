@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="style.css?v=14">
   <link rel="stylesheet" href="games/games.css?v=3">
   <link rel="stylesheet" href="games/zakovat.css?v=2">
+  <link rel="stylesheet" href="games/master.css?v=2">
 </head>
 <body>
 
@@ -79,6 +80,21 @@
         <button class="btn g-start" data-start="bilmasvoy">▶ Boshlash</button>
       </div>
     </article>
+    <article class="mm-card">
+      <span class="g-num">5-o‘yin · MARAFON</span>
+      <div class="mm-card-l">
+        <span class="mm-card-medal" aria-hidden="true">🏅</span>
+        <h2><span>Matematika Master</span></h2>
+        <p>5–6-sinf mavzulari bo‘yicha marafon! Ustoz bitta mavzuni ochadi — har bir o‘quvchi 2 marta urinadi. 10 ta savol, har biriga 1 daqiqa: qancha tez va to‘g‘ri javob bersangiz, shuncha ko‘p ball. Mavzu yopilganda 1-o‘rin egasiga <b>+1 ⭐</b>!</p>
+        <div class="g-feats"><span>🔒 ustoz ochadi</span><span>🎯 10 savol</span><span>⏱️ 1 daqiqa</span><span>🔁 2 urinish</span><span>🥇 g‘olibga ⭐</span></div>
+        <div class="mm-card-btns">
+          <button class="btn g-start" data-mm-start type="button">▶ O‘ynash</button>
+          <button class="btn ghost" data-mm-board type="button">🏆 Jadval</button>
+        </div>
+      </div>
+      <div class="mm-card-r" id="mmBoard"><p class="mm-empty">Marafon yuklanmoqda…</p></div>
+    </article>
+
     <article class="zk-card" style="--d:.35s">
       <span class="g-num">4-o‘yin · YANGI</span>
       <div class="zk-card-body">
@@ -106,6 +122,7 @@
       <div><b>🎁 Sirli quti</b><span>10 savoldan kamida 9 tasi to‘g‘ri. Do‘st bilan: g‘alaba + kamida 8 ta to‘g‘ri.</span></div>
       <div><b>🏎️ Poyga</b><span>Kamida 6 ta to‘g‘ri darvoza va ko‘pi bilan 2 ta to‘qnashuv. Do‘st bilan: birinchi kelish + 5 ta darvoza.</span></div>
       <div><b>🧢 Bilmasvoy</b><span>10 savoldan kamida 9 tasi to‘g‘ri, jonlar tugamasin. Do‘st bilan: g‘alaba + 8 ta.</span></div>
+      <div><b>🏅 Matematika Master</b><span>Ustoz ochgan mavzuda 2 ta urinish. Mavzu yopilganda marafonning 1-o‘rin egasiga +1 ⭐.</span></div>
       <div><b>🦉 Zakovat</b><span>Jamoaviy o‘yin — yulduz emas, guruh sharafi uchun! Har bir to‘g‘ri javob guruhga 1 ball.</span></div>
     </div>
     <p class="muted" style="margin:14px 0 0">Har bir o‘yindan kuniga ko‘pi bilan 2 ⭐ olish mumkin. Bitta ism bilan bir vaqtda faqat bitta kishi o‘ynay oladi.<br>💬 Pastdagi chat tugmasi orqali onlayn o‘quvchilar va ustozlar bilan yozishish mumkin. 👨‍🏫 Ustozlar maxsus parol bilan kiradi va chatni kuzatib boradi.</p>
@@ -140,5 +157,7 @@
 <script src="games/chat.js?v=1"></script>
 <script src="games/zakovat-questions.js?v=1"></script>
 <script src="games/zakovat.js?v=2"></script>
+<script src="games/master-questions.js?v=1"></script>
+<script src="games/master.js?v=2"></script>
 </body>
 </html>

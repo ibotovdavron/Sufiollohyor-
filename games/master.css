@@ -1,0 +1,109 @@
+/* MATEMATIKA MASTER — marafon */
+.mm-card { grid-column: 1 / -1; position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 0;
+  border-radius: 28px; border: 1px solid rgba(239, 68, 68, .45);
+  background: radial-gradient(circle at 15% 30%, rgba(245, 200, 76, .25), transparent 45%), linear-gradient(135deg, #2a0c12, #3b1020 45%, #1b1036);
+  box-shadow: 0 24px 70px rgba(80, 10, 30, .5); animation: gRise .7s ease-out both; }
+.mm-card .g-num { color: #fecaca; }
+.mm-card-l { padding: 46px 26px 24px; display: flex; flex-direction: column; gap: 10px; position: relative; }
+.mm-card-l h2 { margin: 0; font-family: "Playfair Display", Georgia, serif; font-size: clamp(26px, 4vw, 36px); color: #fff; }
+.mm-card-l h2 span { background: linear-gradient(90deg, #fde68a, #f59e0b, #ef4444); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.mm-card-l p { margin: 0; color: #fbd5d5; line-height: 1.55; }
+.mm-card .g-feats span { border-color: rgba(253, 230, 138, .35); color: #fde68a; }
+.mm-card .btn { align-self: flex-start; background: linear-gradient(135deg, #fde68a, #f59e0b); color: #1a1300; }
+.mm-card .btn.ghost { background: rgba(255, 255, 255, .08); color: #fff; border: 1px solid rgba(255, 255, 255, .2); }
+.mm-card-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.mm-card-medal { position: absolute; right: 18px; top: 16px; font-size: 54px; filter: drop-shadow(0 0 20px rgba(245, 200, 76, .6)); animation: zkFloat 3s ease-in-out infinite; }
+.mm-card-r { padding: 22px; background: rgba(0, 0, 0, .25); border-left: 1px solid rgba(255, 255, 255, .08); display: flex; flex-direction: column; gap: 10px; }
+.mm-warn { margin: 0; padding: 9px 12px; border-radius: 12px; background: rgba(251, 191, 36, .12); border: 1px solid rgba(251, 191, 36, .4); color: #fde68a; font-size: 13px; }
+.mm-now { display: grid; gap: 3px; padding: 12px 14px; border-radius: 16px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .12); }
+.mm-now.on { background: linear-gradient(120deg, rgba(34, 197, 94, .18), rgba(245, 200, 76, .1)); border-color: rgba(34, 197, 94, .5); }
+.mm-now b { font-size: 18px; color: #fff; }
+.mm-now small { color: #cbd5e1; }
+.mm-live { font-size: 11px; font-weight: 900; letter-spacing: .14em; color: #4ade80; animation: zkPulse 1.6s infinite; }
+.mm-lb { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.mm-lb li { display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 14px; background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .08); animation: gRise .4s ease-out both; }
+.mm-lb li.top { background: linear-gradient(90deg, rgba(245, 200, 76, .16), rgba(255, 255, 255, .03)); border-color: rgba(245, 200, 76, .35); }
+.mm-lb li.me { box-shadow: 0 0 0 2px #38bdf8; }
+.mm-lb .rk { font-size: 20px; text-align: center; font-weight: 900; color: #cbd5e1; }
+.mm-lb .nm { display: grid; } .mm-lb .nm small, .mm-lb .sc small { color: #94a3b8; font-size: 11px; }
+.mm-lb .sc { display: grid; text-align: right; } .mm-lb .sc b { color: #fde68a; font-size: 17px; }
+.mm-empty { color: #94a3b8; margin: 0; }
+.mm-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.mm-chip { display: inline-flex; align-items: center; gap: 4px; padding: 5px 9px; border-radius: 999px; font-size: 12px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .1); color: #94a3b8; }
+.mm-chip.open { color: #bbf7d0; border-color: #22c55e; background: rgba(34, 197, 94, .15); font-weight: 800; }
+.mm-chip.done { color: #fde68a; border-color: rgba(245, 200, 76, .4); }
+.mm-chip i { font-style: normal; font-weight: 800; }
+
+/* Sahna */
+.mm { position: fixed; inset: 0; z-index: 1100; overflow-y: auto; background: radial-gradient(ellipse at 50% -10%, #4a1428, transparent 60%), #12060c; color: #fff; opacity: 0; transition: opacity .3s; }
+.mm.show { opacity: 1; }
+.mm-bg { position: fixed; inset: 0; pointer-events: none; }
+.mm-bg i { position: absolute; width: 40vw; height: 40vw; border-radius: 50%; filter: blur(80px); opacity: .25; animation: zkAur 10s ease-in-out infinite alternate; }
+.mm-bg i:nth-child(1) { left: -10%; top: 10%; background: #ef4444; } .mm-bg i:nth-child(2) { right: -10%; top: 40%; background: #f59e0b; animation-delay: -3s; } .mm-bg i:nth-child(3) { left: 30%; bottom: -20%; background: #7c3aed; animation-delay: -6s; }
+@keyframes zkAur { to { transform: translate(10%, -8%) scale(1.15); } }
+.mm-bar { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; background: rgba(18, 6, 12, .85); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(245, 200, 76, .25); }
+.mm-exit { padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .15); background: rgba(255, 255, 255, .06); color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.mm-brand { color: #fde68a; letter-spacing: .14em; font-size: 14px; }
+.mm-bar-r { min-width: 80px; }
+.mm-main { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding: 20px 16px 60px; }
+.mm-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 13px 20px; border: 0; border-radius: 14px; cursor: pointer; font: inherit; font-weight: 900; color: #1a1300; background: linear-gradient(135deg, #fde68a, #f59e0b); box-shadow: 0 10px 26px rgba(245, 158, 11, .35); }
+.mm-btn.big { padding: 16px 30px; font-size: 18px; }
+.mm-btn.ghost { background: rgba(255, 255, 255, .08); color: #fff; border: 1px solid rgba(255, 255, 255, .2); box-shadow: none; }
+.mm-ctrl { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 16px; }
+.mm-wait { display: grid; place-items: center; gap: 12px; min-height: 40vh; }
+.mm-intro, .mm-result { text-align: center; }
+.mm-medal { font-size: 80px; filter: drop-shadow(0 0 30px rgba(245, 200, 76, .7)); animation: zkFloat 3s ease-in-out infinite; }
+.mm-medal.big { font-size: 64px; }
+.mm-kicker { display: inline-block; padding: 6px 12px; border-radius: 999px; background: rgba(245, 200, 76, .12); border: 1px solid rgba(245, 200, 76, .4); color: #fde68a; font-size: 12px; font-weight: 900; letter-spacing: .1em; }
+.mm-intro h1 { font-family: "Playfair Display", Georgia, serif; font-size: clamp(26px, 6vw, 40px); margin: 12px 0; }
+.mm-intro p { color: #e2d4d8; line-height: 1.6; }
+.mm-rules { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 16px 0; }
+.mm-rules div { padding: 12px 6px; border-radius: 16px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); display: grid; }
+.mm-rules b { font-size: 20px; color: #fde68a; } .mm-rules small { color: #cbd5e1; font-size: 12px; }
+.mm-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+.mm-qn b { color: #fde68a; font-size: 20px; }
+.mm-dots { display: flex; gap: 4px; flex: 1; justify-content: center; }
+.mm-dots i { width: 14px; height: 6px; border-radius: 4px; background: rgba(255, 255, 255, .15); }
+.mm-dots i.ok { background: #22c55e; } .mm-dots i.no { background: #ef4444; } .mm-dots i.cur { background: #fde68a; animation: zkPulse 1s infinite; }
+.mm-pts b { color: #fde68a; font-size: 18px; }
+.mm-qcard { position: relative; padding: 28px 22px 26px; border-radius: 24px; background: linear-gradient(160deg, rgba(255, 255, 255, .1), rgba(255, 255, 255, .03)); border: 1px solid rgba(255, 255, 255, .16); box-shadow: 0 24px 60px rgba(0, 0, 0, .4); animation: zkCardIn .5s cubic-bezier(.2, .9, .3, 1.2) both; }
+.mm-q { margin: 0; font-size: clamp(19px, 3.6vw, 26px); font-weight: 800; line-height: 1.5; padding-right: 70px; }
+.mm-timer { position: absolute; right: 14px; top: 14px; width: 62px; height: 62px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(#22c55e calc(var(--p) * 360deg), rgba(255, 255, 255, .1) 0); }
+.mm-timer::before { content: ""; position: absolute; inset: 6px; border-radius: 50%; background: #2a0e18; }
+.mm-timer b { position: relative; font-size: 20px; }
+.mm-timer.warn { background: conic-gradient(#ef4444 calc(var(--p) * 360deg), rgba(255, 255, 255, .1) 0); animation: zkShake .5s infinite; }
+.mm-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.mm-opts button { display: flex; align-items: center; gap: 10px; padding: 16px 14px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, .16); background: rgba(255, 255, 255, .06); color: #fff; font: inherit; font-size: 18px; font-weight: 800; text-align: left; cursor: pointer; transition: transform .15s, background .2s; animation: gRise .4s ease-out both; }
+.mm-opts button:nth-child(2) { animation-delay: .05s; } .mm-opts button:nth-child(3) { animation-delay: .1s; } .mm-opts button:nth-child(4) { animation-delay: .15s; }
+.mm-opts button:hover:not(:disabled) { transform: translateY(-2px); background: rgba(245, 200, 76, .12); }
+.mm-opts button .mm-L { font-style: normal; flex: none; width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; background: rgba(255, 255, 255, .1); font-size: 14px; }
+.mm-opts button.right { background: rgba(34, 197, 94, .3); border-color: #22c55e; }
+.mm-opts button.wrong { background: rgba(239, 68, 68, .3); border-color: #ef4444; animation: zkShake .4s; }
+.mm-fb { margin-top: 12px; text-align: center; font-size: 20px; font-weight: 900; animation: gPop .3s; }
+.mm-fb.ok { color: #4ade80; } .mm-fb.no { color: #fca5a5; }
+.mm-fr { display: inline-grid; vertical-align: middle; text-align: center; line-height: 1.1; margin: 0 2px; font-size: .9em; }
+.mm-fr i { font-style: normal; padding: 0 3px; }
+.mm-fr i:first-child { border-bottom: 2px solid currentColor; }
+.mm-result h2 { font-family: "Playfair Display", Georgia, serif; }
+.mm-saved { padding: 10px 14px; border-radius: 14px; background: rgba(255, 255, 255, .06); color: #e2e8f0; }
+.mm-boardview h2, .mm-teacher h2 { font-family: "Playfair Display", Georgia, serif; text-align: center; }
+.mm-boardview h3, .mm-teacher h3 { margin: 22px 0 10px; color: #fde68a; }
+.mm-win { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.mm-win li { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 14px; background: rgba(245, 200, 76, .08); border: 1px solid rgba(245, 200, 76, .3); }
+.mm-win small { color: #94a3b8; }
+.mm-hint { color: #e2d4d8; text-align: center; }
+.mm-tlist { display: grid; gap: 8px; margin-top: 14px; }
+.mm-trow { display: grid; grid-template-columns: 34px 1fr auto auto; gap: 8px; align-items: center; padding: 10px 12px; border-radius: 14px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .1); }
+.mm-trow.open { border-color: #22c55e; background: rgba(34, 197, 94, .12); }
+.mm-trow .ic { font-size: 22px; } .mm-trow .tt { display: grid; } .mm-trow small { color: #94a3b8; }
+.mm-mini { padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, .2); background: rgba(255, 255, 255, .06); color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+.mm-mini.go { background: linear-gradient(135deg, #fde68a, #f59e0b); color: #1a1300; border: 0; }
+@media (max-width: 760px) {
+  .mm-brand { font-size: 11px; letter-spacing: .08em; text-align: center; }
+  .mm-exit { padding: 7px 10px; font-size: 13px; }
+  .mm-card { grid-template-columns: 1fr; }
+  .mm-card-r { border-left: 0; border-top: 1px solid rgba(255, 255, 255, .08); }
+  .mm-rules { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mm-opts { grid-template-columns: 1fr; }
+  .mm-q { font-size: 20px; }
+}
