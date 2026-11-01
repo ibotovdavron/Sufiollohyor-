@@ -187,8 +187,8 @@
     return new Promise((resolve) => {
       const box = document.createElement("form");
       box.className = "g-pin";
-      box.innerHTML = `<b>🔑 ${esc(teacher.name)} — ustoz kodi</b>
-        <input type="password" inputmode="numeric" autocomplete="off" placeholder="Kodni kiriting" aria-label="Ustoz kodi">
+      box.innerHTML = `<b>🔑 ${esc(teacher.name)} — ustoz paroli</b>
+        <input type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Parolni kiriting" aria-label="Ustoz paroli">
         <div class="g-pin-row"><button class="btn" type="submit">Kirish</button><button class="btn secondary" type="button" data-pin-cancel>Bekor</button></div>
         <small class="g-pin-err"></small>`;
       card.querySelector(".g-list").before(box);
@@ -200,7 +200,7 @@
         e.preventDefault();
         const ok = D.teacherPinHash && (await sha256(input.value.trim())) === D.teacherPinHash;
         if (ok) done(true);
-        else { box.querySelector(".g-pin-err").textContent = "Kod noto‘g‘ri."; input.value = ""; input.focus(); }
+        else { box.querySelector(".g-pin-err").textContent = "Parol noto‘g‘ri. Katta-kichik harflarga e’tibor bering."; input.value = ""; input.focus(); }
       };
     });
   }
