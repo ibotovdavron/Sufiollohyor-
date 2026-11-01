@@ -598,4 +598,122 @@
     );
     render();
   };
+  // ---------- To'plamlar: Eyler–Venn ----------
+  W.venn = (root, p) => {
+    let A = 18, B = 15, AB = 6, U = 30;
+    const { stage, controls, out } = frame(root, p.title);
+    function render() {
+      AB = Math.min(AB, A, B);
+      const uni = A + B - AB, none = Math.max(0, U - uni);
+      const el = svg(360, 220);
+      s("rect", { x: 6, y: 6, width: 348, height: 208, rx: 16, fill: "rgba(148,163,184,.06)", stroke: "#475569" }, el);
+      s("text", { x: 18, y: 26, fill: "#94a3b8", "font-weight": 800, text: `U = ${U}` }, el);
+      const d = 70 - Math.min(60, (AB / Math.max(1, Math.min(A, B))) * 60);
+      s("circle", { cx: 180 - 30 - d / 2, cy: 115, r: 70, fill: "rgba(34,197,94,.25)", stroke: "#22c55e", "stroke-width": 2.5 }, el);
+      s("circle", { cx: 180 + 30 + d / 2, cy: 115, r: 70, fill: "rgba(56,189,248,.25)", stroke: "#38bdf8", "stroke-width": 2.5 }, el);
+      s("text", { x: 180 - 70 - d / 2, y: 120, fill: "#e2e8f0", "font-size": 20, "font-weight": 900, "text-anchor": "middle", text: A - AB }, el);
+      s("text", { x: 180, y: 120, fill: "#fde047", "font-size": 20, "font-weight": 900, "text-anchor": "middle", text: AB }, el);
+      s("text", { x: 180 + 70 + d / 2, y: 120, fill: "#e2e8f0", "font-size": 20, "font-weight": 900, "text-anchor": "middle", text: B - AB }, el);
+      s("text", { x: 90, y: 205, fill: "#22c55e", "font-weight": 800, text: "A" }, el);
+      s("text", { x: 262, y: 205, fill: "#38bdf8", "font-weight": 800, text: "B" }, el);
+      s("text", { x: 330, y: 26, fill: "#94a3b8", "text-anchor": "end", text: `hech biri: ${none}` }, el);
+      mount(stage, el);
+      out.innerHTML = `<div class="big-num">n(A ∪ B) = n(A) + n(B) − n(A ∩ B)</div><div class="steps">
+        <div>${A} + ${B} − ${AB} = <b>${uni}</b> ta element kamida bitta to‘plamda.</div>
+        <div>Faqat A da: ${A} − ${AB} = <b>${A - AB}</b>; faqat B da: <b>${B - AB}</b>; ikkalasida: <b>${AB}</b>.</div>
+        <div>Hech qaysi birida emas: ${U} − ${uni} = <b>${none}</b>${uni > U ? " ⚠️ (U juda kichik!)" : ""}</div>
+        <div>Masalan: sinfda ${U} o‘quvchi, ${A} tasi futbolga, ${B} tasi shaxmatga qatnaydi, ${AB} tasi ikkalasiga.</div></div>`;
+    }
+    [["n(A)", () => A, (v) => (A = v), 0, 30], ["n(B)", () => B, (v) => (B = v), 0, 30], ["n(A ∩ B)", () => AB, (v) => (AB = v), 0, 30], ["n(U)", () => U, (v) => (U = v), 10, 60]]
+      .forEach(([l, g, st, mn, mx]) => controls.append(slider({ label: l, min: mn, max: mx, value: g(), onInput: (v) => { st(v); render(); } })));
+    render();
+  };
+
+  // ---------- Kombinatorika ----------
+  const fact = (n) => { let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; };
+  W.combi = (root, p) => {
+    let n = 5, k = 3;
+    const ITEMS = ["🍎", "🍐", "🍊", "🍋", "🍇", "🍓", "🍒", "🥝"];
+    const { stage, controls, out } = frame(root, p.title);
+    function combos(arr, k) { const res = []; const go = (st, cur) => { if (cur.length === k) { res.push(cur.slice()); return; } for (let i = st; i < arr.length; i++) { cur.push(arr[i]); go(i + 1, cur); cur.pop(); } }; go(0, []); return res; }
+    function render() {
+      k = Math.min(k, n);
+      const P = fact(n), A = fact(n) / fact(n - k), C = A / fact(k);
+      const list = combos(ITEMS.slice(0, n), k);
+      stage.innerHTML = `<div class="oq-combi"><div class="row">${ITEMS.slice(0, n).map((x) => `<span>${x}</span>`).join("")}</div>
+        <small>${n} ta mevadan ${k} tasini tanlash usullari (tartib muhim emas): ${C} ta</small>
+        <div class="grid">${list.slice(0, 40).map((c) => `<i>${c.join("")}</i>`).join("")}${list.length > 40 ? `<i>… yana ${list.length - 40}</i>` : ""}</div></div>`;
+      out.innerHTML = `<div class="steps">
+        <div><b>O‘rin almashtirish</b> (barchasini tartiblash): P<sub>${n}</sub> = ${n}! = <b>${P}</b></div>
+        <div><b>O‘rinlashtirish</b> (k tasini tanlab, tartiblab): A<sub>${n}</sub><sup>${k}</sup> = n!/(n−k)! = <b>${A}</b></div>
+        <div><b>Guruhlash</b> (k tasini tanlash, tartib muhim emas): C<sub>${n}</sub><sup>${k}</sup> = n!/(k!(n−k)!) = <b>${C}</b></div>
+        <div>Bog‘lanish: A = C · k! → ${A} = ${C} · ${fact(k)}</div></div>`;
+    }
+    controls.append(
+      slider({ label: "n (jami)", min: 1, max: 8, value: n, onInput: (v) => { n = v; render(); } }),
+      slider({ label: "k (tanlanadi)", min: 0, max: 8, value: k, onInput: (v) => { k = v; render(); } })
+    );
+    render();
+  };
+
+  // ---------- Ehtimollik: tajriba ----------
+  W.probability = (root, p) => {
+    let mode = p.mode || "dice", counts = [], total = 0, target = 6;
+    const { stage, controls, out } = frame(root, p.title);
+    const faces = () => (mode === "dice" ? 6 : 2);
+    function reset() { counts = Array(faces()).fill(0); total = 0; render(); }
+    function roll(n) { for (let i = 0; i < n; i++) { counts[(Math.random() * faces()) | 0]++; total++; } render(); }
+    function render() {
+      const F = faces(), mx = Math.max(1, ...counts);
+      const labels = mode === "dice" ? ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"] : ["Gerb", "Raqam"];
+      const el = svg(360, 190);
+      const bw = 320 / F;
+      s("line", { x1: 20, y1: 160 - 140 / F * (F === 6 ? 1 : 1), x2: 340, y2: 160 - 140 / F, stroke: "transparent" }, el);
+      counts.forEach((c, i) => {
+        const hh = (c / mx) * 130;
+        s("rect", { x: 20 + i * bw + 6, y: 160 - hh, width: bw - 12, height: hh, rx: 6, fill: i === (mode === "dice" ? target - 1 : 0) ? "#fde047" : "#38bdf8" }, el);
+        s("text", { x: 20 + i * bw + bw / 2, y: 154 - hh, fill: "#e2e8f0", "font-size": 11, "text-anchor": "middle", text: total ? `${r2((c / total) * 100)}%` : "" }, el);
+        s("text", { x: 20 + i * bw + bw / 2, y: 182, fill: "#e2e8f0", "font-size": mode === "dice" ? 22 : 13, "text-anchor": "middle", text: labels[i] }, el);
+      });
+      mount(stage, el);
+      const fav = mode === "dice" ? counts[target - 1] : counts[0];
+      out.innerHTML = `<div class="steps">
+        <div>Klassik ehtimollik: P = <b>qulay hollar / barcha hollar</b> = 1/${F} ≈ <b>${r3(1 / F)}</b></div>
+        <div>Tajribada: ${total} ta tashlashdan ${fav} ta → nisbiy chastota ≈ <b>${total ? r3(fav / total) : "—"}</b></div>
+        <div>Tashlashlar ko‘paygan sari chastota nazariy ehtimollikka yaqinlashadi (katta sonlar qonuni).</div></div>`;
+    }
+    controls.append(buttons(["🎲 Kubik", "🪙 Tanga"], (i) => { mode = i ? "coin" : "dice"; reset(); }, mode === "dice" ? 0 : 1));
+    controls.append(buttons(["1 marta", "10 marta", "100 marta", "1000 marta", "↺ Qayta"], (i) => { if (i === 4) reset(); else roll([1, 10, 100, 1000][i]); }, -1));
+    reset();
+  };
+
+  // ---------- Statistika ----------
+  W.stats = (root, p) => {
+    let data = (p.data || [5, 3, 4, 5, 2, 5, 4, 3, 5, 4]).slice();
+    const { stage, controls, out } = frame(root, p.title);
+    function render() {
+      const n = data.length, sorted = data.slice().sort((a, b) => a - b);
+      const mean = data.reduce((a, b) => a + b, 0) / n;
+      const med = n % 2 ? sorted[(n - 1) / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2;
+      const freq = {}; data.forEach((v) => (freq[v] = (freq[v] || 0) + 1));
+      const mf = Math.max(...Object.values(freq)), modes = Object.keys(freq).filter((k) => freq[k] === mf);
+      const disp = data.reduce((a, v) => a + (v - mean) ** 2, 0) / n;
+      stage.innerHTML = `<div class="oq-data">${data.map((v, i) => `<button type="button" data-i="${i}" title="O‘chirish">${v}</button>`).join("")}</div>
+        <div class="oq-hist">${Object.keys(freq).sort((a, b) => a - b).map((k) => `<div><i style="height:${(freq[k] / mf) * 80}px"></i><b>${k}</b><small>${freq[k]} ta</small></div>`).join("")}</div>`;
+      stage.querySelectorAll("[data-i]").forEach((b) => (b.onclick = () => { if (data.length > 2) { data.splice(+b.dataset.i, 1); render(); } }));
+      out.innerHTML = `<div class="steps">
+        <div>Tartiblangan qator: ${sorted.join(", ")} (n = ${n})</div>
+        <div><b>O‘rta arifmetik</b>: yig‘indi / n = ${data.reduce((a, b) => a + b, 0)} / ${n} = <b>${r2(mean)}</b></div>
+        <div><b>Mediana</b> (o‘rtadagi qiymat): <b>${med}</b></div>
+        <div><b>Moda</b> (eng ko‘p uchraydigan): <b>${modes.join(", ")}</b> (${mf} marta)</div>
+        <div><b>Kenglik</b>: ${sorted[n - 1]} − ${sorted[0]} = <b>${sorted[n - 1] - sorted[0]}</b>, &nbsp; <b>dispersiya</b> ≈ <b>${r2(disp)}</b>, standart chetlanish ≈ <b>${r2(Math.sqrt(disp))}</b></div></div>`;
+    }
+    const inp = h("input", { type: "number", class: "oq-input", value: 4, "aria-label": "Qiymat" });
+    controls.append(h("label", { class: "ctl" }, h("span", {}, "Yangi qiymat (sonni bosib o‘chirish mumkin)"), inp));
+    controls.append(buttons(["＋ Qo‘shish", "Tasodifiy 10 ta baho"], (i) => {
+      if (i === 0) { const v = Number(inp.value); if (isFinite(v)) { data.push(v); render(); } }
+      else { data = Array.from({ length: 10 }, () => 2 + ((Math.random() * 4) | 0)); render(); }
+    }, -1));
+    render();
+  };
 })();

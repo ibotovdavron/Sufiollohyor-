@@ -357,3 +357,17 @@ b.v { color: #fde047; }
 .oq-mix .jar i { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, #38bdf8, #0ea5e9); opacity: 0.7; transition: height 0.4s; }
 .oq-mix .jar b, .oq-mix .jar small { position: relative; z-index: 1; font-weight: 900; text-shadow: 0 1px 3px #000; }
 .oq-mix .jar small { margin-bottom: 6px; color: #fde047; }
+.oq-combi { display: grid; gap: 8px; justify-items: center; }
+.oq-combi .row { display: flex; gap: 6px; font-size: 1.8rem; }
+.oq-combi small { color: var(--muted); }
+.oq-combi .grid { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; max-height: 200px; overflow: auto; }
+.oq-combi .grid i { font-style: normal; padding: 4px 8px; border-radius: 10px; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--line); font-size: 1.05rem; }
+.oq-data { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 12px; }
+.oq-data button { min-width: 38px; padding: 7px; border-radius: 10px; border: 1px solid var(--line); background: rgba(56, 189, 248, 0.12); color: #fff; font-weight: 800; font: inherit; cursor: pointer; }
+.oq-hist { display: flex; align-items: flex-end; justify-content: center; gap: 10px; min-height: 120px; }
+.oq-hist div { display: grid; justify-items: center; gap: 2px; }
+.oq-hist i { width: 34px; border-radius: 8px 8px 2px 2px; background: linear-gradient(180deg, #22c55e, #15803d); }
+.oq-hist small { color: var(--muted); font-size: 0.7rem; }
+.am-see { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.am-see > span { color: var(--muted); font-size: 0.85rem; font-weight: 700; margin-right: 4px; }
+.am-see a { padding: 6px 10px; border-radius: 10px; font-size: 0.82rem; font-weight: 700; background: rgba(245, 200, 76, 0.1); border: 1px solid rgba(245, 200, 76, 0.4); color: #fde68a; }

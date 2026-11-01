@@ -6,7 +6,7 @@
   const root = document.getElementById("amaliyApp");
   const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
-  const CLASS_ART = { "5": ["🔢", "#22c55e"], "6": ["➗", "#3b82f6"], "8": ["📐", "#a855f7"], "10": ["🌍", "#0ea5e9"], "oq": ["📗", "#f5c84c"] };
+  const CLASS_ART = { "5": ["🔢", "#22c55e"], "6": ["➗", "#3b82f6"], "8": ["📐", "#a855f7"], "10": ["🌍", "#0ea5e9"], "oq": ["📗", "#f5c84c"], "master": ["🏅", "#ef4444"] };
 
   function crumbs(parts) {
     return `<nav class="am-crumbs">${parts.map(([href, t], i) => i < parts.length - 1 ? `<a href="${href}">${esc(t)}</a><span>›</span>` : `<b>${esc(t)}</b>`).join("")}</nav>`;
@@ -101,7 +101,8 @@
         ${t.life ? `<section class="am-block life"><h2>${t.code ? "🎯 Nega kerak?" : "🌍 Hayotda qayerda uchraydi?"}</h2><div>${rich(t.life)}</div></section>` : ""}
         <section class="am-block"><h2>📖 Tushuntirish</h2><div class="am-text">${rich(t.explain)}</div>
           ${t.rule ? `<div class="am-rule">📌 ${rich(t.rule)}</div>` : ""}
-          ${t.tip ? `<div class="am-tip">⚠️ <b>Diqqat:</b> ${rich(t.tip)}</div>` : ""}</section>
+          ${t.tip ? `<div class="am-tip">⚠️ <b>Diqqat:</b> ${rich(t.tip)}</div>` : ""}
+          ${(t.see || []).length ? `<div class="am-see"><span>📗 Oq to‘plamda batafsil:</span>${t.see.map(([href, title]) => `<a href="${href}">${esc(title)}</a>`).join("")}</div>` : ""}</section>
         ${(t.demos || []).length ? `<section class="am-block demo-block"><h2>🔬 Jonli tajriba</h2><p class="muted">Tugma va surgichlarni o‘zgartiring — natija darhol o‘zgaradi.</p><div class="am-demos"></div></section>` : ""}
         ${(t.examples || []).length ? `<section class="am-block"><h2>✍️ Ishlangan misollar</h2><div class="am-examples"></div></section>` : ""}
         ${(t.quiz || []).length ? `<section class="am-block"><h2>✅ O‘zingizni sinang</h2><div class="am-quiz"></div></section>` : ""}
