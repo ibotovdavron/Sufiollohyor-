@@ -19,7 +19,7 @@ window.CENTER_DATA = {
   ],
 students: [
     {name:"Abdinazarova Shabnam", group:"5-sinf", stars:1, result:"Natija hali kiritilmagan"},
-    {name:"Abdujalilov Adhambek", group:"5-sinf", stars:16, result:"Natija hali kiritilmagan"},
+    {name:"Abdujalilov Adhambek", group:"5-sinf", stars:18, result:"Natija hali kiritilmagan"},
     {name:"Ilxomjonov Kamronbek", group:"5-sinf", stars:1, result:"Natija hali kiritilmagan"},
     {name:"Ismatullayev Samandarbek", group:"5-sinf", stars:1, result:"Natija hali kiritilmagan"},
     {name:"Jo‘rayeva Shoira", group:"5-sinf", stars:1, result:"Natija hali kiritilmagan"},
@@ -29,7 +29,7 @@ students: [
     {name:"Raxmatov Abubakr", group:"5-sinf", stars:1, result:"Natija hali kiritilmagan"},
     {name:"Saydullayev Alibek", group:"5-sinf", stars:1, result:"Natija hali kiritilmagan"},
     {name:"Uroqova Shahzoda", group:"5-sinf", stars:3, result:"Natija hali kiritilmagan"},
-    {name:"Xikmatullayev Nodir", group:"5-sinf", stars:11, result:"Natija hali kiritilmagan"},
+    {name:"Xikmatullayev Nodir", group:"5-sinf", stars:13, result:"Natija hali kiritilmagan"},
     {name:"Xursanov Samariddin", group:"5-sinf", stars:1, result:"Natija hali kiritilmagan"},
     {name:"Shamsullayev Sardor", group:"5-sinf", stars:1, result:"Natija hali kiritilmagan"},
     {name:"Shaymardonov Komronbek", group:"5-sinf", stars:1, result:"Natija hali kiritilmagan"},
