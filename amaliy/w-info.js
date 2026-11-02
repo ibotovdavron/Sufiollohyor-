@@ -43,7 +43,7 @@
     }
     function evalF(f, depth) {
       try {
-        let e = f.toUpperCase();
+        let e = f.replace(/"[^"]*"|[^"]+/g, (m) => (m[0] === '"' ? m : m.toUpperCase()));
         const nums = (args) => args.flatMap((a) => (a.includes(":") ? range(...a.split(":")).map((x) => val(x, depth)) : [calc(a)])).filter((x) => typeof x === "number");
         const calc = (expr) => evalF(expr, depth);
         // funksiyalar
@@ -68,7 +68,7 @@
             let depthQ = 0, cur = "";
             for (const ch of args) { if (ch === '"') depthQ ^= 1; if ((ch === ";" || ch === ",") && !depthQ) { parts.push(cur.trim()); cur = ""; } else cur += ch; }
             if (cur.trim() !== "") parts.push(cur.trim());
-            if (!fn[name]) throw new Error("#NOMA’LUM: " + name);
+            if (!fn[name]) throw new Error("#ИМЯ? (" + name + " — noma’lum funksiya)");
             const r = fn[name](parts);
             return typeof r === "number" ? "(" + r + ")" : JSON.stringify(r);
           });
@@ -77,6 +77,7 @@
         e = e.replace(/<>/g, "!=").replace(/(^|[^<>!=])=([^=])/g, "$1==$2").replace(/\^/g, "**").replace(/,/g, ".");
         if (/[^0-9+\-*/().\s<>=!"a-zA-Z_ʻ‘’']/.test(e)) throw new Error("#XATO");
         const r = Function('"use strict";return (' + e + ")")();
+        if (typeof r === "number" && !isFinite(r)) return "#ДЕЛ/0!";
         return typeof r === "boolean" ? r : typeof r === "number" ? Math.round(r * 1e6) / 1e6 : r;
       } catch (err) { return String(err.message || "#XATO").startsWith("#") ? err.message : "#XATO"; }
     }
@@ -135,7 +136,7 @@
   // =====================================================================
   W.htmlLive = (root, p) => {
     const { stage, controls, out } = frame(root, p.title || (p.mode === "js" ? "⌨️ JavaScript — kodni o‘zgartiring va “Ishga tushirish”ni bosing" : "🌐 HTML muharriri — chapda kod, o‘ngda natija"));
-    const ta = h("textarea", { class: "wi-code", spellcheck: "false", "aria-label": "Kod" });
+    const ta = h("textarea", { class: "wi-code", spellcheck: "false", wrap: "off", "aria-label": "Kod" });
     ta.value = p.code || "";
     const frameEl = h("iframe", { class: "wi-prev", sandbox: "allow-scripts", title: "Natija" });
     const con = h("pre", { class: "wi-console" });
@@ -150,7 +151,7 @@
           const started = Date.now();
           const fnc = new Function("console", "alert", "prompt", '"use strict";\n' + ta.value);
           const answers = (p.inputs || []).slice();
-          fnc(fake, (m) => logs.push("🔔 " + m), (q) => { const a = answers.length ? answers.shift() : ""; logs.push("❓ " + q + " → " + a); return a; });
+          fnc(fake, (m) => logs.push("🔔 " + m), (q) => { if (!answers.length) throw new Error("Kiritish uchun javoblar tugadi (prompt)"); const a = answers.shift(); logs.push("❓ " + q + " → " + a); return a; });
           if (Date.now() - started > 1500) logs.push("⏱ Juda uzoq ishladi");
           con.textContent = logs.join("\n") || "(hech narsa chiqarilmadi — console.log(...) yozing)";
           con.classList.remove("err");
