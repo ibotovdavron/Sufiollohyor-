@@ -59,6 +59,28 @@
     return g;
   }
 
+  // Hilol (oy) va besh burchakli yulduz — tik turgan yassi shakl
+  function crescentStar() {
+    const R = 0.17, d = 0.068, r = 0.142;
+    const xi = (R * R - r * r + d * d) / (2 * d), yi = Math.sqrt(R * R - xi * xi);
+    const a0 = Math.atan2(yi, xi), b0 = Math.atan2(yi, xi - d);
+    const moon = new T.Shape();
+    moon.absarc(0, 0, R, a0, Math.PI * 2 - a0, false);
+    moon.absarc(d, 0, r, Math.PI * 2 - b0, b0, true);
+    const star = new T.Shape();
+    const cx = 0.115, ro = 0.062, ri = 0.026;
+    for (let i = 0; i < 10; i++) {
+      const ang = Math.PI / 2 + (i * Math.PI) / 5, rr = i % 2 ? ri : ro;
+      const x = cx + Math.cos(ang) * rr, y = Math.sin(ang) * rr;
+      if (i) star.lineTo(x, y); else star.moveTo(x, y);
+    }
+    star.closePath();
+    const g = new T.ExtrudeGeometry([moon, star], { depth: 0.045, bevelEnabled: true, bevelThickness: 0.015, bevelSize: 0.012, bevelSegments: 3, curveSegments: 40 });
+    g.translate(-0.01, 0, -0.0225);
+    g.computeVertexNormals();
+    return g;
+  }
+
   function buildGeoms() {
     const G = {};
     for (const k of Object.keys(PROFILES)) G[k] = lathe(PROFILES[k]);
@@ -70,8 +92,8 @@
     G.ring = new T.TorusGeometry(0.2, 0.018, 12, 48);
     G.knight = knightHead();
     G.eye = new T.SphereGeometry(0.03, 12, 8);
-    G.crossV = new T.BoxGeometry(0.07, 0.28, 0.07);
-    G.crossH = new T.BoxGeometry(0.22, 0.07, 0.07);
+    G.crescent = crescentStar();
+    G.stem = new T.CylinderGeometry(0.03, 0.045, 0.1, 20);
     return G;
   }
 
@@ -118,8 +140,10 @@
       add(G.top, trim, 0, 1.17, 0);
     }
     if (type === "k") {
-      add(G.crossV, trim, 0, 1.33, 0);
-      add(G.crossH, trim, 0, 1.36, 0);
+      // Oy va yulduz
+      add(G.stem, trim, 0, 1.21, 0);
+      const cs = add(G.crescent, trim, 0, 1.42, 0);
+      cs.rotation.z = 0.35;
     }
     g.userData = { type, color };
     return g;

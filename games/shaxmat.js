@@ -27,7 +27,7 @@
   const isMehmon = (p) => !!p && (p.role === "guest" || p.cls === "Mehmon");
   const rtText = (p) => (isMehmon(p) ? "reytingsiz" : (p && p.rating) || START_RATING);
   const ratedGame = (S) => !!(S && S.players.w && S.players.b && !isMehmon(S.players.w) && !isMehmon(S.players.b));
-  const GLYPH = { w: { k: "♔", q: "♕", r: "♖", b: "♗", n: "♘", p: "♙" }, b: { k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟" } };
+  const GLYPH = { w: { k: "⚪", q: "♕", r: "♖", b: "♗", n: "♘", p: "♙" }, b: { k: "⚫", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟" } };
   const VALUE = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
   const REASONS = {
     mate: "Mat!", resign: "Taslim bo‘ldi", time: "Vaqt tugadi", stalemate: "Pat", repetition: "Uch marta takrorlanish",
@@ -45,7 +45,7 @@
   const loadLibs = () => libs || (libs = (async () => {
     if (!window.THREE) await loadScript("lib/three.min.js?v=149");
     if (!window.Chess) await loadScript("lib/chess.js?v=1");
-    if (!window.SofiBoard3D) await loadScript("games/chess3d.js?v=2");
+    if (!window.SofiBoard3D) await loadScript("games/chess3d.js?v=3");
   })().catch((e) => { libs = null; throw e; }));
 
   // ---------- Ovoz ----------
@@ -200,7 +200,7 @@
     }
     return `<button class="cs-room live" type="button" data-watch="${esc(r.code)}">
       <span class="cs-live-dot"></span>
-      <span class="cs-room-t"><b>♔ ${esc(short(r.w))} <i>vs</i> ♚ ${esc(short(r.b))}</b><small>${esc(r.wr || "")}–${esc(r.br || "")} · ${tcChip(r.tc)} · ${Math.ceil((r.ply || 0) / 2)}-yurish · 👁 ${r.viewers || 0}</small></span>
+      <span class="cs-room-t"><b>⚪ ${esc(short(r.w))} <i>vs</i> ⚫ ${esc(short(r.b))}</b><small>${esc(r.wr || "")}–${esc(r.br || "")} · ${tcChip(r.tc)} · ${Math.ceil((r.ply || 0) / 2)}-yurish · 👁 ${r.viewers || 0}</small></span>
       <span class="cs-room-go">${r.phase === "end" ? "Tugadi" : "👁 Kuzatish"}</span></button>`;
   }
   function bindRooms(box) {
@@ -297,9 +297,9 @@
           <div class="cs-chips" id="csTc">${TCS.map((t) => `<button type="button" class="cs-chip ${t.id === menuState.tc ? "on" : ""}" data-tc="${t.id}"><b>${esc(t.label)}</b><small>${esc(t.sub)}</small></button>`).join("")}</div>
           <div class="cs-label">Rangingiz</div>
           <div class="cs-chips" id="csCol">
-            <button type="button" class="cs-chip ${menuState.color === "w" ? "on" : ""}" data-col="w"><b>♔</b><small>Oq</small></button>
+            <button type="button" class="cs-chip ${menuState.color === "w" ? "on" : ""}" data-col="w"><b>⚪</b><small>Oq</small></button>
             <button type="button" class="cs-chip ${menuState.color === "r" ? "on" : ""}" data-col="r"><b>🎲</b><small>Tasodifiy</small></button>
-            <button type="button" class="cs-chip ${menuState.color === "b" ? "on" : ""}" data-col="b"><b>♚</b><small>Qora</small></button>
+            <button type="button" class="cs-chip ${menuState.color === "b" ? "on" : ""}" data-col="b"><b>⚫</b><small>Qora</small></button>
           </div>
           <button class="cs-btn gold big" id="csCreate" type="button">✨ Xona ochish</button>
           <form class="cs-code" id="csCode">
