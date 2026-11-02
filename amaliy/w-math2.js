@@ -217,7 +217,7 @@
     const E = ["AB", "BC", "CD", "DA", "A1B1", "B1C1", "C1D1", "D1A1", "AA1", "BB1", "CC1", "DD1"];
     const ends = (e) => { const m = e.match(/[A-D]1?/g); return [m[0], m[1]]; };
     let rot = 0.6, picked = [];
-    const proj = ([x, y, z]) => { const cx = x - 0.5, cy = y - 0.5; const X = cx * Math.cos(rot) - cy * Math.sin(rot), Y = cx * Math.sin(rot) + cy * Math.cos(rot); return [200 + X * 150, 190 - z * 150 + Y * 55]; };
+    const proj = ([x, y, z]) => { const cx = x - 0.5, cy = y - 0.5; const X = cx * Math.cos(rot) - cy * Math.sin(rot), Y = cx * Math.sin(rot) + cy * Math.cos(rot); return [200 + X * 140, 225 - z * 140 + Y * 50]; };
     function rel(e1, e2) {
       const [a, b] = ends(e1).map((k) => V[k]), [c, d] = ends(e2).map((k) => V[k]);
       const u = a.map((v, i) => b[i] - v), w = c.map((v, i) => d[i] - v);
