@@ -26,8 +26,10 @@ declare
   v_n int := 0;
   v_s text;
 begin
-  if encode(extensions.digest(coalesce(p_pin, ''), 'sha256'), 'hex')
-     <> '86fc699a4987c8f7b9f7d01f97863b3667206b5c43e02188c31aa50d51607a73' then
+  if encode(extensions.digest(coalesce(p_pin, ''), 'sha256'), 'hex') not in (
+       '86fc699a4987c8f7b9f7d01f97863b3667206b5c43e02188c31aa50d51607a73', -- umumiy ustoz paroli
+       '1136e4b62029095e629e1ca4d06643a5f325bc74e2702f5e2f9fa028048145de'  -- Raufov Azizbek
+     ) then
     raise exception 'Parol noto‘g‘ri';
   end if;
   if p_stars is null or p_stars = 0 or p_stars < -20 or p_stars > 20 then

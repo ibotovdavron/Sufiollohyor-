@@ -1,11 +1,11 @@
 /* So‘fi Ollohyor ilovasi: oflayn ishlash uchun kesh.
    Sahifalar — avval internetdan (yangi bo‘lsin), bo‘lmasa keshdan.
    Rasm, CSS, JS — keshdan tez beriladi va orqada yangilanadi. */
-const CACHE = "sofi-v7";
+const CACHE = "sofi-v8";
 const CORE = [
   "./", "index.html", "kurslar.html", "competitions.html", "teachers.html", "ranking.html",
   "games.html", "shop.html", "amaliy.html", "contact.html",
-  "style.css?v=14", "data.js?v=10", "app.js?v=6", "assets/markaz-logo.png", "assets/icons/icon-192.png"
+  "style.css?v=14", "data.js?v=11", "app.js?v=7", "assets/markaz-logo.png", "assets/icons/icon-192.png"
 ];
 
 self.addEventListener("install", (e) => {

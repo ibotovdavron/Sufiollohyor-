@@ -507,7 +507,12 @@
       async verify(person, pw) {
         pw = String(pw || "").trim();
         if (!pw) return false;
-        if (person.role === "teacher") return !!D.teacherPinHash && (await sha(pw)) === D.teacherPinHash;
+        if (person.role === "teacher") {
+          // Shaxsiy paroli bor ustoz faqat o'z paroli bilan kiradi, qolganlar — umumiy ustoz paroli bilan
+          const t = (D.teachers || []).find((x) => x.name === person.name);
+          const target = (t && t.pinHash) || D.teacherPinHash;
+          return !!target && (await sha(pw)) === target;
+        }
         const H = await loadHashes();
         const h = H[person.name];
         if (!h) return false;

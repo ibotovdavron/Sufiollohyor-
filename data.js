@@ -121,6 +121,7 @@ students: [
   // achievements — yutuq va sertifikatlar ro'yxati, quote — ustozning shiori.
   teachers: [
     {name:"Ibotov Davron", subject:"Matematika", title:"Matematika ustozi", bio:"Matematik.", icon:"🧮", photo:"", experience:"", achievements:[], quote:""},
+    {name:"Raufov Azizbek", subject:"Informatika va Matematika", title:"Informatika va matematika ustozi", bio:"Informatika va matematika fanlaridan saboq beradi.", icon:"💻", photo:"", experience:"", achievements:[], quote:"", pinHash:"1136e4b62029095e629e1ca4d06643a5f325bc74e2702f5e2f9fa028048145de"},
     {name:"Sheraliyev Jahongir", subject:"Ona tili", title:"Ona tili ustozi", bio:"Ona tili fanidan saboq beradi.", icon:"📝", photo:"", experience:"", achievements:["B+ sertifikat"], quote:""},
     {name:"Ustoz 3", subject:"Ingliz tili", bio:"Ustoz haqida ma’lumot keyin qo‘shiladi.", icon:"🇬🇧"},
     {name:"Ustoz 4", subject:"Ona tili", bio:"Ustoz haqida ma’lumot keyin qo‘shiladi.", icon:"📖"},

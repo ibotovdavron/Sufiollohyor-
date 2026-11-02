@@ -318,7 +318,8 @@
     if (teacherPin) return teacherPin;
     const v = prompt("Mavzuni ochish uchun ustoz parolini kiriting:");
     if (!v) return null;
-    if (D.teacherPinHash && (await sha256(v.trim())) !== D.teacherPinHash) { api.toast("Parol noto‘g‘ri.", "bad"); return null; }
+    const okPin = window.SofiAuth ? await window.SofiAuth.verify({ name: G.session.name, role: "teacher" }, v) : (await sha256(v.trim())) === D.teacherPinHash;
+    if (!okPin) { api.toast("Parol noto‘g‘ri.", "bad"); return null; }
     teacherPin = v.trim();
     return teacherPin;
   }
