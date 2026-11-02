@@ -88,7 +88,7 @@
       list.forEach((t, ti) => {
         const g = h("div", { class: "lt-term", style: `--d:${ti * 90}ms` });
         for (let i = 0; i < Math.min(Math.abs(t.k), 12); i++) {
-          g.append(h("span", { class: `lt-tile k${t.v || "1"} ${t.k < 0 ? "neg" : ""}`, style: `--c:${KIND[t.v][0]}` }, (t.k < 0 ? "−" : "") + KIND[t.v][1]));
+          g.append(h("span", { class: `lt-tile k${t.v || "1"} ${t.k < 0 ? "neg" : ""}`, style: `--c:${(KIND[t.v] || ["#a855f7", t.v])[0]}` }, (t.k < 0 ? "−" : "") + (KIND[t.v] || ["#a855f7", t.v])[1]));
         }
         g.append(h("small", {}, termStr(t.k, t.v, ti === 0)));
         wrap.append(g);

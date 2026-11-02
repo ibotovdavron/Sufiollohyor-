@@ -166,15 +166,21 @@
     const t = [];
     const re = /\s*(\d+(?:[.,]\d+)?|[+\-−×*x:/÷()])/gy;
     let m;
-    let pos = 0;
-    src = src.trim();
+    let pos = 0, neg = false;
+    src = src.trim().replace(/(\d) (?=\d{3}\b)/g, "$1");
     while (pos < src.length) {
       re.lastIndex = pos;
       m = re.exec(src);
       if (!m) return null;
       let tok = m[1];
-      if (/^\d/.test(tok)) t.push(Number(tok.replace(",", ".")));
-      else t.push({ "-": "−", "*": "×", x: "×", "/": ":", "÷": ":" }[tok] || tok);
+      if (/^\d/.test(tok)) { const v = Number(tok.replace(",", ".")); t.push(neg ? -v : v); neg = false; }
+      else {
+        const op = { "-": "−", "*": "×", x: "×", "/": ":", "÷": ":" }[tok] || tok;
+        const last = t[t.length - 1];
+        // unar minus: boshida yoki "(" va amal belgisidan keyin
+        if (op === "−" && (t.length === 0 || (typeof last !== "number" && last !== ")"))) neg = true;
+        else t.push(op);
+      }
       pos = re.lastIndex;
     }
     return t;

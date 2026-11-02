@@ -133,3 +133,8 @@
 .wi-isbn { display: flex; gap: 3px; flex-wrap: wrap; justify-content: center; font: 800 1.1rem ui-monospace, monospace; }
 .wi-isbn span { padding: 4px 7px; border-radius: 6px; background: rgba(255,255,255,.06); }
 .wi-mail .dbtn.ghost { color: #0f172a; background: #f1f5f9; border-color: #cbd5e1; }
+.m2-pascal { display: grid; gap: 4px; justify-items: center; font: 700 .9rem ui-monospace, monospace; }
+.m2-pascal div { display: flex; gap: 6px; opacity: .55; }
+.m2-pascal div.on { opacity: 1; }
+.m2-pascal span { min-width: 30px; padding: 3px 4px; text-align: center; border-radius: 6px; background: rgba(255,255,255,.06); }
+.m2-pascal div.on span { background: var(--green); color: #02130c; }
