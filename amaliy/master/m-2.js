@@ -175,7 +175,7 @@ window.MASTER = window.MASTER || [];
     explain: "<table class='oq-t'><tr><th>Shakl</th><th>Xossalari</th><th>Yuzi</th></tr><tr><td>Parallelogramm</td><td>qarama-qarshi tomonlar va burchaklar teng, diagonallar teng ikkiga bo‘linadi</td><td>a·h = ab sin α</td></tr><tr><td>To‘g‘ri to‘rtburchak</td><td>+ barcha burchaklar 90°, diagonallar teng</td><td>ab</td></tr><tr><td>Romb</td><td>+ barcha tomonlar teng, diagonallar perpendikulyar va bissektrisa</td><td>½d₁d₂ = a² sin α</td></tr><tr><td>Kvadrat</td><td>hammasi birga, d = a√2</td><td>a² = d²/2</td></tr><tr><td>Trapetsiya</td><td>faqat asoslar parallel, o‘rta chiziq m = (a + b)/2</td><td>m·h</td></tr></table><p><b>Har qanday to‘rtburchak:</b> burchaklar yig‘indisi 360°; S = ½d₁d₂ sin φ.</p><p><b>Parallelogramm diagonallari:</b> d₁² + d₂² = 2(a² + b²).</p><p><b>Teng yonli trapetsiya:</b> balandlik katta asosdan (a − b)/2 kesib oladi; diagonallar teng.</p><p><b>Aylana bilan:</b> atrofiga aylana chizish — qarama-qarshi burchaklar yig‘indisi 180°; ichiga — qarama-qarshi tomonlar yig‘indilari teng.</p>",
     rule: "Romb S = ½d₁d₂; trapetsiya S = (a + b)/2·h; parallelogramm S = ab sin α.",
     tip: "Romb tomoni diagonallar yarimlari orqali Pifagor bilan topiladi.",
-    demos: [{ type: "areaModel" }],
+    
     ex: [
       ["Romb diagonallari 10 va 24. Perimetri va yuzi?", ["Tomon: √(5² + 12²) = 13", "P = 52, S = ½·10·24 = 120"], "P = 52, S = 120"],
       ["Teng yonli trapetsiya asoslari 6 va 16, yon tomoni 13. Yuzi?", ["(16 − 6)/2 = 5", "h = √(169 − 25) = 12", "S = (6 + 16)/2·12 = 132"], "132"],

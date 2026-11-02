@@ -200,7 +200,7 @@ window.OQ = window.OQ || {};
     explain: "<p><b>Har qanday qavariq to‘rtburchak:</b> burchaklari yig‘indisi 360°; yuzi S = ½d₁d₂ sin φ (d — diagonallar, φ — ular orasidagi burchak).</p><p><b>To‘g‘ri to‘rtburchak</b> (tomonlar a, b):</p><ul><li>S = ab, P = 2(a + b).</li><li>Diagonallar teng: d = √(a² + b²), kesishish nuqtasida teng ikkiga bo‘linadi.</li></ul><p><b>Kvadrat</b> (tomon a):</p><ul><li>S = a² = [[d²/2]], P = 4a.</li><li>d = a√2; diagonallar perpendikulyar va burchaklar bissektrisasi.</li></ul>",
     rule: "To‘g‘ri to‘rtburchak: d = √(a² + b²). Kvadrat: d = a√2, S = d²/2.",
     tip: "Kvadrat yuzini diagonal orqali: S = d²/2 (d² emas!).",
-    demos: [{ type: "areaModel" }],
+    
     ex: [
       ["To‘g‘ri to‘rtburchak tomonlari 6 va 8. Diagonali?", ["d = √(36 + 64) = 10"], "10"],
       ["Kvadrat diagonali 6√2. Yuzi?", ["a = 6, S = 36 (yoki d²/2 = 72/2)"], "36"]
