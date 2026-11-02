@@ -16,7 +16,7 @@ window.AMALIY_YEAR = function (classId, subjectId, sec, list) {
   const sub = cls && cls.subjects.find((s) => s.id === subjectId);
   if (!sub) return;
   sub.topics.forEach((t) => { if (!t.sec) t.sec = "I chorak"; });
-  sub.note = "Yillik reja · 4 chorak";
+  sub.note = sub.yearNote || "Yillik reja · 4 chorak";
   list.forEach((t) => {
     if (Array.isArray(t)) {
       const [id, title, tag, life, explain, rule, ex, qz, demos] = t;
@@ -26,4 +26,14 @@ window.AMALIY_YEAR = function (classId, subjectId, sec, list) {
     }
     sub.topics.push({ sec, ...t });
   });
+};
+
+/** Yangi fan (masalan, 7-sinf Informatika) — bo'sh holda yaratib, keyin AMALIY_YEAR bilan to'ldiriladi. */
+window.AMALIY_SUBJ = function (classId, className, id, name, icon, color, note) {
+  let cls = window.AMALIY.classes.find((c) => c.id === classId);
+  if (!cls || !cls.subjects.find((x) => x.id === id)) window.AMALIY_ADD(classId, className, { id, name, icon, color, topics: [] });
+  cls = window.AMALIY.classes.find((c) => c.id === classId);
+  const sub = cls.subjects.find((x) => x.id === id);
+  if (note) sub.yearNote = note;
+  return sub;
 };
