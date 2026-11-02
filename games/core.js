@@ -11,7 +11,7 @@
   const TEACHER_TAB = "Ustoz";
   const CLASSES = [...new Set(STUDENTS.map((s) => s.cls))].sort((a, b) => parseInt(a) - parseInt(b)).concat(TEACHERS.length ? [TEACHER_TAB] : []);
   const PEOPLE = STUDENTS.concat(TEACHERS);
-  const LEVEL = { "5-sinf": 1, "6-sinf": 2, "6-B sinf": 2, "8-sinf": 3, "Ustoz": 3 };
+  const LEVEL = { "5-sinf": 1, "6-sinf": 2, "6-A sinf": 2, "8-sinf": 3, "Ustoz": 3 };
   const listeners = { msg: [], presence: [] };
 
   // Yulduz qoidalari: bitta o'yindan kuniga ko'pi bilan 2 ta yulduz.

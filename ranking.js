@@ -8,7 +8,7 @@
   const norm = (v) => String(v || "").trim().replace(/\s+/g, " ").toLocaleLowerCase("uz");
   const initials = (n) => n.split(/\s+/).map((p) => p[0]).join("").slice(0, 2).toUpperCase();
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const CLS = { "5-sinf": "#22c55e", "6-sinf": "#38bdf8", "6-B sinf": "#818cf8", "8-sinf": "#f59e0b" };
+  const CLS = { "5-sinf": "#22c55e", "6-sinf": "#38bdf8", "6-A sinf": "#818cf8", "8-sinf": "#f59e0b" };
 
   let rows = [];
   let cls = "all";
