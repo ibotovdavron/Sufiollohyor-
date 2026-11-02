@@ -7,6 +7,7 @@
 - `ranking.html` — reyting (32 ta kiritilgan o‘quvchi)
 - `results.html` — natijalar va test varaqasi namunasi
 - `schedule.html` — dars jadvali
+- `games.html` — o‘yinlar (Sirli quti, Poyga, Bilmasvoy, Zakovat, Matematika Master, Shashka)
 - `shop.html` — kitob, daftar, ruchka va o‘quv qurollari do‘koni
 - `about.html` — markaz haqida
 - `contact.html` — aloqa

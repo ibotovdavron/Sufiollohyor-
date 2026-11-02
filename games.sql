@@ -4,7 +4,7 @@
 create table if not exists public.game_stars (
   id bigserial primary key,
   student_name text not null check (char_length(student_name) between 3 and 80),
-  game text not null check (game in ('sirli-quti', 'poyga', 'bilmasvoy')),
+  game text not null check (game in ('sirli-quti', 'poyga', 'bilmasvoy', 'shashka')),
   stars int not null default 1 check (stars = 1),
   day date not null default (now() at time zone 'Asia/Tashkent')::date,
   created_at timestamptz not null default now()
@@ -36,7 +36,7 @@ declare
   v_day date := (now() at time zone 'Asia/Tashkent')::date;
   v_count int;
 begin
-  if p_game not in ('sirli-quti', 'poyga', 'bilmasvoy') then
+  if p_game not in ('sirli-quti', 'poyga', 'bilmasvoy', 'shashka') then
     raise exception 'Noma’lum o‘yin: %', p_game;
   end if;
 

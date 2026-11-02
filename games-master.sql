@@ -48,7 +48,7 @@ create policy master_winners_read on public.master_winners for select using (tru
 -- game_stars jadvaliga “master” o‘yinini ruxsat etish (g‘olib yulduzi shu yerga yoziladi)
 alter table public.game_stars drop constraint if exists game_stars_game_check;
 alter table public.game_stars add constraint game_stars_game_check
-  check (game in ('sirli-quti', 'poyga', 'bilmasvoy', 'master'));
+  check (game in ('sirli-quti', 'poyga', 'bilmasvoy', 'master', 'shashka'));
 
 -- O‘quvchi natijasini saqlash: faqat ochiq mavzuga, ko‘pi bilan 2 marta.
 -- Qaytaradi: urinish raqami (1 yoki 2), 0 — ruxsat yo‘q.
