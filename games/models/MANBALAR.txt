@@ -1,0 +1,5 @@
+Ferma o‘yinidagi 3D modellar
+- horse.bin — markaz direktori yuborgan ot modeli (Horse_023.OBJ, ZBrush), ixcham binar shaklga aylantirilgan.
+- cow.bin   — “Farm Animals Pack” (Quaternius), litsenziya: CC0 1.0 (jamoat mulki).
+              https://creativecommons.org/publicdomain/zero/1.0/
+              Ikki marta silliqlangan (Loop subdivision) va ixcham binar shaklga aylantirilgan.
