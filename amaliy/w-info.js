@@ -57,7 +57,7 @@
           ABS: (a) => Math.abs(calc(a[0])), SQRT: (a) => Math.sqrt(calc(a[0])), INT: (a) => Math.floor(calc(a[0])),
           IF: (a) => (calc(a[0]) ? calc(a[1]) : calc(a[2] || "0")),
           COUNTIF: (a) => { const cells = range(...a[0].split(":")); const c = a[1].replace(/"/g, ""); const m = c.match(/^(>=|<=|<>|>|<|=)?(.*)$/); const op = m[1] || "=", t = m[2]; return cells.filter((x) => { const v = val(x, depth), tv = isNaN(Number(t)) ? t : Number(t); return op === ">" ? v > tv : op === "<" ? v < tv : op === ">=" ? v >= tv : op === "<=" ? v <= tv : op === "<>" ? v != tv : v == tv; }).length; },
-          SUMIF: (a) => { const cells = range(...a[0].split(":")); const c = a[1].replace(/"/g, ""); const m = c.match(/^(>=|<=|<>|>|<|=)?(.*)$/); const op = m[1] || "=", t = Number(m[2]); return cells.reduce((sum, x) => { const v = val(x, depth); const ok = op === ">" ? v > t : op === "<" ? v < t : op === ">=" ? v >= t : op === "<=" ? v <= t : op === "<>" ? v != t : v == t; return sum + (ok && typeof v === "number" ? v : 0); }, 0); }
+          SUMIF: (a) => { const cells = range(...a[0].split(":")); const c = a[1].replace(/"/g, ""); const m = c.match(/^(>=|<=|<>|>|<|=)?(.*)$/); const op = m[1] || "=", t = isNaN(Number(m[2])) ? m[2] : Number(m[2]); const sumCells = a[2] ? range(...a[2].split(":")) : cells; return cells.reduce((sum, x, k) => { const v = val(x, depth); const sv = val(sumCells[k] || x, depth); const ok = op === ">" ? v > t : op === "<" ? v < t : op === ">=" ? v >= t : op === "<=" ? v <= t : op === "<>" ? v != t : v == t; return sum + (ok && typeof sv === "number" ? sv : 0); }, 0); }
         };
         // ichki funksiyalarni ichidan tashqariga hisoblash
         let guard = 0;
