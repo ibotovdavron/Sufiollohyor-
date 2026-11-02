@@ -28,7 +28,7 @@
       const db = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, { auth: { persistSession: false } });
       const bonus = {};
       let ok = false;
-      for (const table of ["question_winners", "game_stars"]) {
+      for (const table of ["question_winners", "game_stars", "teacher_stars"]) {
         const { data, error } = await db.from(table).select("student_name, stars");
         if (error) continue;
         ok = true;

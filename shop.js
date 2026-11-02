@@ -64,7 +64,7 @@
     if (!window.supabase || !cfg.SUPABASE_URL) return bonus;
     try {
       const db = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, { auth: { persistSession: false } });
-      for (const table of ["question_winners", "game_stars"]) {
+      for (const table of ["question_winners", "game_stars", "teacher_stars"]) {
         const { data, error } = await db.from(table).select("student_name, stars");
         if (error) continue;
         (data || []).forEach((r) => { const k = norm(r.student_name); bonus[k] = (bonus[k] || 0) + Number(r.stars || 0); });

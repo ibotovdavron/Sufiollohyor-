@@ -69,3 +69,16 @@
   .pf-ach { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .pf-cmp { grid-template-columns: 100px 1fr 40px; }
 }
+.pf-login.wide { max-width: 100%; margin: 22px 0 14px; }
+.pf-give, .pf-page main > .pf-card { margin-bottom: 14px; }
+.pf-give h3 { margin: 14px 0 8px; font-size: 15px; color: var(--muted); }
+.pf-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.pf-tabs button, .pf-mini { padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255, 255, 255, .05); color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+.pf-tabs button.on { background: var(--green, #00f59b); color: #02130c; border-color: transparent; }
+.pf-tabs button.neg.on { background: #f87171; color: #2a0505; }
+.pf-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; max-height: 300px; overflow: auto; padding: 4px; }
+.pf-pick button { padding: 9px 10px; border-radius: 12px; border: 1px solid var(--line); background: rgba(0, 0, 0, .2); color: #fff; font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.pf-pick button.on { background: rgba(0, 245, 155, .18); border-color: var(--green, #00f59b); font-weight: 800; }
+.pf-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+.pf-give .pf-btn { margin-top: 12px; width: 100%; }
+.pf-give .pf-select { margin-top: 6px; }

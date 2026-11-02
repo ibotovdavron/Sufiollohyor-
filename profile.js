@@ -36,16 +36,18 @@
   // ---------- Ma'lumotlar ----------
   async function loadServer() {
     const cfg = window.SUFIOLLOHYOR_CONFIG || {};
-    const out = { ok: false, game: [], qw: [], mres: [], mwin: [] };
+    const out = { ok: false, game: [], qw: [], mres: [], mwin: [], ts: [] };
     if (!window.supabase || !cfg.SUPABASE_URL) return out;
     try {
       const db = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, { auth: { persistSession: false } });
-      const [g, q, mr, mw] = await Promise.all([
+      const [g, q, mr, mw, ts] = await Promise.all([
         db.from("game_stars").select("student_name, game, stars, day, created_at"),
         db.from("question_winners").select("*"),
         db.from("master_results").select("student_name, topic, attempt, correct, points, seconds, created_at"),
-        db.from("master_winners").select("topic, student_name, points, awarded_at")
+        db.from("master_winners").select("topic, student_name, points, awarded_at"),
+        db.from("teacher_stars").select("student_name, stars, reason, teacher, created_at").order("created_at", { ascending: false })
       ]);
+      out.ts = ts.error ? [] : ts.data || [];
       out.game = g.error ? [] : g.data || [];
       out.qw = q.error ? [] : q.data || [];
       out.mres = mr.error ? [] : mr.data || [];
@@ -57,7 +59,7 @@
 
   function totals(srv) {
     const bonus = {};
-    srv.game.concat(srv.qw).forEach((r) => { const k = norm(r.student_name); bonus[k] = (bonus[k] || 0) + Number(r.stars || 1); });
+    srv.game.concat(srv.qw, srv.ts).forEach((r) => { const k = norm(r.student_name); bonus[k] = (bonus[k] || 0) + Number(r.stars || 1); });
     const rows = STUDENTS.map((s) => ({ ...s, total: s.base + (bonus[norm(s.name)] || 0) })).sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, "uz"));
     rows.forEach((r, i) => { r.rank = i && r.total === rows[i - 1].total ? rows[i - 1].rank : i + 1; });
     return rows;
@@ -97,6 +99,8 @@
     const byGame = {};
     myGame.forEach((r) => (byGame[r.game] = (byGame[r.game] || 0) + Number(r.stars || 1)));
     const qStars = myQ.reduce((a, r) => a + Number(r.stars || 1), 0);
+    const myT = srv.ts.filter((r) => norm(r.student_name) === k);
+    const tStars = myT.reduce((a, r) => a + Number(r.stars || 0), 0);
     const gStars = Object.values(byGame).reduce((a, b) => a + b, 0);
     // Shu qurilmadagi (internetga yozilmagan) o'yin yulduzlari
     let localG = 0;
@@ -104,10 +108,11 @@
 
     const parts = [
       ["📚", "Darslar va faollik", meRow.base, "#22c55e"],
+      ["👨‍🏫", "Ustoz bergan yulduzlar", tStars, "#0ea5e9"],
       ["🏆", "Musobaqalar (kunlik savol)", qStars, "#f59e0b"],
       ...Object.entries(GAME).map(([g, [ic, nm]]) => [ic, nm, byGame[g] || 0, g === "master" ? "#ef4444" : "#a78bfa"])
     ];
-    const sumParts = Math.max(1, parts.reduce((a, p) => a + p[2], 0));
+    const sumParts = Math.max(1, parts.reduce((a, p) => a + Math.max(0, p[2]), 0));
 
     // Faollik: so'nggi 30 kun
     const days = [];
@@ -116,6 +121,7 @@
     const perDay = Object.fromEntries(days.map((d) => [d, 0]));
     myGame.forEach((r) => { const d = String(r.day || r.created_at || "").slice(0, 10); if (d in perDay) perDay[d] += Number(r.stars || 1); });
     myQ.forEach((r) => { const d = String(r.created_at || r.day || "").slice(0, 10); if (d in perDay) perDay[d] += Number(r.stars || 1); });
+    myT.forEach((r) => { const d = String(r.created_at || "").slice(0, 10); if (d in perDay && r.stars > 0) perDay[d] += Number(r.stars); });
     const mres = srv.mres.filter((r) => norm(r.student_name) === k);
     mres.forEach((r) => { const d = String(r.created_at || "").slice(0, 10); if (d in perDay) perDay[d] += 0; });
     const actMax = Math.max(1, ...Object.values(perDay));
@@ -221,21 +227,86 @@
           <div class="pf-ach">${ach.map(([ic, nm, ok]) => `<div class="${ok ? "on" : ""}"><span>${ok ? ic : "🔒"}</span><small>${esc(nm)}</small></div>`).join("")}</div>
         </section>
 
+        ${myT.length ? `<section class="pf-card wide"><h2>👨‍🏫 Ustozlardan yulduzlar</h2><ul class="pf-list">${myT.slice(0, 15).map((r) => `<li><span>${esc(r.reason || "—")} <small class="pf-muted">· ${esc(r.teacher || "")} · ${String(r.created_at).slice(0, 10)}</small></span><b style="color:${r.stars > 0 ? "#22c55e" : "#f87171"}">${r.stars > 0 ? "+" : ""}${r.stars}</b></li>`).join("")}</ul></section>` : ""}
         ${meRow.result && !/hali kiritilmagan/i.test(meRow.result) ? `<section class="pf-card wide"><h2>📝 Ustoz izohi</h2><p>${esc(meRow.result)}</p></section>` : ""}
       </div>`;
     countUp($("#pfStars"), meRow.total);
   }
 
+  // ---------- Ustoz: yulduz qo'shish ----------
+  let pinCache = null;
   function teacherView(me) {
+    const classes = [...new Set(STUDENTS.map((s) => s.cls))];
+    let cls = classes[0];
+    const picked = new Set();
+    let amount = 1, reason = "Uy vazifasi";
+    const REASONS = ["Uy vazifasi", "Darsda faollik", "Test natijasi", "Olimpiada / musobaqa", "Namunali xulq", "Jarima (qoidabuzarlik)"];
     app.innerHTML = `
-      <section class="pf-login">
+      <section class="pf-login wide">
         <div class="pf-lock">👨‍🏫</div>
         <h1>Salom, <span>${esc(me.name)}</span></h1>
-        <p>Ustoz sifatida istalgan o‘quvchining profilini ko‘rishingiz mumkin.</p>
-        <select id="pfPick" class="pf-select">${STUDENTS.map((s) => `<option value="${esc(s.name)}">${esc(s.cls)} — ${esc(s.name)}</option>`).join("")}</select>
-        <button class="pf-btn" type="button" id="pfSee">👀 Profilni ko‘rish</button>
+        <p>O‘quvchilarga yulduz qo‘shing yoki istalgan o‘quvchining profilini ko‘ring.</p>
+      </section>
+      <section class="pf-card pf-give">
+        <h2>⭐ Yulduz berish</h2>
+        <div class="pf-tabs" id="pfCls"></div>
+        <div class="pf-pick" id="pfPick"></div>
+        <div class="pf-row"><button type="button" class="pf-mini" id="pfAll">Hammasini tanlash</button><button type="button" class="pf-mini" id="pfNone">Tozalash</button><span class="pf-muted" id="pfCount"></span></div>
+        <h3>Nechta yulduz?</h3>
+        <div class="pf-tabs" id="pfAmt">${[1, 2, 3, 5, 10, -1, -2].map((v) => `<button type="button" data-v="${v}" class="${v === amount ? "on" : ""} ${v < 0 ? "neg" : ""}">${v > 0 ? "+" : ""}${v} ⭐</button>`).join("")}</div>
+        <h3>Sabab</h3>
+        <div class="pf-tabs" id="pfWhy">${REASONS.map((r) => `<button type="button" class="${r === reason ? "on" : ""}">${esc(r)}</button>`).join("")}</div>
+        <input class="pf-select" id="pfWhyTxt" maxlength="100" placeholder="Yoki o‘z izohingizni yozing (ixtiyoriy)">
+        <button class="pf-btn" type="button" id="pfGive">⭐ Yulduz berish</button>
+        <p class="pf-muted" id="pfMsg"></p>
+      </section>
+      <section class="pf-card"><h2>🕘 So‘nggi berilgan yulduzlar</h2><div id="pfHist"><p class="pf-muted">Yuklanmoqda…</p></div></section>
+      <section class="pf-card">
+        <h2>👀 O‘quvchi profilini ko‘rish</h2>
+        <select id="pfSel" class="pf-select">${STUDENTS.map((s) => `<option value="${esc(s.name)}">${esc(s.cls)} — ${esc(s.name)}</option>`).join("")}</select>
+        <button class="pf-btn" type="button" id="pfSee">Profilni ochish</button>
       </section>`;
-    $("#pfSee").onclick = () => { const n = $("#pfPick").value; const s = STUDENTS.find((x) => x.name === n); profileView({ name: s.name, cls: s.cls }).then(() => app.insertAdjacentHTML("afterbegin", `<p class="pf-warn">👨‍🏫 Ustoz rejimi: ${esc(s.name)} profili. <a href="profile.html">← Boshqa o‘quvchi</a></p>`)); };
+    const drawPick = () => {
+      $("#pfCls").innerHTML = classes.map((c) => `<button type="button" data-c="${esc(c)}" class="${c === cls ? "on" : ""}">${esc(c)}</button>`).join("");
+      $("#pfPick").innerHTML = STUDENTS.filter((s) => s.cls === cls).map((s) => `<button type="button" data-n="${esc(s.name)}" class="${picked.has(s.name) ? "on" : ""}">${picked.has(s.name) ? "✓ " : ""}${esc(s.name)}</button>`).join("");
+      $("#pfCount").textContent = picked.size ? `${picked.size} ta o‘quvchi tanlandi` : "O‘quvchi tanlanmagan";
+    };
+    drawPick();
+    app.addEventListener("click", (e) => {
+      const c = e.target.closest("#pfCls [data-c]"); if (c) { cls = c.dataset.c; drawPick(); }
+      const n = e.target.closest("#pfPick [data-n]"); if (n) { picked.has(n.dataset.n) ? picked.delete(n.dataset.n) : picked.add(n.dataset.n); drawPick(); }
+      const v = e.target.closest("#pfAmt [data-v]"); if (v) { amount = +v.dataset.v; app.querySelectorAll("#pfAmt button").forEach((b) => b.classList.toggle("on", b === v)); }
+      const w = e.target.closest("#pfWhy button"); if (w) { reason = w.textContent; app.querySelectorAll("#pfWhy button").forEach((b) => b.classList.toggle("on", b === w)); $("#pfWhyTxt").value = ""; }
+    });
+    $("#pfAll").onclick = () => { STUDENTS.filter((s) => s.cls === cls).forEach((s) => picked.add(s.name)); drawPick(); };
+    $("#pfNone").onclick = () => { picked.clear(); drawPick(); };
+    $("#pfSee").onclick = () => { const s = STUDENTS.find((x) => x.name === $("#pfSel").value); profileView({ name: s.name, cls: s.cls }).then(() => app.insertAdjacentHTML("afterbegin", `<p class="pf-warn">👨‍🏫 Ustoz rejimi: ${esc(s.name)} profili. <a href="profile.html">← Ustoz paneli</a></p>`)); };
+    const history = async () => {
+      const srv = await loadServer();
+      const box = $("#pfHist");
+      if (!box) return;
+      box.innerHTML = srv.ts.length ? `<ul class="pf-list">${srv.ts.slice(0, 25).map((r) => `<li><span><b>${esc(r.student_name)}</b> <small class="pf-muted">· ${esc(r.reason || "")} · ${esc(r.teacher || "")} · ${String(r.created_at).slice(5, 16).replace("T", " ")}</small></span><b style="color:${r.stars > 0 ? "#22c55e" : "#f87171"}">${r.stars > 0 ? "+" : ""}${r.stars}</b></li>`).join("")}</ul>` : `<p class="pf-muted">${srv.ok ? "Hali yulduz berilmagan." : "Internet bazasiga ulanib bo‘lmadi."}</p>`;
+    };
+    history();
+    $("#pfGive").onclick = async () => {
+      const msg = $("#pfMsg");
+      if (!picked.size) { msg.textContent = "Avval o‘quvchini tanlang."; return; }
+      const why = $("#pfWhyTxt").value.trim() || reason;
+      if (!confirm(`${picked.size} ta o‘quvchiga ${amount > 0 ? "+" : ""}${amount} ⭐ (${why}). Tasdiqlaysizmi?`)) return;
+      if (!pinCache) { const p = prompt("Tasdiqlash uchun ustoz parolini kiriting:"); if (!p) return; pinCache = p.trim(); }
+      const cfg = window.SUFIOLLOHYOR_CONFIG || {};
+      try {
+        const db = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, { auth: { persistSession: false } });
+        const { data, error } = await db.rpc("teacher_add_stars", { p_pin: pinCache, p_teacher: me.name, p_students: [...picked], p_stars: amount, p_reason: why });
+        if (error) throw error;
+        msg.innerHTML = `✅ ${data} ta o‘quvchiga ${amount > 0 ? "+" : ""}${amount} ⭐ berildi. Reyting, do‘kon va profillarda darhol ko‘rinadi.`;
+        picked.clear(); drawPick(); history();
+      } catch (e) {
+        const t = String(e.message || e);
+        if (/parol/i.test(t)) pinCache = null;
+        msg.textContent = /teacher_add_stars|function|schema cache/i.test(t) ? "⚠️ Supabase’da teacher-stars.sql hali ishga tushirilmagan." : "Xatolik: " + t;
+      }
+    };
   }
 
   function render() {
