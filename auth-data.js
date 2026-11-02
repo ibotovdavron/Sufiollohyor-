@@ -64,5 +64,17 @@ window.SOFI_PW = {
  "Suvonova Mehribon": "6f3f6cb2fd00de8988504a2f7eb6fca6d6f9a8e058f8899886813a2c3efc4faf",
  "Uralova Mahbuba": "70b011942d886a786939b50c4d5a9ebcc02249f3a759f184167aed868f8de319",
  "Xursanov Xumoyiddin": "51bc6d605fe3aece65774fdd03e9ad50a93ba5a2aac9e7e17af4de4287ed38e3",
- "Haqnazarova Munisa": "843b46ed416affad760903f40bafdc3f98ae777c8c3b59efbc455b55168101cd"
+ "Haqnazarova Munisa": "843b46ed416affad760903f40bafdc3f98ae777c8c3b59efbc455b55168101cd",
+ "Amonov Doniyor": "f5f5d9aa213396a5f5aca0a56e71a0d2e1d8ffb119a1093fbef383ababc9735e",
+ "Axrorova Durdona": "2ed81594e6739aa86b59e97a4645d159d2a73f28e2acea54f9218d0401f7ca33",
+ "Ibragimov Alibek": "4b5aa20e23a933d6c148a5565eea2f61fadd259c75a825eeee5ad4ac867b0cf0",
+ "Ilhomjonova Shodiyona": "cf5f381f0ef56890c99890d99ac4a9db67c2ccce36d9403e6deb9dd6046e2ce2",
+ "Karamatov Abdulloh": "931c8441ff7b1fa4f3f27244d20d16a84c863af7ba47dd8563a217dc699bbd1e",
+ "Matyoqubova Xafiza": "964f607cd1e722527fee3a7028cc37ade9b2b1498d674c89fad05dc99cb44bac",
+ "Melimuradov Behruz": "42f4bd3df55783959cbd7da6bebe963e8d5f1b38465311f11eeaff986a03cf88",
+ "Mo‘minov Asliddin": "8fa566c4a51725709016a737ef4728a8bd6be7accc36934bd9bd4a841111accf",
+ "Qudratova Munisaxon": "ff4310c9e52532b637eeda7d16778c3fe30061cc620848921a748d3608faca85",
+ "Saidmurodov Nurmuhammad": "5526b119f006db9dafcc46828b01409fd1c94a8ab534263e692c2745cd66c593",
+ "Sattarov Bekzod": "af6e9c5fe2485f8eeb034beadac2035421af0fb3c512f1b4fcc6bfad5d2f588c",
+ "Xoliqova Jasmina": "c2be7f70505a5fe8f64c81d862feda5c495b0e13781ed98891e2e462525d5886"
 };

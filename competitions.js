@@ -8,7 +8,7 @@
   const fmt = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
   const norm = (v) => String(v || "").trim().replace(/\s+/g, " ").toLocaleLowerCase("uz");
   const first = (name) => name.split(" ")[1] || name;
-  const CLASS_COLORS = { "5-sinf": ["#22c55e", "#14532d"], "6-sinf": ["#3b82f6", "#1e3a8a"], "8-sinf": ["#f97316", "#7c2d12"] };
+  const CLASS_COLORS = { "5-sinf": ["#22c55e", "#14532d"], "6-sinf": ["#3b82f6", "#1e3a8a"], "6-B sinf": ["#818cf8", "#312e81"], "8-sinf": ["#f97316", "#7c2d12"] };
   const RUNNERS = ["🏃", "🏃‍♀️", "🏃‍♂️"];
 
   let students = (D.students || []).map((s) => ({ name: s.name, cls: s.group, stars: Number(s.stars) || 0 }));

@@ -493,7 +493,7 @@
     const sha = async (t) => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t)))].map((b) => b.toString(16).padStart(2, "0")).join("");
     const loadHashes = () => window.SOFI_PW ? Promise.resolve(window.SOFI_PW) : new Promise((res) => {
       const sc = document.createElement("script");
-      sc.src = "auth-data.js?v=1";
+      sc.src = "auth-data.js?v=2";
       sc.onload = () => res(window.SOFI_PW || {});
       sc.onerror = () => res({});
       document.head.appendChild(sc);
