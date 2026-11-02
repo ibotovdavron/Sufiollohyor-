@@ -1,0 +1,69 @@
+/* SHASHKA 2D — shaxmat oynasi (cs-*) ustiga qo'shimcha: yog'och taxta va donalar */
+
+/* ---------- Karta ---------- */
+.sh-card { border-color: rgba(214, 150, 80, .5) !important;
+  background:
+    radial-gradient(circle at 78% 30%, rgba(255, 170, 80, .22), transparent 45%),
+    radial-gradient(circle at 10% 100%, rgba(224, 180, 74, .16), transparent 40%),
+    linear-gradient(140deg, #1a0f08, #2a1a10 55%, #1d130b) !important; }
+.sh-card .cs-card-body h2 span { background: linear-gradient(90deg, #ffe7c2, #f0a85a 60%, #ffd36b); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.sh-card .cs-card-body p { color: #e3cdb6; }
+.sh-card .g-feats span { border-color: rgba(240, 168, 90, .4); color: #f7c993; }
+.sh-art { position: relative; height: 190px; display: grid; place-items: center; perspective: 700px; }
+.sh-art-board { width: 168px; height: 168px; border-radius: 10px; transform: rotateX(55deg) rotateZ(-28deg);
+  background: conic-gradient(#6b3a1f 25%, #f0d9b5 0 50%, #6b3a1f 0 75%, #f0d9b5 0) 0 0 / 42px 42px;
+  box-shadow: 0 0 0 8px #3a2212, 0 0 0 10px rgba(240, 168, 90, .7), 0 40px 60px rgba(0, 0, 0, .6); animation: shSpin 16s linear infinite; }
+@keyframes shSpin { to { transform: rotateX(55deg) rotateZ(332deg); } }
+.sh-art .d { position: absolute; width: 54px; height: 54px; border-radius: 50%; animation: csBob 3.2s ease-in-out infinite; box-shadow: 0 6px 0 rgba(0, 0, 0, .35), 0 16px 20px rgba(0, 0, 0, .5); }
+.sh-art .d.w { left: calc(50% - 64px); top: 40px; background: radial-gradient(circle at 35% 30%, #fffdf6, #e8dcc4 60%, #c9b590); }
+.sh-art .d.b { left: calc(50% + 8px); top: 28px; animation-delay: -1.6s; background: radial-gradient(circle at 35% 30%, #6b5a52, #2a1e1a 60%, #120c0a); }
+.sh-art .d.b::after { content: "👑"; position: absolute; inset: 0; display: grid; place-items: center; font-size: 22px; }
+
+/* ---------- Taxta ---------- */
+.cs.sh { background: radial-gradient(circle at 50% 0%, #3a2414, #140b05 60%, #070402); }
+.cs.sh .cs-3d { display: grid; place-items: center; background: radial-gradient(ellipse at 50% 40%, rgba(255, 170, 80, .1), transparent 60%); border-color: rgba(240, 168, 90, .15); touch-action: manipulation; }
+.sh-wrap { position: absolute; inset: 0; display: grid; place-items: center; }
+.sh-frame { position: relative; padding: 4.2%; box-sizing: border-box; border-radius: 16px;
+  background: linear-gradient(135deg, #5a3317, #8a5428 40%, #5a3317 70%, #3d220e);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .18), inset 0 -3px 0 rgba(0, 0, 0, .35), 0 30px 60px rgba(0, 0, 0, .6); }
+.sh-board { position: relative; width: 100%; height: 100%; border-radius: 4px; overflow: hidden; box-shadow: 0 0 0 2px #2a170a; cursor: pointer; user-select: none; -webkit-user-select: none; }
+.sh-cells { position: absolute; inset: 0; display: grid; grid-template: repeat(8, 1fr) / repeat(8, 1fr); }
+.sh-cells i.l { background: linear-gradient(135deg, #f3dfbd, #e8cfa4); }
+.sh-cells i.d { background: linear-gradient(135deg, #8a5a34, #6e4424); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .08); }
+.sh-coords { position: absolute; display: flex; pointer-events: none; color: #f3d9b1; font: 700 clamp(8px, 1.6vmin, 12px)/1 Inter, system-ui, sans-serif; opacity: .85; }
+.sh-coords.f { left: 4.2%; right: 4.2%; bottom: 0.6%; height: 3.6%; }
+.sh-coords.r { top: 4.2%; bottom: 4.2%; left: 0.8%; width: 3.4%; flex-direction: column; }
+.sh-coords span { flex: 1; display: grid; place-items: center; }
+.sh-marks, .sh-pieces { position: absolute; inset: 0; pointer-events: none; }
+.sh-marks i { position: absolute; left: 0; top: 0; width: 12.5%; height: 12.5%; }
+.sh-marks i.last { background: rgba(255, 214, 90, .32); }
+.sh-marks i.sel { background: rgba(0, 245, 155, .35); box-shadow: inset 0 0 0 3px rgba(0, 245, 155, .9); }
+.sh-marks i.must { box-shadow: inset 0 0 0 3px #ff7a45; animation: shMust 1s ease-in-out infinite; }
+@keyframes shMust { 50% { box-shadow: inset 0 0 0 5px rgba(255, 122, 69, .45); } }
+.sh-marks i.dot::after { content: ""; position: absolute; inset: 36%; border-radius: 50%; background: rgba(0, 245, 155, .75); box-shadow: 0 0 12px rgba(0, 245, 155, .8); }
+.sh-marks i.cap { background: radial-gradient(circle, rgba(255, 80, 60, .0) 45%, rgba(255, 80, 60, .55) 47%, rgba(255, 80, 60, 0) 70%); }
+.sh-marks i.cap::after { content: ""; position: absolute; inset: 34%; border-radius: 50%; background: rgba(255, 90, 60, .85); }
+
+.sh-pc { position: absolute; left: 0; top: 0; width: 12.5%; height: 12.5%; display: grid; place-items: center; transition: transform .24s cubic-bezier(.3, .8, .3, 1), opacity .3s; z-index: 1; }
+.sh-pc.moving { z-index: 3; }
+.sh-pc .disc { position: relative; width: 80%; height: 80%; border-radius: 50%; display: grid; place-items: center; }
+.sh-pc.w .disc { background: radial-gradient(circle at 35% 28%, #fffef9, #efe5d0 55%, #cdb994 100%);
+  box-shadow: inset 0 -3px 0 rgba(120, 90, 50, .35), 0 3px 0 #a8916a, 0 5px 0 #8b7550, 0 8px 10px rgba(0, 0, 0, .45); }
+.sh-pc.b .disc { background: radial-gradient(circle at 35% 28%, #6e5c54, #2c201c 55%, #120c0a 100%);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .5), 0 3px 0 #0b0706, 0 5px 0 #050302, 0 8px 10px rgba(0, 0, 0, .55); }
+.sh-pc .disc::before { content: ""; position: absolute; inset: 14%; border-radius: 50%; border: 2px solid rgba(0, 0, 0, .14); }
+.sh-pc.b .disc::before { border-color: rgba(255, 255, 255, .1); }
+.sh-pc .crown { display: none; width: 52%; height: 52%; color: #d8a01c; filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .4)); }
+.sh-pc.b .crown { color: #f5c84c; }
+.sh-pc.king .crown { display: block; }
+.sh-pc .crown svg { width: 100%; height: 100%; }
+.sh-pc.ghost { opacity: .45; }
+.sh-pc.gone { opacity: 0; }
+.sh-pc.gone .disc { transform: scale(.4); transition: transform .35s; }
+.sh-pc.promo .disc { animation: shPromo .7s ease-out; }
+@keyframes shPromo { 0% { transform: scale(1); } 40% { transform: scale(1.25); box-shadow: 0 0 0 6px rgba(245, 200, 76, .7), 0 8px 10px rgba(0, 0, 0, .45); } 100% { transform: scale(1); } }
+
+.sh-caps { display: inline-flex; align-items: center; gap: 4px; }
+.sh-mini { display: inline-block; width: 12px; height: 12px; border-radius: 50%; }
+.sh-mini.w { background: radial-gradient(circle at 35% 30%, #fff, #cdb994); }
+.sh-mini.b { background: radial-gradient(circle at 35% 30%, #6e5c54, #120c0a); box-shadow: 0 0 0 1px rgba(255, 255, 255, .3); }
