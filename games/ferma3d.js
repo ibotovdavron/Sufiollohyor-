@@ -306,11 +306,19 @@ if (aTW > 0.0) { vec3 tp = uTailP; float ta = uTail * aTW; tPos = rotZ(tPos - tp
   }
   const buildRealHorse = (v) => buildReal(HORSE, v);
 
-  // ---------- Haqiqiy sigir modeli (Quaternius “Farm Animals”, CC0; silliqlangan) ----------
-  let COW = null, cowPromise = null;
-  function preloadCow() {
-    if (cowPromise) return cowPromise;
-    cowPromise = fetch("games/models/cow.bin?v=1").then((r) => { if (!r.ok) throw new Error("cow"); return r.arrayBuffer(); }).then((buf) => {
+  // ---------- Quaternius “Farm Animals” (CC0) modellari: sigir va qo'y (silliqlangan) ----------
+  // Fayl: nV, nI, k, nP | pozitsiya int16 | material uint8 | asl indeks uint16 | uchburchaklar uint16
+  const hash3 = (x, y, z) => { const h = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453; return h - Math.floor(h); };
+  function vnoise(x, y, z) {
+    const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z), xf = x - xi, yf = y - yi, zf = z - zi;
+    const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf), w = zf * zf * (3 - 2 * zf);
+    let r = 0;
+    for (let dx = 0; dx < 2; dx++) for (let dy = 0; dy < 2; dy++) for (let dz = 0; dz < 2; dz++)
+      r += hash3(xi + dx, yi + dy, zi + dz) * (dx ? u : 1 - u) * (dy ? v : 1 - v) * (dz ? w : 1 - w);
+    return r;
+  }
+  function loadQ(url, cfg) {
+    return fetch(url).then((r) => { if (!r.ok) throw new Error(url); return r.arrayBuffer(); }).then((buf) => {
       const dv = new DataView(buf), nV = dv.getUint32(0, true), nI = dv.getUint32(4, true), k = dv.getFloat32(8, true), nP = dv.getUint32(12, true);
       let o = 16;
       const q = new Int16Array(buf, o, nV * 3); o += nV * 6;
@@ -319,51 +327,93 @@ if (aTW > 0.0) { vec3 tp = uTailP; float ta = uTail * aTW; tPos = rotZ(tPos - tp
       const ind = new Uint16Array(buf, o, nI);
       const pos = new Float32Array(nV * 3);
       for (let i = 0; i < q.length; i++) pos[i] = q[i] * k;
+      const a = new T.Vector3(), b = new T.Vector3(), c = new T.Vector3();
       // Silliq normal: bir joydagi uchlar (rang chegarasida ham) bitta normalga ega
-      const acc = new Float32Array(nP * 3), a = new T.Vector3(), b = new T.Vector3(), c = new T.Vector3();
-      for (let t = 0; t < nI; t += 3) {
-        const i0 = ind[t], i1 = ind[t + 1], i2 = ind[t + 2];
-        a.fromArray(pos, i0 * 3); b.fromArray(pos, i1 * 3); c.fromArray(pos, i2 * 3);
-        b.sub(a); c.sub(a); b.cross(c);
-        [i0, i1, i2].forEach((i) => { const j = orig[i] * 3; acc[j] += b.x; acc[j + 1] += b.y; acc[j + 2] += b.z; });
+      const smooth = () => {
+        const acc = new Float32Array(nP * 3);
+        for (let t = 0; t < nI; t += 3) {
+          const i0 = ind[t], i1 = ind[t + 1], i2 = ind[t + 2];
+          a.fromArray(pos, i0 * 3); b.fromArray(pos, i1 * 3); c.fromArray(pos, i2 * 3);
+          b.sub(a); c.sub(a); b.cross(c);
+          [i0, i1, i2].forEach((i) => { const j = orig[i] * 3; acc[j] += b.x; acc[j + 1] += b.y; acc[j + 2] += b.z; });
+        }
+        const nrm = new Float32Array(nV * 3);
+        for (let i = 0; i < nV; i++) { a.fromArray(acc, orig[i] * 3).normalize(); a.toArray(nrm, i * 3); }
+        return nrm;
+      };
+      let nrm = smooth();
+      const shade = new Float32Array(nV).fill(1);
+      if (cfg.wool) {
+        // Jun: oq qismlarga mayda bo'rtiqlar (bir joydagi uchlar bir xil siljiydi)
+        const disp = new Float32Array(nP), done = new Uint8Array(nP);
+        for (let i = 0; i < nV; i++) {
+          const j = orig[i];
+          if (done[j]) continue;
+          done[j] = 1;
+          const x = pos[i * 3], y = pos[i * 3 + 1], z = pos[i * 3 + 2];
+          if (!cfg.wool(x, y, z, matId[i])) continue;
+          const n = vnoise(x * 18, y * 18, z * 18) * 0.65 + vnoise(x * 41, y * 41, z * 41) * 0.35;
+          disp[j] = (n - 0.35) * cfg.woolAmp;
+        }
+        for (let i = 0; i < nV; i++) {
+          const d = disp[orig[i]];
+          if (!d) continue;
+          pos[i * 3] += nrm[i * 3] * d; pos[i * 3 + 1] += nrm[i * 3 + 1] * d; pos[i * 3 + 2] += nrm[i * 3 + 2] * d;
+          shade[i] = 0.86 + (d / cfg.woolAmp + 0.35) * 0.2;
+        }
+        nrm = smooth();
       }
-      const nrm = new Float32Array(nV * 3);
-      for (let i = 0; i < nV; i++) { a.fromArray(acc, orig[i] * 3).normalize(); a.toArray(nrm, i * 3); }
       const geo = new T.BufferGeometry();
       geo.setAttribute("position", new T.BufferAttribute(pos, 3));
       geo.setAttribute("normal", new T.BufferAttribute(nrm, 3));
       geo.setIndex(new T.BufferAttribute(ind, 1));
-      const PIV_Y = [0.76, 0.76, 0.82, 0.82], pivZ = [0.43, 0.43, -1.16, -1.16];
       const leg = new Float32Array(nV * 4), lw = new Float32Array(nV), hw = new Float32Array(nV), tw = new Float32Array(nV);
       const ss = (e0, e1, v) => { const t = Math.max(0, Math.min(1, (v - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
       for (let i = 0; i < nV; i++) {
         const x = pos[i * 3], y = pos[i * 3 + 1], z = pos[i * 3 + 2];
-        const tail = z < -1.4 && Math.abs(x) < 0.12, udder = Math.abs(x) < 0.17 && z > -0.98 && z < -0.5 && y < 0.7;
-        if (tail) tw[i] = ss(1.58, 1.05, y);
-        else if (!udder) { const L = (z > -0.4 ? 0 : 2) + (x > 0 ? 1 : 0); leg[i * 4 + L] = 1; lw[i] = ss(PIV_Y[L] - 0.02, PIV_Y[L] - 0.3, y); }
-        hw[i] = z > 0.72 && y > 0.95 ? ss(0.72, 1.12, z) : 0;
+        const r = cfg.region(x, y, z);
+        if (r === "tail") tw[i] = ss(cfg.tailP[1], cfg.tailP[1] - 0.5, y);
+        else if (r !== "skip") { const L = (z > cfg.split ? 0 : 2) + (x > 0 ? 1 : 0); leg[i * 4 + L] = 1; lw[i] = ss(cfg.pivY[L] - 0.02, cfg.pivY[L] - cfg.legBlend, y); }
+        hw[i] = z > cfg.head[0] && y > cfg.head[1] ? ss(cfg.head[0], cfg.head[2], z) : 0;
       }
       geo.setAttribute("aLeg", new T.BufferAttribute(leg, 4));
       geo.setAttribute("aLW", new T.BufferAttribute(lw, 1));
       geo.setAttribute("aHW", new T.BufferAttribute(hw, 1));
       geo.setAttribute("aTW", new T.BufferAttribute(tw, 1));
-      // 2 xil: qora-oq (golshtin) va jigarrang-oq
-      const PAL = [[0xf3f0e8, 0x1b1917, 0xe8a0a4], [0xf3ece0, 0x6b3a1c, 0xe8a0a4]];
-      const geos = PAL.map((pal) => {
+      const geos = cfg.palettes.map((pal) => {
         const cl = pal.map((h) => new T.Color(h)), col = new Float32Array(nV * 3);
-        for (let i = 0; i < nV; i++) { const cc = cl[matId[i]] || cl[0]; col[i * 3] = cc.r; col[i * 3 + 1] = cc.g; col[i * 3 + 2] = cc.b; }
+        for (let i = 0; i < nV; i++) { const cc = cl[matId[i]] || cl[0], sh = shade[i]; col[i * 3] = cc.r * sh; col[i * 3 + 1] = cc.g * sh; col[i * 3 + 2] = cc.b * sh; }
         const g2 = geo.clone(); g2.setAttribute("color", new T.BufferAttribute(col, 3)); return g2;
       });
-      COW = { geos, pivZ: new T.Vector4(...pivZ), pivY: new T.Vector4(...PIV_Y), headP: new T.Vector3(0, 1.35, 0.72), tailP: new T.Vector3(0, 1.58, -1.5),
-        shadow: [1.6, 3.4], speed: 0.9, step: 6, size: 1.85, rough: 0.62, legAmp: 0.7 };
-      return COW;
-    }).catch((e) => { console.warn("Sigir modeli yuklanmadi:", e); cowPromise = null; return null; });
-    return cowPromise;
+      return { geos, pivZ: new T.Vector4(...cfg.pivZ), pivY: new T.Vector4(...cfg.pivY), headP: new T.Vector3(0, cfg.headP[0], cfg.headP[1]), tailP: new T.Vector3(0, cfg.tailP[1], cfg.tailP[0]), ...cfg.look };
+    }).catch((e) => { console.warn("Model yuklanmadi:", url, e); return null; });
   }
-  let horseN = 0, cowN = 0;
+  let COW = null, SHEEP = null, qPromise = null;
+  function preloadQ() {
+    if (qPromise) return qPromise;
+    qPromise = Promise.all([
+      loadQ("games/models/cow.bin?v=1", {
+        pivY: [0.76, 0.76, 0.82, 0.82], pivZ: [0.43, 0.43, -1.16, -1.16], split: -0.4, legBlend: 0.3,
+        region: (x, y, z) => (z < -1.4 && Math.abs(x) < 0.12 ? "tail" : Math.abs(x) < 0.17 && z > -0.98 && z < -0.5 && y < 0.7 ? "skip" : "leg"),
+        head: [0.72, 0.95, 1.12], headP: [1.35, 0.72], tailP: [-1.5, 1.58],
+        palettes: [[0xf3f0e8, 0x1b1917, 0xe8a0a4], [0xf3ece0, 0x6b3a1c, 0xe8a0a4]],
+        look: { shadow: [1.6, 3.4], speed: 0.9, step: 6, size: 1.85, rough: 0.62, legAmp: 0.7 }
+      }),
+      loadQ("games/models/sheep.bin?v=1", {
+        pivY: [0.46, 0.46, 0.46, 0.46], pivZ: [0.19, 0.19, -0.64, -0.64], split: -0.22, legBlend: 0.2,
+        region: () => "leg",
+        head: [0.45, 0.72, 0.7], headP: [0.9, 0.42], tailP: [-0.8, 0.95],
+        wool: (x, y, z, m) => m === 0 && y > 0.38, woolAmp: 0.05,
+        palettes: [[0xf1ebdd, 0x1f1b18], [0xe9dfca, 0x2a221d], [0xd8cdb8, 0x3b2d22]],
+        look: { shadow: [1.1, 1.9], speed: 1.1, step: 8, size: 1.25, rough: 0.95, legAmp: 0.8 }
+      })
+    ]).then(([c, sh]) => { COW = c; SHEEP = sh; return [c, sh]; });
+    return qPromise;
+  }
+  let horseN = 0, cowN = 0, sheepN = 0;
   const BUILD = {
     tovuq: () => { const r = Math.random(); return buildChicken(r < 0.12 ? "rooster" : r < 0.5 ? "brown" : "white"); },
-    qoy: buildSheep, sigir: () => (COW ? buildReal(COW, cowN++) : buildCow()), ot: () => (HORSE ? buildRealHorse(horseN++) : buildHorse(horseN++))
+    qoy: () => (SHEEP ? buildReal(SHEEP, sheepN++) : buildSheep()), sigir: () => (COW ? buildReal(COW, cowN++) : buildCow()), ot: () => (HORSE ? buildRealHorse(horseN++) : buildHorse(horseN++))
   };
 
   // =====================================================================
@@ -803,6 +853,6 @@ if (aTW > 0.0) { vec3 tp = uTailP; float ta = uTail * aTW; tPos = rotZ(tPos - tp
       renderer.dispose(); el.remove();
     };
   }
-  Farm3D.preload = () => Promise.all([preloadHorse(), preloadCow()]);
+  Farm3D.preload = () => Promise.all([preloadHorse(), preloadQ()]);
   window.SofiFarm3D = Farm3D;
 })();

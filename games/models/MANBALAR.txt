@@ -3,3 +3,4 @@ Ferma o‘yinidagi 3D modellar
 - cow.bin   — “Farm Animals Pack” (Quaternius), litsenziya: CC0 1.0 (jamoat mulki).
               https://creativecommons.org/publicdomain/zero/1.0/
               Ikki marta silliqlangan (Loop subdivision) va ixcham binar shaklga aylantirilgan.
+- sheep.bin — “Farm Animals Pack” (Quaternius), litsenziya: CC0 1.0. Silliqlangan, junga bo‘rtiqlar qo‘shilgan.
