@@ -261,22 +261,24 @@
       geo.setAttribute("aHW", new T.BufferAttribute(hw, 1));
       geo.setAttribute("aTW", new T.BufferAttribute(tw, 1));
       geo.setAttribute("color", new T.BufferAttribute(col, 3));
-      HORSE = { geo, pivZ: new T.Vector4(...pivZ), pivY: new T.Vector4(...PIV_Y) };
+      HORSE = { geo, pivZ: new T.Vector4(...pivZ), pivY: new T.Vector4(...PIV_Y), headP: new T.Vector3(0, 1.45, 0.45), tailP: new T.Vector3(0, 1.62, -1.28),
+        coat: (v) => HORSE_COATS[v % 4], shadow: [1.4, 3.0], speed: 1.6, step: 7, size: 2.45 };
       return HORSE;
     }).catch((e) => { console.warn("Ot modeli yuklanmadi:", e); horsePromise = null; return null; });
     return horsePromise;
   }
   const HORSE_COATS = [0x7a4a26, 0xb4733d, 0x3a2a22, 0xcfc6b8];
-  function buildRealHorse(v) {
+  // Umumiy quruvchi: M — model (geo, pivZ, pivY, headP, tailP ...)
+  function buildReal(M, v) {
     const u = {
-      uLegA: { value: new T.Vector4() }, uPivZ: { value: HORSE.pivZ }, uPivY: { value: HORSE.pivY },
-      uHead: { value: 0 }, uTail: { value: 0 }
+      uLegA: { value: new T.Vector4() }, uPivZ: { value: M.pivZ }, uPivY: { value: M.pivY },
+      uHead: { value: 0 }, uTail: { value: 0 }, uHeadP: { value: M.headP }, uTailP: { value: M.tailP }
     };
-    const mat = new T.MeshStandardMaterial({ color: HORSE_COATS[v % 4], roughness: 0.48, metalness: 0.04, vertexColors: true });
+    const mat = new T.MeshStandardMaterial({ color: M.coat ? M.coat(v) : 0xffffff, roughness: M.rough || 0.48, metalness: 0.04, vertexColors: true });
     mat.onBeforeCompile = (sh) => {
       Object.assign(sh.uniforms, u);
       sh.vertexShader = `attribute vec4 aLeg; attribute float aLW; attribute float aHW; attribute float aTW;
-uniform vec4 uLegA; uniform vec4 uPivZ; uniform vec4 uPivY; uniform float uHead; uniform float uTail;
+uniform vec4 uLegA; uniform vec4 uPivZ; uniform vec4 uPivY; uniform float uHead; uniform float uTail; uniform vec3 uHeadP; uniform vec3 uTailP;
 vec3 rotX(vec3 v, float a) { float c = cos(a), s = sin(a); return vec3(v.x, v.y * c - v.z * s, v.y * s + v.z * c); }
 vec3 rotZ(vec3 v, float a) { float c = cos(a), s = sin(a); return vec3(v.x * c - v.y * s, v.x * s + v.y * c, v.z); }
 ` + sh.vertexShader
@@ -284,27 +286,84 @@ vec3 rotZ(vec3 v, float a) { float c = cos(a), s = sin(a); return vec3(v.x * c -
 vec3 tPos = position;
 float la = dot(aLeg, uLegA) * aLW;
 if (la != 0.0) { vec3 pv = vec3(0.0, dot(aLeg, uPivY), dot(aLeg, uPivZ)); tPos = rotX(tPos - pv, la) + pv; objectNormal = rotX(objectNormal, la); }
-if (aHW > 0.0) { vec3 hp = vec3(0.0, 1.45, 0.45); float ha = uHead * aHW; tPos = rotX(tPos - hp, ha) + hp; objectNormal = rotX(objectNormal, ha); }
-if (aTW > 0.0) { vec3 tp = vec3(0.0, 1.62, -1.28); float ta = uTail * aTW; tPos = rotZ(tPos - tp, ta) + tp; objectNormal = rotZ(objectNormal, ta); }`)
+if (aHW > 0.0) { vec3 hp = uHeadP; float ha = uHead * aHW; tPos = rotX(tPos - hp, ha) + hp; objectNormal = rotX(objectNormal, ha); }
+if (aTW > 0.0) { vec3 tp = uTailP; float ta = uTail * aTW; tPos = rotZ(tPos - tp, ta) + tp; objectNormal = rotZ(objectNormal, ta); }`)
         .replace("#include <begin_vertex>", "vec3 transformed = tPos;");
     };
     const g = new T.Group(), body = new T.Group(); g.add(body);
-    const m = new T.Mesh(HORSE.geo, mat); m.castShadow = true; m.receiveShadow = true; body.add(m);
+    const m = new T.Mesh(M.geos ? M.geos[v % M.geos.length] : M.geo, mat); m.castShadow = true; m.receiveShadow = true; body.add(m);
     const legs = [0, 1, 2, 3].map(() => ({ rotation: { x: 0 } }));
     const head = { rotation: { x: 0 } }, tail = { rotation: { x: 0, z: 0 } };
-    blobShadow(g, 1.4, 3.0);
+    blobShadow(g, M.shadow[0], M.shadow[1]);
     // Oyoq tartibi (sikldagi): 0 old-chap, 1 old-o'ng, 2 orqa-chap, 3 orqa-o'ng
     const sync = () => {
-      u.uLegA.value.set(legs[0].rotation.x * 0.75, legs[1].rotation.x * 0.75, legs[2].rotation.x * 0.75, legs[3].rotation.x * 0.75);
+      const k = M.legAmp || 0.75;
+      u.uLegA.value.set(legs[0].rotation.x * k, legs[1].rotation.x * k, legs[2].rotation.x * k, legs[3].rotation.x * k);
       u.uHead.value = Math.max(-0.35, Math.min(0.9, head.rotation.x * 1.1));
       u.uTail.value = tail.rotation.z * 0.9;
     };
-    return { g, body, head, legs, tail, sync, speed: 1.6, step: 7, size: 2.45, real: true };
+    return { g, body, head, legs, tail, sync, speed: M.speed, step: M.step, size: M.size, real: true };
   }
-  let horseN = 0;
+  const buildRealHorse = (v) => buildReal(HORSE, v);
+
+  // ---------- Haqiqiy sigir modeli (Quaternius “Farm Animals”, CC0; silliqlangan) ----------
+  let COW = null, cowPromise = null;
+  function preloadCow() {
+    if (cowPromise) return cowPromise;
+    cowPromise = fetch("games/models/cow.bin?v=1").then((r) => { if (!r.ok) throw new Error("cow"); return r.arrayBuffer(); }).then((buf) => {
+      const dv = new DataView(buf), nV = dv.getUint32(0, true), nI = dv.getUint32(4, true), k = dv.getFloat32(8, true), nP = dv.getUint32(12, true);
+      let o = 16;
+      const q = new Int16Array(buf, o, nV * 3); o += nV * 6;
+      const matId = new Uint8Array(buf, o, nV); o += nV + (nV % 2);
+      const orig = new Uint16Array(buf, o, nV); o += nV * 2;
+      const ind = new Uint16Array(buf, o, nI);
+      const pos = new Float32Array(nV * 3);
+      for (let i = 0; i < q.length; i++) pos[i] = q[i] * k;
+      // Silliq normal: bir joydagi uchlar (rang chegarasida ham) bitta normalga ega
+      const acc = new Float32Array(nP * 3), a = new T.Vector3(), b = new T.Vector3(), c = new T.Vector3();
+      for (let t = 0; t < nI; t += 3) {
+        const i0 = ind[t], i1 = ind[t + 1], i2 = ind[t + 2];
+        a.fromArray(pos, i0 * 3); b.fromArray(pos, i1 * 3); c.fromArray(pos, i2 * 3);
+        b.sub(a); c.sub(a); b.cross(c);
+        [i0, i1, i2].forEach((i) => { const j = orig[i] * 3; acc[j] += b.x; acc[j + 1] += b.y; acc[j + 2] += b.z; });
+      }
+      const nrm = new Float32Array(nV * 3);
+      for (let i = 0; i < nV; i++) { a.fromArray(acc, orig[i] * 3).normalize(); a.toArray(nrm, i * 3); }
+      const geo = new T.BufferGeometry();
+      geo.setAttribute("position", new T.BufferAttribute(pos, 3));
+      geo.setAttribute("normal", new T.BufferAttribute(nrm, 3));
+      geo.setIndex(new T.BufferAttribute(ind, 1));
+      const PIV_Y = [0.76, 0.76, 0.82, 0.82], pivZ = [0.43, 0.43, -1.16, -1.16];
+      const leg = new Float32Array(nV * 4), lw = new Float32Array(nV), hw = new Float32Array(nV), tw = new Float32Array(nV);
+      const ss = (e0, e1, v) => { const t = Math.max(0, Math.min(1, (v - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
+      for (let i = 0; i < nV; i++) {
+        const x = pos[i * 3], y = pos[i * 3 + 1], z = pos[i * 3 + 2];
+        const tail = z < -1.4 && Math.abs(x) < 0.12, udder = Math.abs(x) < 0.17 && z > -0.98 && z < -0.5 && y < 0.7;
+        if (tail) tw[i] = ss(1.58, 1.05, y);
+        else if (!udder) { const L = (z > -0.4 ? 0 : 2) + (x > 0 ? 1 : 0); leg[i * 4 + L] = 1; lw[i] = ss(PIV_Y[L] - 0.02, PIV_Y[L] - 0.3, y); }
+        hw[i] = z > 0.72 && y > 0.95 ? ss(0.72, 1.12, z) : 0;
+      }
+      geo.setAttribute("aLeg", new T.BufferAttribute(leg, 4));
+      geo.setAttribute("aLW", new T.BufferAttribute(lw, 1));
+      geo.setAttribute("aHW", new T.BufferAttribute(hw, 1));
+      geo.setAttribute("aTW", new T.BufferAttribute(tw, 1));
+      // 2 xil: qora-oq (golshtin) va jigarrang-oq
+      const PAL = [[0xf3f0e8, 0x1b1917, 0xe8a0a4], [0xf3ece0, 0x6b3a1c, 0xe8a0a4]];
+      const geos = PAL.map((pal) => {
+        const cl = pal.map((h) => new T.Color(h)), col = new Float32Array(nV * 3);
+        for (let i = 0; i < nV; i++) { const cc = cl[matId[i]] || cl[0]; col[i * 3] = cc.r; col[i * 3 + 1] = cc.g; col[i * 3 + 2] = cc.b; }
+        const g2 = geo.clone(); g2.setAttribute("color", new T.BufferAttribute(col, 3)); return g2;
+      });
+      COW = { geos, pivZ: new T.Vector4(...pivZ), pivY: new T.Vector4(...PIV_Y), headP: new T.Vector3(0, 1.35, 0.72), tailP: new T.Vector3(0, 1.58, -1.5),
+        shadow: [1.6, 3.4], speed: 0.9, step: 6, size: 1.85, rough: 0.62, legAmp: 0.7 };
+      return COW;
+    }).catch((e) => { console.warn("Sigir modeli yuklanmadi:", e); cowPromise = null; return null; });
+    return cowPromise;
+  }
+  let horseN = 0, cowN = 0;
   const BUILD = {
     tovuq: () => { const r = Math.random(); return buildChicken(r < 0.12 ? "rooster" : r < 0.5 ? "brown" : "white"); },
-    qoy: buildSheep, sigir: buildCow, ot: () => (HORSE ? buildRealHorse(horseN++) : buildHorse(horseN++))
+    qoy: buildSheep, sigir: () => (COW ? buildReal(COW, cowN++) : buildCow()), ot: () => (HORSE ? buildRealHorse(horseN++) : buildHorse(horseN++))
   };
 
   // =====================================================================
@@ -744,6 +803,6 @@ if (aTW > 0.0) { vec3 tp = vec3(0.0, 1.62, -1.28); float ta = uTail * aTW; tPos 
       renderer.dispose(); el.remove();
     };
   }
-  Farm3D.preload = preloadHorse;
+  Farm3D.preload = () => Promise.all([preloadHorse(), preloadCow()]);
   window.SofiFarm3D = Farm3D;
 })();
