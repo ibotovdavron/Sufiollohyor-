@@ -216,7 +216,7 @@ body.cs-open .bottom-nav { display: none; }
   .cs-art { height: 150px; }
   .cs-menu { grid-template-columns: 1fr; }
   .cs-game { display: flex; flex-direction: column; height: auto; min-height: 100%; padding: 8px 10px 20px; gap: 10px; }
-  .cs-3d { flex: none; height: min(118vw, 62vh); min-height: 300px; }
+  .cs-3d { flex: none; height: min(calc(88vw + 30px), 60vh); min-height: 300px; }
   .cs-moves { max-height: 150px; flex: none; }
   .cs-clock { font-size: 20px; min-width: 78px; padding: 5px 10px; }
   .cs-av { width: 36px; height: 36px; border-radius: 12px; }

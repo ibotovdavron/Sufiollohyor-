@@ -23,6 +23,10 @@
   ];
   const tcById = (id) => TCS.find((t) => t.id === id) || TCS[2];
   const START_RATING = 1200;
+  // Mehmonlar (markaz o'quvchisi emas) o'ynaydi, lekin reyting olmaydi
+  const isMehmon = (p) => !!p && (p.role === "guest" || p.cls === "Mehmon");
+  const rtText = (p) => (isMehmon(p) ? "reytingsiz" : (p && p.rating) || START_RATING);
+  const ratedGame = (S) => !!(S && S.players.w && S.players.b && !isMehmon(S.players.w) && !isMehmon(S.players.b));
   const GLYPH = { w: { k: "♔", q: "♕", r: "♖", b: "♗", n: "♘", p: "♙" }, b: { k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟" } };
   const VALUE = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
   const REASONS = {
@@ -41,7 +45,7 @@
   const loadLibs = () => libs || (libs = (async () => {
     if (!window.THREE) await loadScript("lib/three.min.js?v=149");
     if (!window.Chess) await loadScript("lib/chess.js?v=1");
-    if (!window.SofiBoard3D) await loadScript("games/chess3d.js?v=1");
+    if (!window.SofiBoard3D) await loadScript("games/chess3d.js?v=2");
   })().catch((e) => { libs = null; throw e; }));
 
   // ---------- Ovoz ----------
@@ -191,7 +195,7 @@
       const mine = r.hostCid === G.session.cid;
       return `<button class="cs-room" type="button" data-play="${esc(r.code)}" ${mine ? "disabled" : ""}>
         <span class="cs-room-av">${esc(initials(r.host))}</span>
-        <span class="cs-room-t"><b>${esc(r.host)}</b><small>${esc(r.hostRating || START_RATING)} reyting · ${tcChip(r.tc)} · #${esc(r.code)}</small></span>
+        <span class="cs-room-t"><b>${esc(r.host)}</b><small>${r.hostRating ? esc(r.hostRating) + " reyting" : "👤 mehmon"} · ${tcChip(r.tc)} · #${esc(r.code)}</small></span>
         <span class="cs-room-go">${mine ? "Sizniki" : "O‘ynash →"}</span></button>`;
     }
     return `<button class="cs-room live" type="button" data-watch="${esc(r.code)}">
@@ -282,7 +286,8 @@
     const m = openRoot();
     root.dataset.screen = "menu";
     $("#csBarR", root).innerHTML = G.session.name ? `<span class="cs-me">${esc(short(G.session.name))} · <b id="csMyR">…</b></span>` : "";
-    if (G.session.name) Rating.get(G.session.name).then((r) => { const el = $("#csMyR", root || document.createElement("i")); if (el) el.textContent = r.rating; });
+    if (G.session.name && isMehmon(G.session)) { const el = $("#csMyR", root); if (el) el.textContent = "👤 mehmon"; }
+    else if (G.session.name) Rating.get(G.session.name).then((r) => { const el = $("#csMyR", root || document.createElement("i")); if (el) el.textContent = r.rating; });
     m.innerHTML = `
       <div class="cs-menu">
         <section class="cs-panel cs-new" id="csNew">
@@ -371,7 +376,7 @@
       return;
     }
     if (!root) return;
-    const myRating = (await Rating.get(me.name)).rating;
+    const myRating = isMehmon(me) ? null : (await Rating.get(me.name)).rating;
     const tc = tcById(tcId);
     const myColor = colorPref === "r" ? (Math.random() < 0.5 ? "w" : "b") : colorPref;
     const S = {
@@ -421,7 +426,7 @@
       S.result = { score, reason };
       S.draw = null;
       push(); announce();
-      if (reason === "abort" || S.moves.length < 2) return;
+      if (reason === "abort" || S.moves.length < 2 || !ratedGame(S)) return;
       const out = await Rating.finish({
         id: S.gameId, white: S.players.w.name, black: S.players.b.name, result: score, reason, moves: S.moves.length,
         pgn: (() => { try { return chess.pgn(); } catch (e) { return ""; } })()
@@ -453,7 +458,7 @@
           if (S.phase !== "wait") { push(); break; }
           const free = !S.players.w ? "w" : !S.players.b ? "b" : null;
           if (!free) { push(); break; }
-          S.players[free] = { name: m.name, cls: m.cls, cid: m.cid, rating: m.rating || START_RATING };
+          S.players[free] = { name: m.name, cls: m.cls, cid: m.cid, rating: m.rating || (isMehmon(m) ? null : START_RATING) };
           seen[free] = Date.now();
           startGame();
           break;
@@ -563,7 +568,7 @@
     const cid = me.cid || window.SofiNet.randomId();
     const name = me.name || "Mehmon";
     let room = null, ui = null, gotState = false;
-    const myRating = role === "guest" ? (await Rating.get(name)).rating : 0;
+    const myRating = role === "guest" && !isMehmon(me) ? (await Rating.get(name)).rating : null;
     const send = (msg) => room && room.send({ ...msg, code, cid, name, cls: me.cls, rating: myRating });
     try {
       room = await window.SofiNet.join("cs-" + code, {
@@ -791,7 +796,7 @@
         <div class="cs-av ${c}">${p ? esc(initials(p.name)) : "?"}</div>
         <div class="cs-pi">
           <b>${p ? esc(p.name) : `<span class="cs-muted">Raqib kutilmoqda…</span>`}${p && p.cid === myCid ? ` <em class="cs-you">siz</em>` : ""}</b>
-          <small>${GLYPH[c].k} ${c === "w" ? "Oq" : "Qora"}${p ? ` · <span class="cs-rt">${p.rating || START_RATING}</span>` : ""}${delta !== null && delta !== undefined ? ` <span class="cs-delta ${delta >= 0 ? "up" : "down"}">${delta >= 0 ? "+" : ""}${delta}</span>` : ""}${p && p.cls ? ` · ${esc(p.cls)}` : ""}</small>
+          <small>${GLYPH[c].k} ${c === "w" ? "Oq" : "Qora"}${p ? ` · <span class="cs-rt">${rtText(p)}</span>` : ""}${delta !== null && delta !== undefined ? ` <span class="cs-delta ${delta >= 0 ? "up" : "down"}">${delta >= 0 ? "+" : ""}${delta}</span>` : ""}${p && p.cls ? ` · ${esc(p.cls)}` : ""}</small>
           <span class="cs-caps">${caps.map((t) => GLYPH[opp][t]).join("")}${diff > 0 ? ` <i>+${diff}</i>` : ""}</span>
         </div>
         <div class="cs-clock ${active ? "on" : ""} ${ms !== null && ms < 20000 && active ? "low" : ""}" data-clock="${c}">${fmt(ms)}</div>`;
@@ -836,6 +841,8 @@
         t = resultText();
         cls = "end";
       }
+      if (st.dataset.html === cls + t) return;
+      st.dataset.html = cls + t;
       st.className = "cs-status " + cls;
       st.innerHTML = t;
       $$("[data-dr]", st).forEach((b) => (b.onclick = () => net.send({ t: "draw-answer", yes: b.dataset.dr === "1" })));
@@ -861,6 +868,8 @@
       if (S.phase === "end" && myColor) html += `<button type="button" class="cs-btn gold" data-act="rematch" ${S.rematch && S.rematch[myColor] ? "disabled" : ""}>🔁 ${S.rematch && S.rematch[myColor] ? "Kutilmoqda…" : "Qayta o‘ynash"}</button>`;
       html += `<button type="button" class="cs-btn ghost" data-act="menu">📋 Menyu</button>`;
       html += `<span class="cs-viewers">👁 ${S.viewers || 0} kuzatuvchi</span>`;
+      if (box.dataset.html === html) return; // bir xil bo'lsa qayta chizmaymiz (bosish uzilmasin)
+      box.dataset.html = html;
       box.innerHTML = html;
       $$("[data-act]", box).forEach((b) => (b.onclick = () => action(b.dataset.act)));
     }
@@ -912,14 +921,14 @@
         const p = S.players[c];
         if (!p) return "";
         const d = S.deltas ? S.deltas[c] : null;
-        return `<div class="cs-ov-pl ${winC === c ? "win" : ""}"><span>${GLYPH[c].k} ${esc(p.name)}</span><b>${p.rating || START_RATING}${d !== null && d !== undefined ? ` <em class="${d >= 0 ? "up" : "down"}">${d >= 0 ? "+" : ""}${d}</em>` : ""}</b></div>`;
+        return `<div class="cs-ov-pl ${winC === c ? "win" : ""}"><span>${GLYPH[c].k} ${esc(p.name)}</span><b>${rtText(p)}${d !== null && d !== undefined ? ` <em class="${d >= 0 ? "up" : "down"}">${d >= 0 ? "+" : ""}${d}</em>` : ""}</b></div>`;
       };
       ov.innerHTML = `<div class="cs-ov-card ${iWon ? "gold" : ""}">
           <span class="cs-ov-ico">${ico}</span>
           <h3>${head}</h3>
           <p>${esc(REASONS[r.reason] || "")} · ${Math.ceil(S.moves.length / 2)} yurish</p>
           ${line("w")}${line("b")}
-          ${r.reason !== "abort" && S.moves.length >= 2 && !S.deltas ? `<p class="cs-muted">Reyting hisoblanmoqda…</p>` : ""}
+          ${!ratedGame(S) ? `<p class="cs-muted">👤 Mehmon ishtirokidagi o‘yin — reyting o‘zgarmaydi.</p>` : r.reason !== "abort" && S.moves.length >= 2 && !S.deltas ? `<p class="cs-muted">Reyting hisoblanmoqda…</p>` : ""}
           <div class="cs-ov-btns">
             ${myColor ? `<button class="cs-btn gold" type="button" data-ov="rematch" ${S.rematch && S.rematch[myColor] ? "disabled" : ""}>🔁 ${S.rematch && S.rematch[myColor] ? "Raqib kutilmoqda…" : (S.rematch && S.rematch[myColor === "w" ? "b" : "w"] ? "Raqib qayta o‘ynamoqchi — Qabul!" : "Qayta o‘ynash")}</button>` : ""}
             <button class="cs-btn ghost" type="button" data-ov="board">♟ Taxtani ko‘rish</button>
@@ -1002,7 +1011,7 @@
         if (active && c === myColor && ms !== null && ms < 10000 && Date.now() - lowBeep > 1000) { lowBeep = Date.now(); sfx.low(); }
       });
       if (role !== "host" && Date.now() - lastSeen > 20000 && !ended) {
-        if (S.phase === "play" && myColor && !reported && S.moves.length >= 2) {
+        if (S.phase === "play" && myColor && !reported && S.moves.length >= 2 && ratedGame(S)) {
           reported = true;
           const w = S.players.w, b = S.players.b;
           Rating.finish({ id: S.gameId, white: w.name, black: b.name, result: myColor === "w" ? "1-0" : "0-1", reason: "left", moves: S.moves.length, pgn: "" })
@@ -1016,7 +1025,7 @@
     // Mehmon ham natijani reytingga yozadi (bir o'yin bir marta hisoblanadi)
     let finishedIds = new Set();
     const guestReport = setInterval(() => {
-      if (!S || role !== "guest" || S.phase !== "end" || !myColor || !S.result || S.result.reason === "abort" || S.moves.length < 2) return;
+      if (!S || role !== "guest" || S.phase !== "end" || !myColor || !S.result || S.result.reason === "abort" || S.moves.length < 2 || !ratedGame(S)) return;
       if (finishedIds.has(S.gameId)) return;
       finishedIds.add(S.gameId);
       Rating.finish({ id: S.gameId, white: S.players.w.name, black: S.players.b.name, result: S.result.score, reason: S.result.reason, moves: S.moves.length, pgn: (() => { try { return chess.pgn(); } catch (e) { return ""; } })() });

@@ -11,7 +11,17 @@
   const TEACHER_TAB = "Ustoz";
   const CLASSES = [...new Set(STUDENTS.map((s) => s.cls))].sort((a, b) => parseInt(a) - parseInt(b)).concat(TEACHERS.length ? [TEACHER_TAB] : []);
   const PEOPLE = STUDENTS.concat(TEACHERS);
-  const LEVEL = { "5-sinf": 1, "6-sinf": 2, "6-A sinf": 2, "8-sinf": 3, "Ustoz": 3 };
+  const LEVEL = { "5-sinf": 1, "6-sinf": 2, "6-A sinf": 2, "8-sinf": 3, "Ustoz": 3, "Mehmon": 2 };
+  // Mehmonlar: ro'yxatda yo'q, parolsiz kiradi, o'ynaydi, lekin yulduz/reyting olmaydi.
+  const GUEST_CLS = "Mehmon";
+  const GUEST_TAB = "Mehmon";
+  const isGuest = (p) => !!p && (p.role === "guest" || p.cls === GUEST_CLS);
+  const onlineGuests = () => {
+    const seen = new Set();
+    return online.filter((p) => p && p.name && isGuest(p) && !seen.has(p.name) && seen.add(p.name))
+      .map((p) => ({ name: p.name, cls: GUEST_CLS, role: "guest" }));
+  };
+  const findPerson = (name) => PEOPLE.find((s) => s.name === name) || onlineGuests().find((g) => g.name === name) || null;
   const listeners = { msg: [], presence: [] };
 
   // Yulduz qoidalari: bitta o'yindan kuniga ko'pi bilan 2 ta yulduz.
@@ -139,13 +149,15 @@
   }
 
   function studentList(container, { mode, onPick, filterCls }) {
-    let cls = filterCls || session.cls || CLASSES[0];
+    const tabs = mode === "pick" ? CLASSES : CLASSES.concat([GUEST_TAB]);
+    let cls = filterCls || (session.cls && tabs.includes(session.cls) ? session.cls : CLASSES[0]);
     let query = "";
     const draw = () => {
       const q = query.toLowerCase();
-      const rows = PEOPLE.filter((s) => s.cls === cls && s.name.toLowerCase().includes(q));
-      container.querySelector(".g-tabs").innerHTML = CLASSES.map((c) =>
-        `<button class="g-tab ${c === cls ? "on" : ""}" data-cls="${esc(c)}">${c === TEACHER_TAB ? "👨‍🏫 Ustozlar" : esc(c)}</button>`).join("");
+      const pool = cls === GUEST_TAB ? onlineGuests() : PEOPLE;
+      const rows = pool.filter((s) => s.cls === cls && s.name.toLowerCase().includes(q));
+      container.querySelector(".g-tabs").innerHTML = tabs.map((c) =>
+        `<button class="g-tab ${c === cls ? "on" : ""}" data-cls="${esc(c)}">${c === TEACHER_TAB ? "👨‍🏫 Ustozlar" : c === GUEST_TAB ? "👤 Mehmonlar" : esc(c)}</button>`).join("");
       container.querySelector(".g-names").innerHTML = rows.map((s) => {
         const holder = holderOf(s.name);
         const me = s.name === session.name;
@@ -170,7 +182,7 @@
       const tab = e.target.closest("[data-cls]");
       if (tab) { cls = tab.dataset.cls; draw(); return; }
       const btn = e.target.closest(".g-name");
-      if (btn && !btn.disabled) onPick(PEOPLE.find((s) => s.name === btn.dataset.name));
+      if (btn && !btn.disabled) { const p = findPerson(btn.dataset.name); if (p) onPick(p); }
     });
     container.querySelector(".g-search").addEventListener("input", (e) => { query = e.target.value.trim(); draw(); });
     const refresh = () => container.isConnected ? draw() : document.removeEventListener("sofi:presence", refresh);
@@ -211,7 +223,29 @@
         <div class="g-modal-head"><span class="g-big">👋</span>
           <h2>Ismingizni tanlang</h2>
           <p>Sinfingizni tanlab, ro‘yxatdan o‘z ismingizni bosing. Band ismlar 🔒 bilan belgilangan.</p></div>
+        <form class="g-guest" data-guest-form>
+          <div class="g-guest-t"><b>👤 Mehmon sifatida o‘ynash</b><small>Markaz o‘quvchisi emasmisiz? Ismingizni yozing — parolsiz o‘ynaysiz. Mehmonlar yulduz va reyting olmaydi.</small></div>
+          <div class="g-guest-row"><input type="text" maxlength="18" autocomplete="nickname" placeholder="Ismingiz, masalan: Ali" aria-label="Mehmon ismi"><button class="btn" type="submit">Mehmon bo‘lib kirish</button></div>
+          <small class="g-pin-err"></small>
+        </form>
         <div class="g-list"></div>`, { wide: true });
+      card.querySelector("[data-guest-form]").onsubmit = (e) => {
+        e.preventDefault();
+        const form = e.currentTarget;
+        const raw = form.querySelector("input").value.replace(/[<>"'`]/g, "").replace(/\s+/g, " ").trim();
+        const err = form.querySelector(".g-pin-err");
+        if (raw.length < 2) { err.textContent = "Ism kamida 2 ta harfdan iborat bo‘lsin."; return; }
+        const first = raw.split(" ")[0];
+        const clash = PEOPLE.some((p) => p.name.toLowerCase() === raw.toLowerCase());
+        if (clash) { err.textContent = "Bu ism markaz ro‘yxatida bor. O‘quvchi bo‘lsangiz, pastdan ismingizni tanlang."; return; }
+        let name = "Mehmon " + first[0].toUpperCase() + first.slice(1);
+        let n = 2;
+        while (holderOf(name)) name = "Mehmon " + first[0].toUpperCase() + first.slice(1) + " " + n++;
+        if (!claimName({ name, cls: GUEST_CLS, role: "guest" })) { err.textContent = "Bu ism band, boshqasini yozing."; return; }
+        closeModal();
+        toast(`Xush kelibsiz, ${name.slice(7)}! Mehmon sifatida o‘ynayapsiz 👤`, "good");
+        resolve(true);
+      };
       studentList(card.querySelector(".g-list"), {
         mode: "pick",
         async onPick(student) {
@@ -479,6 +513,7 @@
         finished = true;
         let star = null;
         if (session.role === "teacher") { result.earnStar = false; result.starHint = "Ustozlar yulduz olmaydi — yulduzlar o‘quvchilar uchun."; }
+        if (session.role === "guest") { result.earnStar = false; result.starHint = "Mehmonlar yulduz olmaydi. Yulduz yig‘ish uchun markazimizga o‘qishga keling! 😉"; }
         if (result.earnStar) star = await awardStar(game.id);
         showResult(game, result, star, friend);
       }
@@ -651,17 +686,19 @@
     } else {
       const total = Object.keys(GAMES).reduce((n, g) => n + earnedToday(g), 0);
       const teacher = session.role === "teacher";
-      chip.innerHTML = `<div class="g-chip on ${teacher ? "teacher" : ""}"><span class="av">${teacher ? "👨‍🏫" : esc(session.name[0])}</span>
-        <span><b>${esc(session.name)}</b><small>${teacher ? "Ustoz · nazoratchi" : `${esc(session.cls)} · bugun ⭐ ${total}`}</small></span>
+      const guest = session.role === "guest";
+      chip.innerHTML = `<div class="g-chip on ${teacher ? "teacher" : ""} ${guest ? "guest" : ""}"><span class="av">${teacher ? "👨‍🏫" : guest ? "👤" : esc(session.name[0])}</span>
+        <span><b>${esc(session.name)}</b><small>${teacher ? "Ustoz · nazoratchi" : guest ? "Mehmon · yulduzsiz" : `${esc(session.cls)} · bugun ⭐ ${total}`}</small></span>
         <button class="g-link" data-change>almashtirish</button></div>`;
     }
   }
   function renderOnlineCount() {
     const el = $("#gOnline");
     if (!el) return;
-    const n = online.filter((p) => p.name && p.role !== "teacher").length;
+    const n = online.filter((p) => p.name && p.role !== "teacher" && !isGuest(p)).length;
     const t = online.filter((p) => p.name && p.role === "teacher").length;
-    el.innerHTML = `<span class="g-live ${SofiNet.kind}"></span> ${SofiNet.kind === "online" ? "Onlayn" : "Faqat shu qurilma"} · ${n} o‘quvchi${t ? ` · ${t} ustoz 👨‍🏫` : ""}`;
+    const g = online.filter((p) => p.name && isGuest(p)).length;
+    el.innerHTML = `<span class="g-live ${SofiNet.kind}"></span> ${SofiNet.kind === "online" ? "Onlayn" : "Faqat shu qurilma"} · ${n} o‘quvchi${t ? ` · ${t} ustoz 👨‍🏫` : ""}${g ? ` · ${g} mehmon 👤` : ""}`;
   }
 
   async function boot() {
@@ -673,7 +710,7 @@
       const start = e.target.closest("[data-start]");
       if (start) { launch(start.dataset.start); return; }
       if (e.target.closest("[data-pick]")) askName();
-      if (e.target.closest("[data-change]")) { if (session.status === "idle") { releaseName(); if (window.SofiAuth) window.SofiAuth.logout(); askName(); } }
+      if (e.target.closest("[data-change]")) { if (session.status === "idle") { const wasGuest = session.role === "guest"; releaseName(); if (window.SofiAuth && !wasGuest) window.SofiAuth.logout(); askName(); } }
     });
 
     renderPlayerChip();
@@ -686,7 +723,8 @@
     const me = store.get("sofi_games_me", null) || (authMe ? { name: authMe.name } : null);
     if (me && me.name) {
       setTimeout(() => {
-        const student = PEOPLE.find((s) => s.name === me.name);
+        const student = PEOPLE.find((s) => s.name === me.name) ||
+          (me.role === "guest" && /^Mehmon /.test(me.name) ? { name: me.name, cls: GUEST_CLS, role: "guest" } : null);
         if (student && !session.name && !claimName(student)) toast(`“${me.name}” ismi hozir band.`, "bad");
       }, 1500);
     }
@@ -707,7 +745,7 @@
       beep: (...a) => beep(...a),
       askName: () => askName(),
       invite(name) {
-        const p = PEOPLE.find((x) => x.name === name);
+        const p = findPerson(name);
         const holder = holderOf(name);
         if (!p || !holder) { toast("Bu foydalanuvchi hozir onlayn emas."); return; }
         openModal(`<div class="g-modal-head"><span class="g-big">🎮</span><h2>${esc(name.split(" ")[1] || name)} bilan qaysi o‘yin?</h2></div>

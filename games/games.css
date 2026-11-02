@@ -376,3 +376,13 @@ body.g-playing .ch-fab { bottom: 100px; right: 12px; width: 48px; height: 48px; 
 /* Taklif va boshqa oynalar chatdan yuqorida turadi */
 .g-modal { z-index: 1200; }
 .g-toasts { z-index: 1300; }
+
+/* Mehmon sifatida kirish */
+.g-guest { display: grid; gap: 10px; margin: 0 0 14px; padding: 14px; border-radius: 16px; border: 1px dashed rgba(56, 189, 248, .55); background: linear-gradient(135deg, rgba(56, 189, 248, .1), rgba(0, 245, 155, .05)); }
+.g-guest-t { display: flex; flex-direction: column; gap: 3px; }
+.g-guest-t b { color: #bae6fd; font-size: 1.05rem; }
+.g-guest-t small { color: var(--muted); line-height: 1.45; }
+.g-guest-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.g-guest-row input { flex: 1 1 160px; min-width: 0; padding: 11px 12px; border-radius: 12px; border: 1px solid var(--line); background: rgba(0, 0, 0, .35); color: var(--white); font: inherit; }
+.g-guest-row .btn { flex: 0 0 auto; margin: 0; background: linear-gradient(135deg, #7dd3fc, #38bdf8); color: #04131d; }
+.g-chip.guest .av { background: linear-gradient(135deg, #7dd3fc, #38bdf8); }

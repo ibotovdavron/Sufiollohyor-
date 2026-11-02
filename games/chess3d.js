@@ -373,8 +373,9 @@
       camera.aspect = aspect;
       camera.fov = aspect < 0.8 ? 44 : 36;
       camera.updateProjectionMatrix();
-      const base = aspect < 1 ? 12.6 / Math.max(aspect, 0.5) * 0.92 : 13.2;
-      return Math.min(base, 22);
+      // Taxta ekranga to'liq sig'sin: eniga ham, bo'yiga ham
+      const t = Math.tan((camera.fov * Math.PI) / 360);
+      return Math.min(Math.max((aspect < 1 ? 5.3 : 5.8) / (t * aspect), 4.3 / t), 26);
     }
     let baseR = 13;
     function applyCam() {

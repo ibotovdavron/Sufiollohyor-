@@ -140,7 +140,7 @@
       ${Back.mode === "local" ? `<p class="mm-warn">⚠️ ${esc(Back.reason)} — natijalar hozircha faqat shu qurilmada saqlanadi.</p>` : ""}
       <div class="mm-now ${t ? "on" : ""}">
         ${t ? `<span class="mm-live">● JONLI MARAFON</span><b>${t.icon} ${esc(t.title)}</b>
-          <small>${me && G.session.role !== "teacher" ? `Sizda ${Math.max(0, ATTEMPTS - mine)} ta urinish qoldi` : `Har bir o‘quvchiga ${ATTEMPTS} ta urinish · 10 savol · har biriga 1 daqiqa`}</small>`
+          <small>${me && G.session.role === "guest" ? "👤 Mehmonlar sinov rejimida o‘ynaydi" : me && G.session.role !== "teacher" ? `Sizda ${Math.max(0, ATTEMPTS - mine)} ta urinish qoldi` : `Har bir o‘quvchiga ${ATTEMPTS} ta urinish · 10 savol · har biriga 1 daqiqa`}</small>`
           : `<b>🔒 Ustoz hali mavzu ochmagan</b><small>Ustoz mavzuni ochishi bilan marafon boshlanadi.</small>`}
       </div>
       ${t ? leaderboardHTML(list, me) : ""}
@@ -180,6 +180,8 @@
     if (G.session.role === "teacher") return teacherPanel();
     const t = cache.topic && topicById(cache.topic);
     if (!t) { api.toast("Ustoz hali mavzu ochmagan. Ochilishi bilan o‘ynay olasiz! 🔒"); return; }
+    // Mehmonlar marafonda qatnashmaydi — sinov rejimida o'ynaydi (natija saqlanmaydi)
+    if (G.session.role === "guest") { api.toast("👤 Mehmon rejimi: o‘ynashingiz mumkin, lekin natija marafon jadvaliga yozilmaydi.", "good"); intro(t, 1, true); return; }
     const used = cache.rows.filter((r) => r.student_name === G.session.name).length;
     if (used >= ATTEMPTS) { showBoard(`Siz bu mavzuda ${ATTEMPTS} ta urinishni ishlatib bo‘ldingiz. Natijangiz jadvalda!`); return; }
     intro(t, used + 1);
