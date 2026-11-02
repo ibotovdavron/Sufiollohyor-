@@ -57,16 +57,44 @@
   const emojiTex = (e) => emojiCache[e] || (emojiCache[e] = canvasTex(64, 64, (x) => { x.font = "48px serif"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(e, 32, 36); }));
 
   // ---------- Hayvonlar ----------
+  // Yumaloq shakl (ellipsoid) — tanalar shu bilan quriladi
+  const SPH = {};
+  const sph = (seg = 20) => SPH[seg] || (SPH[seg] = new T.SphereGeometry(1, seg, Math.round(seg * 0.7)));
+  function ell(mat, rx, ry, rz, x, y, z, g, seg) {
+    const m = mesh(sph(seg), mat, x, y, z, g);
+    m.scale.set(rx, ry, rz);
+    return m;
+  }
+  // Bargli/junli shakl: tepalari tasodifiy siljitilgan ikosaedr
+  function lumpy(r, detail, amt) {
+    const geo = new T.IcosahedronGeometry(r, detail), p = geo.attributes.position, v = new T.Vector3();
+    for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); v.multiplyScalar(1 + (Math.random() - 0.5) * amt); p.setXYZ(i, v.x, v.y, v.z); }
+    geo.computeVertexNormals();
+    return geo;
+  }
+  const shadowTex = () => canvasTex(64, 64, (x) => {
+    const g = x.createRadialGradient(32, 32, 2, 32, 32, 31);
+    g.addColorStop(0, "rgba(0,0,0,.55)"); g.addColorStop(1, "rgba(0,0,0,0)");
+    x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+  });
+  let SHADOW_MAT = null;
+  function blobShadow(g, sx, sz) {
+    if (!SHADOW_MAT) SHADOW_MAT = new T.MeshBasicMaterial({ map: shadowTex(), transparent: true, depthWrite: false });
+    const s = new T.Mesh(new T.PlaneGeometry(1, 1), SHADOW_MAT);
+    s.rotation.x = -Math.PI / 2; s.position.y = 0.03; s.scale.set(sx, sz, 1); s.renderOrder = 1;
+    g.add(s);
+  }
   function std(color, rough = 0.85, extra = {}) { return new T.MeshStandardMaterial({ color, roughness: rough, ...extra }); }
   const MAT = {};
   function mats() {
     if (MAT.ready) return MAT;
     Object.assign(MAT, {
       ready: true,
-      white: std(0xf7f3ea), brown: std(0x8a5a33), dark: std(0x2a211b), red: std(0xd62828, 0.6), orange: std(0xf59e0b, 0.5),
-      yellow: std(0xe9b949, 0.6), pink: std(0xf2a7a0, 0.6), wool: std(0xf1ece0, 1), woolFace: std(0x2b2622), eye: std(0x050505, 0.2),
-      horn: std(0xe8dcc2, 0.4), cow: new T.MeshStandardMaterial({ map: cowTex(), roughness: 0.8 }), horse: std(0x7b4a24, 0.55), horse2: std(0xc58a4c, 0.6),
-      mane: std(0x1f140c, 0.9), hoof: std(0x2b2b2b, 0.6)
+      white: std(0xf7f3ea, 0.9), brownHen: std(0xa0582a, 0.85), darkHen: std(0x6b3416, 0.85), dark: std(0x2a211b), red: std(0xd62828, 0.55), orange: std(0xf2a93b, 0.5),
+      yellow: std(0xe9b949, 0.6), pink: std(0xe8a39a, 0.65), wool: std(0xefe8d8, 1), woolShade: std(0xe2d9c4, 1), woolFace: std(0x2b2622, 0.8), eye: std(0x050505, 0.15),
+      eyeWhite: std(0xf5f5f0, 0.3), horn: std(0xe8dcc2, 0.4), cow: new T.MeshStandardMaterial({ map: cowTex(), roughness: 0.75 }), cowDark: std(0x1c1a18, 0.75),
+      horse: std(0x6e3f1f, 0.45), horse2: std(0xc58a4c, 0.5), horse3: std(0x3a2a22, 0.45), mane: std(0x1a110b, 0.9), mane2: std(0xf1e6cf, 0.9),
+      hoof: std(0x2b2b2b, 0.6), muzzle: std(0x2e2420, 0.6), roosterTail: std(0x0f3d2e, 0.35, { metalness: 0.3 }), roosterRed: std(0xb33a16, 0.6)
     });
     return MAT;
   }
@@ -78,66 +106,114 @@
   }
   function leg(g, mat, x, y, z, len, r, hoof) {
     const pivot = new T.Group(); pivot.position.set(x, y, z); g.add(pivot);
-    mesh(new T.CylinderGeometry(r, r * 0.85, len, 8), mat, 0, -len / 2, 0, pivot);
-    if (hoof) mesh(new T.CylinderGeometry(r * 0.95, r, len * 0.12, 8), hoof, 0, -len, 0, pivot);
+    mesh(new T.CylinderGeometry(r, r * 0.62, len * 0.55, 10), mat, 0, -len * 0.27, 0, pivot);
+    mesh(new T.CylinderGeometry(r * 0.6, r * 0.5, len * 0.5, 8), mat, 0, -len * 0.72, 0, pivot);
+    if (hoof) mesh(new T.CylinderGeometry(r * 0.55, r * 0.68, len * 0.1, 10), hoof, 0, -len * 0.97, 0, pivot);
     return pivot;
   }
-  function buildChicken(color) {
+  // ---------- Tovuq / xo'roz ----------
+  function buildChicken(kind) {
     const M = mats(), g = new T.Group(), body = new T.Group(); g.add(body);
-    const feather = color === "brown" ? std(0xa0582a) : M.white;
-    const b = mesh(new T.SphereGeometry(0.32, 14, 10), feather, 0, 0.42, 0, body); b.scale.set(1, 0.9, 1.25);
-    mesh(new T.ConeGeometry(0.18, 0.35, 8), feather, 0, 0.6, -0.36, body).rotation.x = -0.9;
-    const head = new T.Group(); head.position.set(0, 0.72, 0.28); body.add(head);
-    mesh(new T.SphereGeometry(0.15, 12, 10), feather, 0, 0, 0, head);
-    mesh(new T.ConeGeometry(0.05, 0.14, 6), M.orange, 0, -0.02, 0.17, head).rotation.x = Math.PI / 2;
-    [-0.05, 0.02, 0.08].forEach((zz, i) => mesh(new T.SphereGeometry(0.045 - i * 0.006, 8, 6), M.red, 0, 0.14, zz - 0.02, head));
-    mesh(new T.SphereGeometry(0.04, 8, 6), M.red, 0, -0.1, 0.12, head);
-    [-0.07, 0.07].forEach((xx) => mesh(new T.SphereGeometry(0.022, 6, 6), M.eye, xx, 0.03, 0.12, head));
-    const legs = [leg(g, M.orange, -0.1, 0.22, 0, 0.22, 0.025), leg(g, M.orange, 0.1, 0.22, 0, 0.22, 0.025)];
-    return { g, body, head, legs, scale: 1, speed: 1.4, step: 14, size: 0.6 };
+    const rooster = kind === "rooster";
+    const f = kind === "brown" ? M.brownHen : rooster ? M.roosterRed : M.white;
+    const s = rooster ? 1.15 : 1;
+    ell(f, 0.27 * s, 0.25 * s, 0.33 * s, 0, 0.42 * s, 0, body);
+    ell(f, 0.22 * s, 0.22 * s, 0.2 * s, 0, 0.47 * s, 0.17 * s, body); // ko'krak
+    [-1, 1].forEach((k) => { const w = ell(kind === "brown" ? M.darkHen : f, 0.06 * s, 0.17 * s, 0.26 * s, k * 0.25 * s, 0.45 * s, -0.02, body); w.rotation.x = -0.25; });
+    const tailM = rooster ? M.roosterTail : kind === "brown" ? M.darkHen : f;
+    [-0.5, -0.15, 0.2, 0.55].forEach((a, i) => { const t = ell(tailM, 0.04 * s, (rooster ? 0.32 : 0.2) * s, 0.12 * s, a * 0.12, (0.62 + i * 0.02) * s, -0.3 * s, body); t.rotation.x = rooster ? -0.9 : -0.5; t.rotation.z = a * 0.6; });
+    ell(f, 0.1 * s, 0.16 * s, 0.1 * s, 0, 0.62 * s, 0.24 * s, body).rotation.x = 0.4; // bo'yin
+    const head = new T.Group(); head.position.set(0, 0.76 * s, 0.3 * s); body.add(head);
+    ell(f, 0.11 * s, 0.12 * s, 0.12 * s, 0, 0, 0, head);
+    const beak = mesh(new T.ConeGeometry(0.04 * s, 0.12 * s, 8), M.orange, 0, -0.02, 0.14 * s, head); beak.rotation.x = Math.PI / 2 + 0.25;
+    [-0.04, 0.02, 0.07].forEach((zz, i) => ell(M.red, 0.018 * s, (0.05 + (rooster ? 0.025 : 0) - Math.abs(i - 1) * 0.012) * s, 0.035 * s, 0, 0.12 * s, zz * s, head));
+    ell(M.red, 0.025 * s, (rooster ? 0.07 : 0.045) * s, 0.025 * s, 0, -0.1 * s, 0.1 * s, head);
+    [-1, 1].forEach((k) => ell(M.eye, 0.018, 0.022, 0.018, k * 0.085 * s, 0.03 * s, 0.06 * s, head, 8));
+    const legs = [-1, 1].map((k) => {
+      const p = new T.Group(); p.position.set(k * 0.09 * s, 0.24 * s, 0); g.add(p);
+      mesh(new T.CylinderGeometry(0.02, 0.018, 0.24 * s, 6), M.orange, 0, -0.12 * s, 0, p);
+      [-0.5, 0, 0.5].forEach((a) => { const toe = mesh(new T.CylinderGeometry(0.012, 0.01, 0.1, 5), M.orange, Math.sin(a) * 0.04, -0.23 * s, Math.cos(a) * 0.04, p); toe.rotation.x = Math.PI / 2; toe.rotation.z = -a; });
+      return p;
+    });
+    blobShadow(g, 0.7 * s, 0.8 * s);
+    return { g, body, head, legs, speed: 1.4, step: 14, size: 0.65 * s, peck: true, rooster };
   }
+  // ---------- Qo'y ----------
   function buildSheep() {
     const M = mats(), g = new T.Group(), body = new T.Group(); g.add(body);
-    const puff = new T.IcosahedronGeometry(0.32, 1);
-    [[0, 0.95, 0], [0.22, 0.98, 0.25], [-0.22, 0.98, 0.25], [0.22, 0.98, -0.25], [-0.22, 0.98, -0.25], [0, 1.15, 0.1], [0, 1.12, -0.2], [0, 0.9, 0.42], [0, 0.92, -0.45]].forEach(([x, y, z]) => mesh(puff, M.wool, x, y, z, body).scale.setScalar(rand(1, 1.25)));
-    const head = new T.Group(); head.position.set(0, 1.1, 0.62); body.add(head);
-    const hd = mesh(new T.SphereGeometry(0.2, 12, 10), M.woolFace, 0, 0, 0.05, head); hd.scale.set(0.85, 1, 1.25);
-    mesh(new T.IcosahedronGeometry(0.16, 1), M.wool, 0, 0.16, -0.02, head);
-    [-1, 1].forEach((s) => { const e = mesh(new T.SphereGeometry(0.08, 8, 6), M.woolFace, s * 0.2, 0.05, -0.02, head); e.scale.set(1.6, 0.6, 0.8); mesh(new T.SphereGeometry(0.03, 6, 6), M.eye, s * 0.1, 0.06, 0.2, head); });
-    const legs = [[-0.2, 0.32], [0.2, 0.32], [-0.2, -0.32], [0.2, -0.32]].map(([x, z]) => leg(g, M.woolFace, x, 0.7, z, 0.7, 0.07, M.hoof));
-    return { g, body, head, legs, speed: 1.1, step: 8, size: 1.1 };
+    ell(M.wool, 0.46, 0.42, 0.62, 0, 0.98, 0, body);
+    const puff = lumpy(0.2, 1, 0.25);
+    for (let i = 0; i < 34; i++) {
+      const u = Math.random() * Math.PI * 2, v = Math.acos(rand(-0.35, 1));
+      const x = Math.sin(v) * Math.cos(u) * 0.44, y = Math.cos(v) * 0.4, z = Math.sin(v) * Math.sin(u) * 0.6;
+      mesh(puff, i % 3 ? M.wool : M.woolShade, x, 0.98 + y, z, body).scale.setScalar(rand(0.8, 1.25));
+    }
+    const head = new T.Group(); head.position.set(0, 1.12, 0.62); body.add(head);
+    const hd = ell(M.woolFace, 0.14, 0.16, 0.24, 0, -0.04, 0.12, head); hd.rotation.x = 0.45;
+    [[0, 0.12, -0.02], [0.08, 0.1, -0.06], [-0.08, 0.1, -0.06]].forEach(([x, y, z]) => mesh(puff, M.wool, x, y, z, head).scale.setScalar(0.65));
+    [-1, 1].forEach((k) => {
+      const e = ell(M.woolFace, 0.12, 0.035, 0.06, k * 0.17, 0.02, 0.0, head); e.rotation.z = k * -0.35;
+      ell(M.eyeWhite, 0.03, 0.03, 0.03, k * 0.1, 0.02, 0.17, head, 8); ell(M.eye, 0.018, 0.02, 0.018, k * 0.11, 0.02, 0.19, head, 8);
+    });
+    mesh(puff, M.wool, 0, 1.05, -0.66, body).scale.setScalar(0.6);
+    const legs = [[-0.2, 0.32], [0.2, 0.32], [-0.2, -0.32], [0.2, -0.32]].map(([x, z]) => leg(g, M.woolFace, x, 0.72, z, 0.72, 0.065, M.hoof));
+    blobShadow(g, 1.3, 1.8);
+    return { g, body, head, legs, speed: 1.1, step: 8, size: 1.15 };
   }
+  // ---------- Sigir ----------
   function buildCow() {
     const M = mats(), g = new T.Group(), body = new T.Group(); g.add(body);
-    const b = mesh(new T.CapsuleGeometry(0.55, 1.3, 6, 14), M.cow, 0, 1.35, 0, body); b.rotation.x = Math.PI / 2;
-    mesh(new T.SphereGeometry(0.22, 12, 10), M.pink, 0, 0.82, -0.35, body).scale.set(1, 0.7, 1.1);
-    const head = new T.Group(); head.position.set(0, 1.62, 1.12); body.add(head);
-    mesh(new T.BoxGeometry(0.5, 0.52, 0.62), M.cow, 0, 0, 0.1, head);
-    mesh(new T.BoxGeometry(0.46, 0.3, 0.26), M.pink, 0, -0.14, 0.46, head);
-    [-1, 1].forEach((s) => {
-      mesh(new T.ConeGeometry(0.06, 0.32, 8), M.horn, s * 0.3, 0.32, -0.02, head).rotation.z = -s * 0.8;
-      const ear = mesh(new T.BoxGeometry(0.26, 0.08, 0.14), M.dark, s * 0.36, 0.12, -0.08, head); ear.rotation.z = s * 0.3;
-      mesh(new T.SphereGeometry(0.045, 8, 6), M.eye, s * 0.2, 0.1, 0.38, head);
-      mesh(new T.SphereGeometry(0.035, 6, 6), M.dark, s * 0.1, -0.15, 0.6, head);
+    ell(M.cow, 0.6, 0.6, 1.1, 0, 1.38, 0, body);
+    ell(M.cow, 0.55, 0.62, 0.55, 0, 1.42, 0.62, body);
+    ell(M.cow, 0.56, 0.6, 0.55, 0, 1.45, -0.7, body);
+    ell(M.pink, 0.24, 0.17, 0.28, 0, 0.86, -0.45, body);
+    [[-0.08, -0.36], [0.08, -0.36], [-0.08, -0.54], [0.08, -0.54]].forEach(([x, z]) => mesh(new T.CylinderGeometry(0.025, 0.02, 0.12, 6), M.pink, x, 0.7, z, body));
+    const neck = ell(M.cow, 0.34, 0.4, 0.42, 0, 1.6, 1.08, body); neck.rotation.x = -0.4;
+    const head = new T.Group(); head.position.set(0, 1.72, 1.45); body.add(head);
+    const skull = ell(M.cow, 0.25, 0.27, 0.34, 0, 0, 0.08, head); skull.rotation.x = 0.35;
+    ell(M.pink, 0.2, 0.16, 0.16, 0, -0.2, 0.4, head);
+    [-1, 1].forEach((k) => {
+      ell(M.cowDark, 0.03, 0.025, 0.02, k * 0.08, -0.2, 0.55, head, 8);
+      const ear = ell(M.cowDark, 0.16, 0.045, 0.09, k * 0.33, 0.08, -0.06, head); ear.rotation.z = k * -0.25;
+      const horn = mesh(new T.ConeGeometry(0.045, 0.26, 8), M.horn, k * 0.2, 0.28, -0.08, head); horn.rotation.z = -k * 0.9; horn.rotation.x = -0.2;
+      ell(M.eyeWhite, 0.05, 0.05, 0.04, k * 0.2, 0.06, 0.3, head, 10); ell(M.eye, 0.035, 0.04, 0.03, k * 0.215, 0.06, 0.33, head, 10);
     });
-    const tail = mesh(new T.CylinderGeometry(0.035, 0.03, 0.9, 6), M.dark, 0, 1.15, -1.25, body); tail.rotation.x = 0.25;
-    const legs = [[-0.3, 0.7], [0.3, 0.7], [-0.3, -0.7], [0.3, -0.7]].map(([x, z]) => leg(g, M.cow, x, 1.0, z, 1.0, 0.12, M.hoof));
-    return { g, body, head, legs, speed: 0.9, step: 6, size: 1.7 };
+    const tail = new T.Group(); tail.position.set(0, 1.75, -1.18); body.add(tail);
+    mesh(new T.CylinderGeometry(0.035, 0.025, 1.0, 6), M.cow, 0, -0.5, -0.05, tail);
+    ell(M.cowDark, 0.07, 0.16, 0.07, 0, -1.02, -0.05, tail);
+    const legs = [[-0.3, 0.72], [0.3, 0.72], [-0.3, -0.72], [0.3, -0.72]].map(([x, z]) => leg(g, M.cow, x, 1.05, z, 1.05, 0.14, M.hoof));
+    blobShadow(g, 1.8, 3);
+    return { g, body, head, legs, tail, speed: 0.9, step: 6, size: 1.8 };
   }
-  function buildHorse(c2) {
-    const M = mats(), coat = c2 ? M.horse2 : M.horse, g = new T.Group(), body = new T.Group(); g.add(body);
-    const b = mesh(new T.CapsuleGeometry(0.48, 1.35, 6, 14), coat, 0, 1.65, 0, body); b.rotation.x = Math.PI / 2;
-    const neck = new T.Group(); neck.position.set(0, 1.85, 0.85); neck.rotation.x = -0.75; body.add(neck);
-    mesh(new T.CylinderGeometry(0.22, 0.34, 1.0, 12), coat, 0, 0.45, 0, neck);
-    mesh(new T.BoxGeometry(0.08, 1.0, 0.3), M.mane, 0, 0.5, -0.22, neck);
-    const head = new T.Group(); head.position.set(0, 1.0, 0.05); neck.add(head);
-    const hd = mesh(new T.BoxGeometry(0.34, 0.36, 0.85), coat, 0, 0, 0.3, head); hd.rotation.x = 0.85;
-    [-1, 1].forEach((s) => { mesh(new T.ConeGeometry(0.06, 0.22, 6), coat, s * 0.12, 0.3, -0.05, head); mesh(new T.SphereGeometry(0.04, 6, 6), M.eye, s * 0.17, 0.12, 0.2, head); });
-    const tail = mesh(new T.CylinderGeometry(0.09, 0.03, 1.1, 8), M.mane, 0, 1.4, -1.25, body); tail.rotation.x = 0.35;
-    const legs = [[-0.27, 0.68], [0.27, 0.68], [-0.27, -0.68], [0.27, -0.68]].map(([x, z]) => leg(g, coat, x, 1.3, z, 1.3, 0.1, M.hoof));
-    return { g, body, head, legs, speed: 1.6, step: 7, size: 1.8 };
+  // ---------- Ot ----------
+  function buildHorse(v) {
+    const M = mats(), coat = [M.horse, M.horse2, M.horse3][v % 3], mane = v % 3 === 1 ? M.mane2 : M.mane, g = new T.Group(), body = new T.Group(); g.add(body);
+    ell(coat, 0.5, 0.55, 1.05, 0, 1.72, 0, body);
+    ell(coat, 0.48, 0.58, 0.5, 0, 1.78, 0.72, body);
+    ell(coat, 0.5, 0.58, 0.52, 0, 1.8, -0.72, body);
+    const neck = new T.Group(); neck.position.set(0, 1.95, 0.95); neck.rotation.x = 0.55; body.add(neck);
+    ell(coat, 0.22, 0.62, 0.32, 0, 0.42, 0, neck);
+    for (let i = 0; i < 9; i++) { const m = mesh(new T.BoxGeometry(0.07, 0.2, 0.16), mane, 0, 0.05 + i * 0.12, -0.24 + i * 0.004, neck); m.rotation.z = (i % 2 ? 1 : -1) * 0.15; }
+    const head = new T.Group(); head.position.set(0, 0.98, 0.08); neck.add(head);
+    const hd = ell(coat, 0.17, 0.2, 0.42, 0, 0.02, 0.22, head); hd.rotation.x = 1.0;
+    const mz = ell(M.muzzle, 0.15, 0.15, 0.16, 0, -0.3, 0.42, head); mz.rotation.x = 1.0;
+    if (v % 2) ell(M.mane2, 0.05, 0.02, 0.3, 0, 0.05, 0.36, head).rotation.x = 1.05;
+    [-1, 1].forEach((k) => {
+      const ear = mesh(new T.ConeGeometry(0.05, 0.2, 6), coat, k * 0.09, 0.26, -0.05, head); ear.rotation.z = -k * 0.15;
+      ell(M.eye, 0.035, 0.04, 0.04, k * 0.16, 0.08, 0.13, head, 10);
+    });
+    mesh(new T.BoxGeometry(0.05, 0.16, 0.2), mane, 0, 0.18, 0.05, head);
+    const tail = new T.Group(); tail.position.set(0, 2.05, -1.2); body.add(tail);
+    [[0, 0], [0.05, 0.03], [-0.05, 0.03], [0, 0.06]].forEach(([x, a]) => { const t = mesh(new T.ConeGeometry(0.11, 1.25, 7), mane, x, -0.6, -0.12, tail); t.rotation.x = Math.PI + 0.2 + a; });
+    const legs = [[-0.25, 0.7], [0.25, 0.7], [-0.25, -0.7], [0.25, -0.7]].map(([x, z]) => leg(g, coat, x, 1.4, z, 1.4, 0.12, M.hoof));
+    blobShadow(g, 1.6, 3.1);
+    return { g, body, head, legs, tail, speed: 1.6, step: 7, size: 2.3 };
   }
-  const BUILD = { tovuq: () => buildChicken(Math.random() < 0.4 ? "brown" : "white"), qoy: buildSheep, sigir: buildCow, ot: () => buildHorse(Math.random() < 0.4) };
+  let horseN = 0;
+  const BUILD = {
+    tovuq: () => { const r = Math.random(); return buildChicken(r < 0.12 ? "rooster" : r < 0.5 ? "brown" : "white"); },
+    qoy: buildSheep, sigir: buildCow, ot: () => buildHorse(horseN++)
+  };
 
   // =====================================================================
   function Farm3D(container, opts = {}) {
@@ -170,6 +246,39 @@
     dirt.rotation.x = -Math.PI / 2; dirt.position.set(-12, 0.02, 8.5); dirt.receiveShadow = true; scene.add(dirt);
     const path = new T.Mesh(new T.PlaneGeometry(3, 30), new T.MeshStandardMaterial({ map: dirtTex(), roughness: 1 }));
     path.rotation.x = -Math.PI / 2; path.position.set(-17, 0.015, 0); path.receiveShadow = true; scene.add(path);
+
+    // ---------- Shamolda tebranuvchi o't ----------
+    const windU = { value: 0 };
+    {
+      const blade = new T.BufferGeometry();
+      blade.setAttribute("position", new T.Float32BufferAttribute([-0.05, 0, 0, 0.05, 0, 0, -0.03, 0.22, 0.01, 0.03, 0.22, 0.01, 0, 0.5, 0.04], 3));
+      blade.setAttribute("color", new T.Float32BufferAttribute([0.45, 0.55, 0.3, 0.45, 0.55, 0.3, 0.8, 0.9, 0.7, 0.8, 0.9, 0.7, 1.15, 1.15, 0.95], 3));
+      blade.setIndex([0, 1, 2, 1, 3, 2, 2, 3, 4]);
+      blade.computeVertexNormals();
+      const gm = new T.MeshStandardMaterial({ roughness: 1, side: T.DoubleSide, vertexColors: true });
+      gm.onBeforeCompile = (sh) => {
+        sh.uniforms.uWind = windU;
+        sh.vertexShader = "uniform float uWind;\n" + sh.vertexShader.replace("#include <begin_vertex>",
+          "#include <begin_vertex>\n#ifdef USE_INSTANCING\nvec2 wp = instanceMatrix[3].xz;\nfloat sway = sin(uWind * 1.6 + wp.x * 0.35 + wp.y * 0.22) * 0.5 + sin(uWind * 3.1 + wp.x * 1.3) * 0.18;\ntransformed.x += sway * position.y * position.y * 0.9;\ntransformed.z += sway * position.y * position.y * 0.4;\n#endif");
+      };
+      const N = matchMedia("(max-width: 700px)").matches ? 14000 : 26000;
+      const grass = new T.InstancedMesh(blade, gm, N);
+      const m4 = new T.Matrix4(), q = new T.Quaternion(), e = new T.Euler(), pos = new T.Vector3(), sc = new T.Vector3(), col = new T.Color();
+      const skip = (x, z) => (x > -18.5 && x < -7 && z > 4 && z < 13.2) || (x > -18.6 && x < -15.4 && z > -15 && z < 15) || (x > -23 && x < -3 && z > -12.5 && z < -3.4) || (x > -31 && x < -23 && z > -2 && z < 6);
+      let n = 0;
+      while (n < N) {
+        const far = n > N * 0.72;
+        const x = far ? rand(-60, 60) : rand(-21, 19), z = far ? rand(-50, 40) : rand(-15, 15);
+        if (skip(x, z)) continue;
+        pos.set(x, 0, z); e.set(rand(-0.15, 0.15), rand(0, 6.28), rand(-0.15, 0.15)); q.setFromEuler(e);
+        const h = rand(0.55, 1.35) * (far ? 1.3 : 1); sc.set(rand(0.8, 1.3), h, 1);
+        m4.compose(pos, q, sc); grass.setMatrixAt(n, m4);
+        col.setHSL(rand(0.22, 0.3), rand(0.45, 0.65), rand(0.26, 0.4)); grass.setColorAt(n, col);
+        n++;
+      }
+      grass.receiveShadow = true; grass.frustumCulled = false;
+      scene.add(grass);
+    }
 
     const wood = new T.MeshStandardMaterial({ map: woodTex(), roughness: 0.9 });
     // ---------- Panjara ----------
@@ -233,16 +342,84 @@
     const baleGeo = new T.CylinderGeometry(0.75, 0.75, 1.2, 18), baleMat = new T.MeshStandardMaterial({ color: 0xd9b45a, roughness: 1 });
     const hayStack = new T.Group(); hayStack.position.set(-6, 0, -9.5); scene.add(hayStack);
     [[0, 0.75, 0], [1.6, 0.75, 0], [0.8, 2.1, 0]].forEach(([x, y, z]) => { const m = mesh(baleGeo, baleMat, x, y, z, hayStack); m.rotation.z = Math.PI / 2; });
-    [[2, -2], [10, 4], [3, 7], [12, -6]].forEach(([x, z]) => { const pile = mesh(new T.ConeGeometry(1.1, 0.8, 12), std(0x9fbf52, 1), x, 0.4, z, hay); pile.scale.set(1, 1, 0.8); });
+    const bedaM = [std(0x8fae45, 1), std(0xa8b95a, 1), std(0x7a9a3a, 1)], heap = lumpy(1, 2, 0.45);
+    [[2, -2], [10, 4], [3, 7], [12, -6]].forEach(([x, z]) => {
+      for (let k = 0; k < 4; k++) { const m = mesh(heap, bedaM[k % 3], x + rand(-0.5, 0.5), 0.15, z + rand(-0.4, 0.4), hay); m.scale.set(rand(0.6, 0.9), rand(0.35, 0.5), rand(0.5, 0.8)); m.rotation.y = rand(0, 6); }
+    });
 
     // ---------- Daraxtlar, toshlar, gullar ----------
-    const trunkM = std(0x6b4226, 0.9), leafM = [std(0x2f7d32, 0.9), std(0x3b8f3a, 0.9), std(0x4c9a2a, 0.9)];
+    const trunkM = std(0x5b3a22, 0.95), leafM = [std(0x2f6b2a, 0.85), std(0x3d7f33, 0.85), std(0x4f8f2e, 0.85), std(0x2a5e2f, 0.85)];
+    const leafGeo = [lumpy(1, 2, 0.35), lumpy(1, 2, 0.4), lumpy(1, 1, 0.3)];
     const tree = (x, z, s = 1) => {
+      const g = new T.Group(); g.position.set(x, 0, z); g.scale.setScalar(s); g.rotation.y = rand(0, 6.28); scene.add(g);
+      mesh(new T.CylinderGeometry(0.22, 0.42, 3.4, 9), trunkM, 0, 1.7, 0, g);
+      [[0.5, 3.2, 0.6], [-0.5, 3.4, -0.4]].forEach(([a, b, c]) => { const br = mesh(new T.CylinderGeometry(0.08, 0.14, 1.6, 6), trunkM, a * 0.6, b, c * 0.6, g); br.rotation.set(c, 0, -a); });
+      [[0, 4, 0, 1.8], [1.0, 3.5, 0.5, 1.3], [-0.9, 3.6, -0.4, 1.35], [0.3, 5.0, -0.3, 1.25], [-0.4, 4.4, 0.8, 1.1], [0.6, 4.3, -0.9, 1.05]]
+        .forEach(([a, b, c, r]) => { const l = mesh(leafGeo[Math.random() * 3 | 0], leafM[Math.random() * 4 | 0], a, b, c, g); l.scale.set(r, r * rand(0.8, 0.95), r); });
+    };
+    const pineM = [std(0x1f4d2b, 0.9), std(0x26592f, 0.9)];
+    const pine = (x, z, s = 1) => {
       const g = new T.Group(); g.position.set(x, 0, z); g.scale.setScalar(s); scene.add(g);
-      mesh(new T.CylinderGeometry(0.25, 0.38, 3, 8), trunkM, 0, 1.5, 0, g);
-      [[0, 3.6, 0, 1.7], [0.8, 3.1, 0.4, 1.2], [-0.7, 3.2, -0.3, 1.25], [0, 4.6, 0, 1.15]].forEach(([a, b, c, r]) => mesh(new T.IcosahedronGeometry(r, 1), leafM[Math.random() * 3 | 0], a, b, c, g));
+      mesh(new T.CylinderGeometry(0.18, 0.3, 2, 7), trunkM, 0, 1, 0, g);
+      [[2.2, 2.6, 1.9], [3.6, 2.0, 1.5], [4.8, 1.5, 1.2]].forEach(([y, r, h]) => mesh(new T.ConeGeometry(r, h * 1.6, 9), pineM[Math.random() * 2 | 0], 0, y, 0, g));
     };
     [[-24, -14], [-26, 12], [24, -16], [26, 4], [22, 16], [-4, 20], [8, 21], [-30, -6], [30, -2], [14, -22], [-16, 22], [32, 14]].forEach(([x, z]) => tree(x, z, rand(0.85, 1.35)));
+    for (let i = 0; i < 46; i++) {
+      const a = (i / 46) * Math.PI * 2 + rand(-0.05, 0.05), r = rand(46, 62);
+      const x = Math.cos(a) * r, z = Math.sin(a) * r * 0.85;
+      if (z > 22 && Math.abs(x) < 25) continue; // old tomon ochiq qolsin
+      (i % 3 ? pine : tree)(x, z, rand(1.1, 1.8));
+    }
+    // Uzoq qorli tog'lar (O'zbekiston tog'lari kabi)
+    const mtM = new T.MeshStandardMaterial({ color: 0x7d8fa8, roughness: 1, flatShading: true, fog: false }), snowM = new T.MeshStandardMaterial({ color: 0xf4f7fb, roughness: 0.9, flatShading: true, fog: false });
+    for (let i = 0; i < 11; i++) {
+      const a = -Math.PI * 0.95 + i * 0.19 + rand(-0.04, 0.04), r = rand(175, 195), h = rand(38, 70), w = h * rand(1.1, 1.5);
+      const g = new T.Group(); g.position.set(Math.cos(a) * r, -2, Math.sin(a) * r); scene.add(g);
+      const m = new T.Mesh(lumpy(1, 1, 0.18), mtM); m.scale.set(w, h, w * 0.7); g.add(m);
+      const c = new T.Mesh(new T.ConeGeometry(w * 0.34, h * 0.32, 7), snowM); c.position.y = h * 0.8; g.add(c);
+    }
+    // Bulutlar
+    const cloudTex = canvasTex(256, 128, (x) => {
+      for (let i = 0; i < 16; i++) {
+        const cx = 40 + Math.random() * 176, cy = 60 + Math.random() * 30 - Math.abs(cx - 128) * 0.12, r = 18 + Math.random() * 26;
+        const g = x.createRadialGradient(cx, cy, 1, cx, cy, r);
+        g.addColorStop(0, "rgba(255,255,255,.95)"); g.addColorStop(0.6, "rgba(255,255,255,.6)"); g.addColorStop(1, "rgba(255,255,255,0)");
+        x.fillStyle = g; x.beginPath(); x.arc(cx, cy, r, 0, 7); x.fill();
+      }
+    });
+    const clouds = [];
+    for (let i = 0; i < 12; i++) {
+      const c = new T.Sprite(new T.SpriteMaterial({ map: cloudTex, transparent: true, depthWrite: false, fog: false, opacity: rand(0.7, 0.95) }));
+      const w = rand(40, 75); c.scale.set(w, w * 0.45, 1);
+      c.position.set(rand(-180, 180), rand(45, 80), rand(-170, -40) * (i % 4 ? 1 : -0.6));
+      c.userData.v = rand(0.6, 1.6); scene.add(c); clouds.push(c);
+    }
+    // Quyosh / oy
+    const glowTex = canvasTex(128, 128, (x) => {
+      const g = x.createRadialGradient(64, 64, 4, 64, 64, 63);
+      g.addColorStop(0, "rgba(255,255,240,1)"); g.addColorStop(0.18, "rgba(255,248,215,.95)"); g.addColorStop(0.35, "rgba(255,225,160,.35)"); g.addColorStop(1, "rgba(255,210,140,0)");
+      x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+    });
+    const sunDisc = new T.Sprite(new T.SpriteMaterial({ map: glowTex, transparent: true, depthWrite: false, fog: false }));
+    sunDisc.scale.set(36, 36, 1); scene.add(sunDisc);
+    // Yulduzlar
+    const starGeo = new T.BufferGeometry(), sp = [];
+    for (let i = 0; i < 700; i++) { const u = Math.random() * 6.28, v = Math.acos(rand(0.08, 1)); sp.push(Math.sin(v) * Math.cos(u) * 190, Math.cos(v) * 190, Math.sin(v) * Math.sin(u) * 190); }
+    starGeo.setAttribute("position", new T.Float32BufferAttribute(sp, 3));
+    const stars = new T.Points(starGeo, new T.PointsMaterial({ color: 0xffffff, size: 1.3, sizeAttenuation: false, fog: false, transparent: true, opacity: 0.9 }));
+    stars.visible = false; scene.add(stars);
+    // Qushlar
+    const birdM = std(0x2a2a2a, 0.8, { side: T.DoubleSide }), birds = [];
+    for (let i = 0; i < 6; i++) {
+      const b = new T.Group(), wingG = new T.PlaneGeometry(0.9, 0.35);
+      wingG.translate(0.45, 0, 0);
+      const l = new T.Mesh(wingG, birdM), r = new T.Mesh(wingG, birdM); r.scale.x = -1;
+      l.rotation.x = r.rotation.x = -Math.PI / 2;
+      const wl = new T.Group(), wr = new T.Group(); wl.add(l); wr.add(r); b.add(wl, wr);
+      b.add(new T.Mesh(new T.SphereGeometry(0.14, 6, 4), birdM)).scale.set(1, 1, 3);
+      b.userData = { wl, wr, a: rand(0, 6.28), r: rand(22, 45), y: rand(18, 30), sp: rand(0.12, 0.22) * (i % 2 ? 1 : -1), f: rand(7, 10), cx: rand(-10, 10), cz: rand(-10, 10) };
+      scene.add(b); birds.push(b);
+    }
     const rockM = std(0x8f8f8f, 1);
     for (let i = 0; i < 18; i++) { const r = mesh(new T.DodecahedronGeometry(rand(0.2, 0.6), 0), rockM, rand(-40, 40), 0.15, rand(-40, 40), scene); if (Math.abs(r.position.x) < 21 && Math.abs(r.position.z) < 15) r.position.x += 45; }
     const flowerCols = [0xf472b6, 0xfde047, 0xffffff, 0xa78bfa, 0xfb7185];
@@ -291,14 +468,27 @@
 
     // ---------- Kun va tun ----------
     let lastHour = -1;
-    function applyTime(h) {
+    let applyTime = function (h) {
       const day = h >= 6 && h < 19, dusk = (h >= 17 && h < 19) || (h >= 6 && h < 7.5);
       const a = ((h - 6) / 13) * Math.PI;
       sun.position.set(Math.cos(a) * 60, Math.max(8, Math.sin(a) * 70), 30);
       if (day && !dusk) { scene.background = skyTex("#5aa9ec", "#a9d6f5", "#e8f4fb"); scene.fog = new T.Fog(0xcfe6f2, 70, 210); sun.intensity = 1.6; sun.color.set(0xfff1d6); hemi.intensity = 0.75; lamp.intensity = 0; renderer.toneMappingExposure = 1; }
       else if (dusk) { scene.background = skyTex("#3b4f8c", "#f59e6b", "#ffd29a"); scene.fog = new T.Fog(0xf3b483, 60, 190); sun.intensity = 1.1; sun.color.set(0xffa463); hemi.intensity = 0.5; lamp.intensity = 1.2; renderer.toneMappingExposure = 0.95; }
       else { scene.background = skyTex("#050a1f", "#13224a", "#273a63"); scene.fog = new T.Fog(0x16244a, 50, 170); sun.position.set(-40, 60, -20); sun.intensity = 0.35; sun.color.set(0x9db4ff); hemi.intensity = 0.25; lamp.intensity = 2.4; renderer.toneMappingExposure = 0.9; }
-    }
+    };
+    const _applyTime = applyTime;
+    applyTime = function (h) {
+      _applyTime(h);
+      const night = !(h >= 6 && h < 19), dusk = (h >= 17 && h < 19) || (h >= 6 && h < 7.5);
+      stars.visible = night;
+      birds.forEach((b) => (b.visible = !night));
+      const dir = sun.position.clone().normalize();
+      sunDisc.position.copy(dir.multiplyScalar(170));
+      sunDisc.material.color.set(night ? 0xc9d6ff : dusk ? 0xffb37a : 0xffffff);
+      sunDisc.scale.setScalar(night ? 16 : dusk ? 44 : 36);
+      clouds.forEach((c) => c.material.color.set(night ? 0x2a3557 : dusk ? 0xffc3a0 : 0xffffff));
+      self.isNight = night;
+    };
     this.setHour = (h) => { lastHour = h; applyTime(h); };
     const realHour = () => { const d = new Date(); return d.getHours() + d.getMinutes() / 60; };
     applyTime(realHour());
@@ -361,6 +551,7 @@
 
     // ---------- Animatsiya sikli ----------
     const clock = new T.Clock();
+    const hearts = [];
     let raf = 0, alive = true, timeCheck = 0;
     const tmp = new T.Vector3();
     function loop() {
@@ -393,8 +584,30 @@
             b.head.rotation.x += (0 - b.head.rotation.x) * 0.1;
           }
         }
+        // Ovoz chiqarayotgan hayvon boshini ko'taradi
+        if (st.call > 0) {
+          st.call -= dt;
+          b.head.rotation.x += (-0.45 + Math.sin(now * 28) * 0.05 - b.head.rotation.x) * 0.25;
+          b.body.position.y = Math.abs(Math.sin(now * 14)) * 0.02 * b.size;
+        } else if (b.peck && st.wait > 0 && st.graze) b.head.rotation.x = Math.max(0, Math.sin(now * 9 + st.phase)) * 1.1;
+        if (b.tail) { b.tail.rotation.z = Math.sin(now * 2.3 + st.phase) * 0.28; b.tail.rotation.x = 0.12 + Math.sin(now * 1.1 + st.phase) * 0.06; }
         st.icon.position.y = b.size + 0.8 + Math.sin(now * 2 + st.phase) * 0.08;
       });
+      windU.value = now;
+      clouds.forEach((c) => { c.position.x += c.userData.v * dt; if (c.position.x > 200) c.position.x = -200; });
+      birds.forEach((bd) => {
+        const u = bd.userData; u.a += u.sp * dt;
+        bd.position.set(u.cx + Math.cos(u.a) * u.r, u.y + Math.sin(u.a * 3) * 1.5, u.cz + Math.sin(u.a) * u.r);
+        bd.rotation.y = -u.a + (u.sp > 0 ? Math.PI : 0); bd.rotation.z = u.sp > 0 ? 0.2 : -0.2;
+        const f = Math.sin(now * u.f + u.a * 10) * 0.7; u.wl.rotation.z = f; u.wr.rotation.z = -f;
+      });
+      for (let i = hearts.length - 1; i >= 0; i--) {
+        const h = hearts[i]; h.userData.t += dt;
+        const t = Math.max(0, h.userData.t) / h.userData.life;
+        if (h.userData.t > 0) h.position.y += dt * 1.2;
+        h.material.opacity = h.userData.t < 0 ? 0 : Math.max(0, 1 - t);
+        if (t >= 1) { scene.remove(h); h.material.dispose(); hearts.splice(i, 1); }
+      }
       if (camGoal) {
         let tx = -1, tz = 0;
         if (camGoal.id != null && animals.get(camGoal.id)) { const p = animals.get(camGoal.id).b.g.position; tx = p.x; tz = p.z; }
@@ -408,6 +621,29 @@
       renderer.render(scene, camera);
     }
     raf = requestAnimationFrame(loop);
+
+    // ---------- Ovoz va effektlar uchun ----------
+    this.call = function (id) {
+      const st = animals.get(id);
+      if (!st) return null;
+      st.call = 1.3; st.wait = Math.max(st.wait, 1.4);
+      const v = st.b.g.position.clone(); v.y += st.b.size;
+      const dist = camera.position.distanceTo(v);
+      v.project(camera);
+      return { rooster: !!st.b.rooster, pan: Math.max(-1, Math.min(1, v.x)), vol: Math.max(0.18, Math.min(1, 20 / dist)), onscreen: Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1 && v.z < 1 };
+    };
+    this.celebrate = function (emoji = "❤️") {
+      animals.forEach((st) => {
+        for (let k = 0; k < (st.a.t === "tovuq" ? 1 : 2); k++) {
+          const h = new T.Sprite(new T.SpriteMaterial({ map: emojiTex(emoji), transparent: true, depthWrite: false }));
+          h.scale.setScalar(st.a.t === "tovuq" ? 0.5 : 0.8);
+          h.position.copy(st.b.g.position); h.position.y += st.b.size + 0.4 + k * 0.4; h.position.x += rand(-0.4, 0.4);
+          h.userData = { t: -k * 0.3 - Math.random() * 0.4, life: 1.8 };
+          scene.add(h); hearts.push(h);
+        }
+      });
+    };
+    this.kinds = () => [...animals.values()].map((st) => ({ id: st.a.id, t: st.a.t, status: st.status }));
 
     this.destroy = function () {
       alive = false; cancelAnimationFrame(raf); ro.disconnect();

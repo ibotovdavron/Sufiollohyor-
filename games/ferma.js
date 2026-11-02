@@ -65,17 +65,21 @@
   let libs = null;
   const loadLibs = () => libs || (libs = (async () => {
     if (!window.THREE) await loadScript("lib/three.min.js?v=149");
-    if (!window.SofiFarm3D) await loadScript("games/ferma3d.js?v=1");
+    if (!window.SofiFarm3D) await loadScript("games/ferma3d.js?v=2");
   })().catch((e) => { libs = null; throw e; }));
 
-  // ---------- Ovoz ----------
-  const sfx = {
-    ok() { [660, 880].forEach((f, i) => setTimeout(() => api.beep(f, 0.09, "triangle", 0.05), i * 70)); },
-    bad() { api.beep(200, 0.18, "sawtooth", 0.03); },
-    coin() { [988, 1319].forEach((f, i) => setTimeout(() => api.beep(f, 0.08, "square", 0.03), i * 60)); },
-    done() { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => api.beep(f, 0.14, "triangle", 0.05), i * 100)); },
-    moo() { api.beep(140, 0.5, "sawtooth", 0.025); }
-  };
+  // ---------- Ovoz (games/ferma-sound.js) ----------
+  const SND = () => window.SofiFarmSound;
+  const fx = (n, o) => { const s = SND(); if (s) s.fx(n, o); };
+  const sfx = { ok: () => fx("ok"), bad: () => fx("bad"), coin: () => fx("coin"), done: () => fx("done") };
+  // Hayvon ovozi: sahnadagi joyiga qarab chap/o'ng va balandlik
+  function speak(id, t) {
+    const s = SND();
+    if (!s || !s.on) return;
+    const info = scene ? scene.call(id) : null;
+    const kind = t === "tovuq" && info && info.rooster ? "xoroz" : t;
+    s.voice(kind, info ? { pan: info.pan * 0.8, vol: info.vol } : { vol: 0.6 });
+  }
 
   // =========================================================
   // HOLAT: saqlash (shu qurilma + Supabase)
@@ -242,9 +246,10 @@
         <button class="fm-exit" type="button">← Chiqish</button>
         <div class="fm-brand"><span>🐄</span><b>MENING FERMAM</b><em>3D</em></div>
         <div class="fm-bar-r" id="fmBarR"></div>
+        <button class="fm-snd" type="button" id="fmSnd" title="Ovoz"></button>
       </header>
       <div class="fm-world" id="fmWorld">
-        <div class="fm-loading" id="fmLoading"><div class="fm-spin"></div><p>Ferma yuklanmoqda…</p></div>
+        <div class="fm-loading" id="fmLoading"><div class="fm-load-art" aria-hidden="true"><span class="sun">☀️</span><span class="hill"></span><span class="an a1">🐄</span><span class="an a2">🐑</span><span class="an a3">🐔</span><span class="an a4">🐎</span></div><b>Ferma uyg‘onmoqda…</b><p>Hayvonlar o‘tloqqa chiqyapti 🌾</p></div>
         <div class="fm-hud" id="fmHud"></div>
         <div class="fm-visit" id="fmVisit" hidden></div>
         <div class="fm-pop" id="fmPop" hidden></div>
@@ -265,6 +270,9 @@
     requestAnimationFrame(() => root && root.classList.add("show"));
     $(".fm-exit", root).onclick = () => { if (H.busy && !confirm("Savollar tugamadi. Chiqasizmi?")) return; close(); };
     $(".fm-sheet-x", root).onclick = closeSheet;
+    const sb = $("#fmSnd", root), drawSnd = () => { const on = SND() && SND().on; sb.textContent = on ? "🔊" : "🔇"; sb.classList.toggle("off", !on); };
+    sb.onclick = () => { const s = SND(); if (!s) return; s.setOn(!s.on); if (s.on) { s.startAmbience(scene && scene.isNight); } drawSnd(); };
+    drawSnd();
     $("#fmHome", root).onclick = () => scene && scene.overview();
     $$("#fmDock [data-p]", root).forEach((b) => (b.onclick = () => panel(b.dataset.p)));
     const onKey = (e) => { if (e.key === "Escape" && root) { if (!$("#fmSheet", root).hidden) closeSheet(); } };
@@ -272,6 +280,7 @@
     timers.push(() => document.removeEventListener("keydown", onKey));
   }
   function close() {
+    if (SND()) SND().stopAmbience();
     timers.forEach((fn) => { try { fn(); } catch (e) { /* bo'sh */ } });
     timers = [];
     if (scene) { try { scene.destroy(); } catch (e) { /* bo'sh */ } }
@@ -284,6 +293,7 @@
 
   async function openApp(me, first) {
     if (root) close();
+    if (SND()) SND().init(); // bosish paytida ochiladi (brauzer talabi)
     shell();
     try { await loadLibs(); } catch (e) { /* 3D bo'lmasa ham ro'yxat bilan ishlaydi */ }
     if (!root) return;
@@ -297,6 +307,8 @@
       scene = null;
     }
     $("#fmLoading", root).remove();
+    if (SND() && SND().on) SND().startAmbience(scene && scene.isNight);
+    startVoices();
     if (!me) { $("#fmDock", root).classList.add("off"); panel("visit"); return; }
 
     let s = await loadFarm(me);
@@ -324,6 +336,34 @@
     }
   }
 
+  // ---------- Hayvonlar ovozi: och qolsa tez-tez chaqiradi ----------
+  function chorus() {
+    const s = viewing || st;
+    if (!s) return;
+    const seen = new Set();
+    s.animals.filter((a) => !seen.has(a.t) && seen.add(a.t)).forEach((a, i) => setTimeout(() => root && speak(a.id, a.t), 300 + i * 900));
+  }
+  function startVoices() {
+    let next = Date.now() + 1800, greeted = false;
+    const iv = setInterval(() => {
+      const s = viewing || st;
+      if (!root || !s || !scene || document.hidden || !SND() || !SND().on) return;
+      if (!s.animals.length) return;
+      if (!greeted) { greeted = true; chorus(); next = Date.now() + 5000 + s.animals.length * 300; return; }
+      if (Date.now() < next) return;
+      const guest = !!viewing;
+      const hungry = s.animals.filter((a) => { const x = statusOf(s, a, guest); return x === "hungry" || x === "sick"; });
+      const pool = hungry.length ? hungry : s.animals;
+      const a = pool[Math.random() * pool.length | 0];
+      speak(a.id, a.t);
+      if (hungry.length && Math.random() < 0.35) { const b = pool[Math.random() * pool.length | 0]; if (b !== a) setTimeout(() => speak(b.id, b.t), 700); }
+      next = Date.now() + (hungry.length ? rand(4500, 9000) : rand(14000, 26000));
+      if (SND() && scene) SND().setNight(scene.isNight);
+    }, 700);
+    timers.push(() => clearInterval(iv));
+  }
+  const rand = (a, b) => a + Math.random() * (b - a);
+
   // ---------- Ekranni yangilash ----------
   function render() {
     if (!root) return;
@@ -337,8 +377,9 @@
     const need = needed(st || s), done = need.filter((k) => st && (st.today.done || st.today.tasks[k]));
     const inv = (x) => Object.keys(GOODS).map((k) => `<span class="fm-chip" title="${GOODS[k].name}">${GOODS[k].icon} ${x.inv[k] || 0}${k === "sut" ? " l" : k === "gosht" ? " kg" : ""}</span>`).join("");
     const counts = Object.keys(KINDS).map((t) => { const n = s.animals.filter((a) => a.t === t).length; return n ? `<span class="fm-chip">${KINDS[t].icon} ${n}</span>` : ""; }).join("");
-    $("#fmHud", root).innerHTML = guest ? `<div class="fm-hud-row">${counts || '<span class="fm-chip">Hayvon yo‘q</span>'}</div>` : `
-      <div class="fm-hud-row">${inv(st)}</div>
+    const d = new Date(), hh = d.getHours(), clock = `<span class="fm-chip clock">${hh >= 6 && hh < 19 ? (hh >= 17 || hh < 8 ? "🌇" : "☀️") : "🌙"} ${String(hh).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}</span>`;
+    $("#fmHud", root).innerHTML = guest ? `<div class="fm-hud-row">${clock}${counts || '<span class="fm-chip">Hayvon yo‘q</span>'}</div>` : `
+      <div class="fm-hud-row">${clock}${inv(st)}</div>
       <div class="fm-hud-row">${counts}</div>
       ${st.animals.length ? `<button type="button" class="fm-day ${st.today.done ? "ok" : ""}" data-p="tasks">
         <b>${st.today.done ? "✅ Bugun hamma hayvon to‘q" : `📋 Bugungi vazifalar: ${done.length}/${need.length}`}</b>
@@ -483,10 +524,12 @@
       if (ok) {
         st.today.tasks[task] = true;
         float(`${T.icon} ${T.name}!`, "good");
+        fx(task);
         let msg = "";
         if (!st.today.done && needed(st).every((k) => st.today.tasks[k])) {
           const r = finishDay(st);
-          sfx.done(); api.toast("🎉 Hamma hayvonlar boqildi!", "good");
+          setTimeout(() => { sfx.done(); if (scene) scene.celebrate("❤️"); chorus(); }, 1100);
+          api.toast("🎉 Hamma hayvonlar boqildi!", "good");
           msg = `<p>Bugungi hosil: ${r.eggs ? `🥚 ${r.eggs} ta tuxum ` : ""}${r.milk ? `🥛 ${r.milk} l sut ` : ""}${!r.eggs && !r.milk ? "hayvonlar o‘sib, semiryapti 💪" : ""}</p>`;
           const rd = st.animals.filter(ready);
           if (rd.length) msg += `<p>⭐ ${rd.map((a) => esc(a.name)).join(", ")} go‘shtga tayyor! “🐾 Podam” bo‘limida topshiring.</p>`;
@@ -510,6 +553,8 @@
     st.stats.eggs += e; st.stats.milk += m;
     st.pending = { tuxum: 0, sut: 0 };
     sfx.coin();
+    const hen = st.animals.find((a) => a.t === "tovuq");
+    if (hen && e) setTimeout(() => speak(hen.id, "tovuq"), 300);
     float(`🧺 ${e ? `+${e} 🥚 ` : ""}${m ? `+${m} l 🥛` : ""}`, "good");
     save(st); render();
   }
@@ -529,7 +574,9 @@
     }
     // Bugun vazifalar bajarilgan bo'lsa, yangi hayvonlar to'q holda keladi (ertadan boqiladi)
     log(st, `${n} ta ${K.name.toLowerCase()} sotib olindi`);
-    sfx.coin(); if (t === "sigir") setTimeout(sfx.moo, 200);
+    sfx.coin();
+    const newId = st.animals[st.animals.length - 1].id;
+    setTimeout(() => speak(newId, t), 900);
     float(`${K.icon} +${n}`, "good");
     if (!silent) api.toast(`${n} ta ${K.name.toLowerCase()} sotib olindi! ${K.icon}`, "good");
     save(st); render();
@@ -618,6 +665,7 @@
     const a = s.animals.find((x) => x.id === id);
     if (!a) return;
     if (scene) scene.focus(id);
+    speak(id, a.t);
     const K = KINDS[a.t], pop = $("#fmPop", root), guest = !!viewing;
     const sell = Math.round(K.price * SELL_RATE * (a.health < SICK ? 0.6 : 1));
     pop.hidden = false;
@@ -695,6 +743,7 @@
     if (h) h.onclick = backHome;
     api.toast(`🏡 ${short(s.name)}ning fermasidasiz`, "good");
     render();
+    setTimeout(chorus, 1200);
   }
   function backHome() {
     viewing = null;
