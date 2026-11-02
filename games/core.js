@@ -187,7 +187,7 @@
     return new Promise((resolve) => {
       const box = document.createElement("form");
       box.className = "g-pin";
-      box.innerHTML = `<b>🔑 ${esc(teacher.name)} — ustoz paroli</b>
+      box.innerHTML = `<b>🔑 ${esc(teacher.name)} — ${teacher.role === "teacher" ? "ustoz paroli" : "shaxsiy parol"}</b>
         <input type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Parolni kiriting" aria-label="Ustoz paroli">
         <div class="g-pin-row"><button class="btn" type="submit">Kirish</button><button class="btn secondary" type="button" data-pin-cancel>Bekor</button></div>
         <small class="g-pin-err"></small>`;
@@ -198,7 +198,7 @@
       box.querySelector("[data-pin-cancel]").onclick = () => done(false);
       box.onsubmit = async (e) => {
         e.preventDefault();
-        const ok = D.teacherPinHash && (await sha256(input.value.trim())) === D.teacherPinHash;
+        const ok = window.SofiAuth ? await window.SofiAuth.verify(teacher, input.value) : (D.teacherPinHash && (await sha256(input.value.trim())) === D.teacherPinHash);
         if (ok) done(true);
         else { box.querySelector(".g-pin-err").textContent = "Parol noto‘g‘ri. Katta-kichik harflarga e’tibor bering."; input.value = ""; input.focus(); }
       };
@@ -215,8 +215,9 @@
       studentList(card.querySelector(".g-list"), {
         mode: "pick",
         async onPick(student) {
-          if (student.role === "teacher" && !(await askPin(card, student))) return;
+          if (!(await askPin(card, student))) return;
           if (!claimName(student)) { toast("Bu ism hozirgina band qilindi.", "bad"); return; }
+          if (window.SofiAuth) window.SofiAuth.save(student);
           closeModal();
           toast(student.role === "teacher" ? `Xush kelibsiz, ustoz ${student.name}! 👨‍🏫` : `Xush kelibsiz, ${student.name}! 🎉`, "good");
           resolve(true);
@@ -672,7 +673,7 @@
       const start = e.target.closest("[data-start]");
       if (start) { launch(start.dataset.start); return; }
       if (e.target.closest("[data-pick]")) askName();
-      if (e.target.closest("[data-change]")) { if (session.status === "idle") { releaseName(); askName(); } }
+      if (e.target.closest("[data-change]")) { if (session.status === "idle") { releaseName(); if (window.SofiAuth) window.SofiAuth.logout(); askName(); } }
     });
 
     renderPlayerChip();
@@ -681,7 +682,8 @@
     renderOnlineCount();
 
     // Sahifa yangilansa, avvalgi ism bo'sh bo'lsa qaytariladi.
-    const me = store.get("sofi_games_me", null);
+    const authMe = window.SofiAuth && window.SofiAuth.me();
+    const me = store.get("sofi_games_me", null) || (authMe ? { name: authMe.name } : null);
     if (me && me.name) {
       setTimeout(() => {
         const student = PEOPLE.find((s) => s.name === me.name);

@@ -51,7 +51,7 @@
   let cat = "all";
   let cart = store.get("sofi_cart_v1", {});
   let likes = store.get("sofi_likes_v1", {});
-  let me = store.get("sofi_shop_me_v1", null); // { name }
+  let me = window.SofiAuth && window.SofiAuth.me() && window.SofiAuth.me().role !== "teacher" ? { name: window.SofiAuth.me().name } : null; // { name }
   let balance = null; // jami yulduzlar
 
   // ---------- Yulduzlar balansi ----------
@@ -225,20 +225,16 @@
       </div>`);
   }
 
-  function askName() {
-    const groups = {};
-    (D.students || []).forEach((s) => (groups[s.group] = groups[s.group] || []).push(s.name));
-    openSheet(`
-      <h2 class="sh-sheet-title">⭐ Ismingizni tanlang</h2>
-      <p class="sh-muted">Yulduzlaringiz reytingdagi ma’lumotlardan hisoblanadi.</p>
-      <input class="sh-name-search" type="search" placeholder="🔎 Ism qidirish..." aria-label="Ism qidirish">
-      <div class="sh-names">${Object.entries(groups).map(([g, names]) => `<h4>${esc(g)}</h4>${names.map((n) => `<button data-name="${esc(n)}">${esc(n)}</button>`).join("")}`).join("")}</div>
-      ${me ? `<button class="sh-link" data-logout>Chiqish (${esc(me.name)})</button>` : ""}`);
-    const input = $(".sh-name-search");
-    input.addEventListener("input", () => {
-      const q = input.value.toLowerCase();
-      document.querySelectorAll(".sh-names button").forEach((b) => (b.hidden = !b.textContent.toLowerCase().includes(q)));
-    });
+  async function askName() {
+    if (me) {
+      openSheet(`<h2 class="sh-sheet-title">⭐ ${esc(me.name)}</h2><p class="sh-muted">Siz tizimga kirgansiz.</p>
+        <a class="sh-add wide" href="profile.html">👤 Profilim va statistikam</a>
+        <button class="sh-link" data-logout>Chiqish</button>`);
+      return;
+    }
+    if (!window.SofiAuth) return;
+    const u = await window.SofiAuth.open({ title: "Yulduzlarimni ko‘rish", teachers: false });
+    if (u) { me = { name: u.name }; computeBalance(); toast(`Salom, ${u.name}! 👋`); }
   }
 
   // ---------- Savat ----------
@@ -319,9 +315,7 @@
     if (chip) { cat = chip.dataset.cat; renderCats(); render(); return; }
     if (t.closest("#cartBtn")) { showCart(); return; }
     if (t.closest("#walletBtn") || t.closest("[data-wallet]")) { askName(); return; }
-    const nm = t.closest("[data-name]");
-    if (nm) { me = { name: nm.dataset.name }; store.set("sofi_shop_me_v1", me); closeSheet(); computeBalance(); toast(`Salom, ${me.name}! 👋`); return; }
-    if (t.closest("[data-logout]")) { me = null; store.set("sofi_shop_me_v1", null); closeSheet(); computeBalance(); return; }
+    if (t.closest("[data-logout]")) { me = null; if (window.SofiAuth) window.SofiAuth.logout(); closeSheet(); computeBalance(); return; }
     const inc = t.closest("[data-inc]"), dec = t.closest("[data-dec]");
     if (inc || dec) {
       const id = (inc || dec).dataset[inc ? "inc" : "dec"];

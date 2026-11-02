@@ -15,7 +15,8 @@
     bag: '<path d="M5 8h14l-1 13H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
     question: '<circle cx="12" cy="12" r="9.5"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6"/><circle cx="12" cy="17.2" r=".6" fill="currentColor"/>',
     flask: '<path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/><path d="M7.5 15h9"/>',
-    phone: '<path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2Z"/>'
+    phone: '<path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2Z"/>',
+    user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>'
   };
   const icon = (name) =>
     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
@@ -30,6 +31,7 @@
     ["kurslar.html", "book", "Kurslar", "Kurslar"],
     ["shop.html", "bag", "Do‘kon", "Do‘kon"],
     ["amaliy.html", "flask", "Amaliy dars", "Amaliy"],
+    ["profile.html", "user", "Profil", "Profil"],
     ["contact.html", "phone", "Aloqa", "Aloqa"]
   ];
 
@@ -482,6 +484,102 @@
       else if (isIOS) showIOSHelp();
       else alert("Brauzer menyusidan (⋮) “Ilovani o‘rnatish” yoki “Bosh ekranga qo‘shish” ni tanlang.");
     });
+  })();
+
+
+  // ===== O'quvchi va ustoz kirishi (parol bilan) =====
+  (() => {
+    const KEY = "sofi_me_v1";
+    const sha = async (t) => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t)))].map((b) => b.toString(16).padStart(2, "0")).join("");
+    const loadHashes = () => window.SOFI_PW ? Promise.resolve(window.SOFI_PW) : new Promise((res) => {
+      const sc = document.createElement("script");
+      sc.src = "auth-data.js?v=1";
+      sc.onload = () => res(window.SOFI_PW || {});
+      sc.onerror = () => res({});
+      document.head.appendChild(sc);
+    });
+    const students = () => (D.students || []).map((s) => ({ name: s.name, cls: s.group, role: "student" }));
+    const teachers = () => (D.teachers || []).filter((t) => !/^Ustoz \d+$/.test(t.name)).map((t) => ({ name: t.name, cls: "Ustoz", role: "teacher" }));
+    const Auth = {
+      me() { try { return JSON.parse(localStorage.getItem(KEY)); } catch (e) { return null; } },
+      save(u) { try { localStorage.setItem(KEY, JSON.stringify({ name: u.name, cls: u.cls, role: u.role || "student", at: Date.now() })); } catch (e) { /* bo'sh */ } document.dispatchEvent(new CustomEvent("sofi:auth")); },
+      logout() { try { localStorage.removeItem(KEY); } catch (e) { /* bo'sh */ } document.dispatchEvent(new CustomEvent("sofi:auth")); },
+      async verify(person, pw) {
+        pw = String(pw || "").trim();
+        if (!pw) return false;
+        if (person.role === "teacher") return !!D.teacherPinHash && (await sha(pw)) === D.teacherPinHash;
+        const H = await loadHashes();
+        const h = H[person.name];
+        if (!h) return false;
+        return (await sha("sofi|" + person.name + "|" + pw.toLowerCase())) === h;
+      },
+      /** Kirish oynasi. Natija: foydalanuvchi yoki null. */
+      open({ title = "Kirish", teachers: allowT = true } = {}) {
+        return new Promise((resolve) => {
+          if (!document.getElementById("saStyle")) {
+            const st = document.createElement("style");
+            st.id = "saStyle";
+            st.textContent = `
+              .sa{position:fixed;inset:0;z-index:2000;display:grid;place-items:center;padding:14px;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);animation:saF .25s}
+              @keyframes saF{from{opacity:0}}
+              .sa-card{width:min(520px,100%);max-height:calc(100vh - 28px);overflow:auto;padding:20px;border-radius:24px;background:linear-gradient(170deg,#0b2a1e,#04140c);border:1px solid rgba(0,245,155,.35);color:#fff;box-shadow:0 30px 80px rgba(0,0,0,.6);font-family:inherit}
+              .sa-card h2{margin:0 0 4px;font-size:22px}.sa-card p{margin:0 0 12px;color:#9fc5b3;font-size:14px}
+              .sa-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+              .sa-tabs button{padding:7px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#cfe;font:inherit;font-weight:800;cursor:pointer}
+              .sa-tabs button.on{background:#00f59b;color:#02130c;border-color:#00f59b}
+              .sa-search{width:100%;box-sizing:border-box;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.3);color:#fff;font:inherit;font-size:16px;margin-bottom:8px}
+              .sa-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;max-height:260px;overflow:auto}
+              .sa-list button{padding:9px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#fff;font:inherit;font-size:13px;text-align:left;cursor:pointer}
+              .sa-list button:hover{border-color:#00f59b}
+              .sa-pw{display:grid;gap:8px;margin-top:6px}
+              .sa-pw b{font-size:17px}.sa-pw input{padding:12px;border-radius:12px;border:1px solid rgba(0,245,155,.5);background:rgba(0,0,0,.35);color:#fff;font:inherit;font-size:18px;letter-spacing:.12em}
+              .sa-row{display:flex;gap:8px}.sa-row button{flex:1;padding:12px;border-radius:12px;border:0;font:inherit;font-weight:900;cursor:pointer}
+              .sa-go{background:linear-gradient(135deg,#00f59b,#0ea5e9);color:#02130c}.sa-back{background:rgba(255,255,255,.08);color:#fff}
+              .sa-err{color:#fca5a5;font-size:14px;min-height:1.2em}
+              .sa-x{float:right;width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.1);color:#fff;font-size:16px;cursor:pointer}`;
+            document.head.appendChild(st);
+          }
+          const all = students().concat(allowT ? teachers() : []);
+          const tabs = [...new Set(all.map((p) => p.cls))];
+          let tab = tabs[0];
+          const el = document.createElement("div");
+          el.className = "sa";
+          document.body.appendChild(el);
+          const done = (v) => { el.remove(); resolve(v); };
+          const list = () => {
+            el.innerHTML = `<div class="sa-card" role="dialog" aria-modal="true"><button class="sa-x" data-x aria-label="Yopish">✕</button>
+              <h2>🔐 ${esc(title)}</h2><p>Sinfingizni va ismingizni tanlang, so‘ng parolingizni kiriting.</p>
+              <div class="sa-tabs">${tabs.map((t) => `<button data-tab="${esc(t)}" class="${t === tab ? "on" : ""}">${t === "Ustoz" ? "👨‍🏫 Ustozlar" : esc(t)}</button>`).join("")}</div>
+              <input class="sa-search" type="search" placeholder="🔎 Ism qidirish..." aria-label="Ism qidirish">
+              <div class="sa-list">${all.filter((p) => p.cls === tab).map((p) => `<button data-n="${esc(p.name)}">${esc(p.name)}</button>`).join("")}</div></div>`;
+            const inp = el.querySelector(".sa-search");
+            inp.oninput = () => el.querySelectorAll("[data-n]").forEach((b) => (b.hidden = !b.textContent.toLowerCase().includes(inp.value.toLowerCase())));
+          };
+          const pwStep = (person) => {
+            el.innerHTML = `<div class="sa-card" role="dialog" aria-modal="true"><button class="sa-x" data-x aria-label="Yopish">✕</button>
+              <h2>🔐 Parol</h2><p>${person.role === "teacher" ? "Ustoz paroli" : "Sizga berilgan shaxsiy parol (7 belgi)"}</p>
+              <form class="sa-pw"><b>${esc(person.name)}</b><input type="password" autocomplete="current-password" autocapitalize="off" spellcheck="false" placeholder="Parol" aria-label="Parol">
+              <div class="sa-err" role="alert"></div>
+              <div class="sa-row"><button type="button" class="sa-back" data-back>← Orqaga</button><button type="submit" class="sa-go">Kirish</button></div></form></div>`;
+            const f = el.querySelector("form"), i = f.querySelector("input");
+            setTimeout(() => i.focus(), 50);
+            f.onsubmit = async (e) => {
+              e.preventDefault();
+              if (await Auth.verify(person, i.value)) { Auth.save(person); done(person); }
+              else { f.querySelector(".sa-err").textContent = "Parol noto‘g‘ri. Qaytadan urinib ko‘ring."; i.value = ""; i.focus(); }
+            };
+          };
+          el.addEventListener("click", (e) => {
+            if (e.target === el || e.target.closest("[data-x]")) return done(null);
+            const t = e.target.closest("[data-tab]"); if (t) { tab = t.dataset.tab; return list(); }
+            if (e.target.closest("[data-back]")) return list();
+            const n = e.target.closest("[data-n]"); if (n) return pwStep(all.find((p) => p.name === n.dataset.n));
+          });
+          list();
+        });
+      }
+    };
+    window.SofiAuth = Auth;
   })();
 
 })();
