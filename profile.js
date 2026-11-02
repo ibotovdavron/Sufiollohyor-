@@ -36,17 +36,19 @@
   // ---------- Ma'lumotlar ----------
   async function loadServer() {
     const cfg = window.SUFIOLLOHYOR_CONFIG || {};
-    const out = { ok: false, game: [], qw: [], mres: [], mwin: [], ts: [] };
+    const out = { ok: false, game: [], qw: [], mres: [], mwin: [], ts: [], chess: [] };
     if (!window.supabase || !cfg.SUPABASE_URL) return out;
     try {
       const db = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, { auth: { persistSession: false } });
-      const [g, q, mr, mw, ts] = await Promise.all([
+      const [g, q, mr, mw, ts, cr] = await Promise.all([
         db.from("game_stars").select("student_name, game, stars, day, created_at"),
         db.from("question_winners").select("*"),
         db.from("master_results").select("student_name, topic, attempt, correct, points, seconds, created_at"),
         db.from("master_winners").select("topic, student_name, points, awarded_at"),
-        db.from("teacher_stars").select("student_name, stars, reason, teacher, created_at").order("created_at", { ascending: false })
+        db.from("teacher_stars").select("student_name, stars, reason, teacher, created_at").order("created_at", { ascending: false }),
+        db.from("chess_ratings").select("*").order("rating", { ascending: false })
       ]);
+      out.chess = cr.error ? [] : cr.data || [];
       out.ts = ts.error ? [] : ts.data || [];
       out.game = g.error ? [] : g.data || [];
       out.qw = q.error ? [] : q.data || [];
@@ -227,6 +229,19 @@
           <div class="pf-ach">${ach.map(([ic, nm, ok]) => `<div class="${ok ? "on" : ""}"><span>${ok ? ic : "🔒"}</span><small>${esc(nm)}</small></div>`).join("")}</div>
         </section>
 
+        ${(() => {
+          let list = srv.chess && srv.chess.length ? srv.chess : [];
+          if (!list.length) { try { list = Object.values((JSON.parse(localStorage.getItem("sofi_chess_local_v1")) || {}).ratings || {}).sort((a, b) => b.rating - a.rating); } catch (e) { list = []; } }
+          const ranked = list.filter((r) => r.games > 0);
+          const c = list.find((r) => norm(r.name) === norm(meRow.name));
+          if (!c || !c.games) return `<section class="pf-card"><h2>♞ Shaxmat reytingi</h2><p>Hali shaxmat o‘ynamagansiz. Boshlang‘ich reyting: <b>1200</b>.</p><a class="pf-link" href="games.html">Do‘st bilan o‘ynash →</a></section>`;
+          const place = ranked.findIndex((r) => norm(r.name) === norm(meRow.name)) + 1;
+          return `<section class="pf-card"><h2>♞ Shaxmat reytingi</h2>
+            <p style="font-size:34px;margin:4px 0;font-weight:900;color:#22c55e">${c.rating}</p>
+            <p>${place ? `<b>${place}-o‘rin</b> (${ranked.length} o‘yinchi) · ` : ""}eng yuqori: <b>${c.best || c.rating}</b></p>
+            <p>${c.games} o‘yin · ✅ ${c.wins} g‘alaba · 🤝 ${c.draws} durang · ❌ ${c.losses} mag‘lubiyat</p>
+            <a class="pf-link" href="games.html">Shaxmat o‘ynash →</a></section>`;
+        })()}
         ${myT.length ? `<section class="pf-card wide"><h2>👨‍🏫 Ustozlardan yulduzlar</h2><ul class="pf-list">${myT.slice(0, 15).map((r) => `<li><span>${esc(r.reason || "—")} <small class="pf-muted">· ${esc(r.teacher || "")} · ${String(r.created_at).slice(0, 10)}</small></span><b style="color:${r.stars > 0 ? "#22c55e" : "#f87171"}">${r.stars > 0 ? "+" : ""}${r.stars}</b></li>`).join("")}</ul></section>` : ""}
         ${meRow.result && !/hali kiritilmagan/i.test(meRow.result) ? `<section class="pf-card wide"><h2>📝 Ustoz izohi</h2><p>${esc(meRow.result)}</p></section>` : ""}
       </div>`;
