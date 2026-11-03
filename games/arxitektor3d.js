@@ -243,9 +243,13 @@
   item({ id: "eshik_kirish", cat: "qurilish", name: "Kirish eshigi", icon: "🏛️", layer: "wall", pass: true, build: () => {
     const g = new T.Group(); wallWithHole(g, mat("brick", 0xffffff, { rep: [1.2, 3.4] }), -0.44, 0.44, 0, 2.3);
     const wd = mat("wood", 0x5a3520);
-    B(g, 0.88, 2.28, 0.06, wd, 0, 0, 0);
-    for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) RB(g, 0.32, 0.58, 0.02, 0.01, wd, -0.2 + j * 0.4, 0.2 + i * 0.7, 0.04);
-    C(g, 0.03, 0.03, 0.25, mat("metal", 0xd6b25a), 0.33, 0.95, 0.07, 8);
+    // ikki tavaqali eshik — ochiq holda (ichkariga kirish mumkin)
+    [[-1, -0.42], [1, 0.42]].forEach(([s, hx]) => {
+      const leaf = new T.Group(); leaf.position.set(hx, 0, 0.04); leaf.rotation.y = s * 1.2; g.add(leaf);
+      B(leaf, 0.43, 2.26, 0.05, wd, -s * 0.215, 0.02, 0);
+      for (let i = 0; i < 3; i++) RB(leaf, 0.3, 0.56, 0.02, 0.01, wd, -s * 0.215, 0.22 + i * 0.7, 0.03);
+      C(leaf, 0.02, 0.02, 0.22, mat("metal", 0xd6b25a), -s * 0.38, 0.95, 0.06, 8);
+    });
     B(g, 1.0, 0.1, 0.36, mat("stone", 0xffffff), 0, 2.3, 0.12);
     return g; } });
   item({ id: "past_devor", cat: "qurilish", name: "Past devor", icon: "▬", layer: "wall", paint: 0, low: true, build: (c) => { const g = new T.Group(); const m = mat("plaster", col(c, 0xe8d8b8), { rep: [1, 1] }); B(g, 1, 1, WT, m, 0, 0, 0); [-0.5, 0.5].forEach((x) => B(g, WT, 1, WT, m, x, 0, 0)); B(g, 1.04, 0.06, WT + 0.08, mat("stone", 0xffffff), 0, 1, 0); return g; } });
@@ -692,15 +696,16 @@
     // Chiroqlar (tunda) — eng ko'pi 8 ta haqiqiy yorug'lik
     let lightsDirty = true, night = false;
     const lightPool = [];
-    for (let i = 0; i < 8; i++) { const l = new T.PointLight(0xffc98a, 0, 9, 1.8); l.visible = false; scene.add(l); lightPool.push(l); }
+    // Yorug'liklar soni o'zgarmasin (aks holda hamma materiallar qayta kompilyatsiya qilinadi) — faqat kuchi o'zgaradi
+    for (let i = 0; i < 8; i++) { const l = new T.PointLight(0xffc98a, 0, 9, 1.8); l.position.set(0, -50, 0); scene.add(l); lightPool.push(l); }
     function refreshLights() {
       lightsDirty = false;
       const ls = [];
       pieces.forEach(({ rec, obj }) => { const it = BY_ID[rec.t]; if (it.light && obj.visible) ls.push([obj, it.light]); });
       lightPool.forEach((l, i) => {
         const e = ls[i];
-        if (!e || !night) { l.visible = false; l.intensity = 0; return; }
-        l.visible = true; l.intensity = e[1] > 2.5 ? 2.2 : 1.6; l.distance = e[1] > 2.5 ? 14 : 8;
+        if (!e || !night) { l.intensity = 0; return; }
+        l.intensity = e[1] > 2.5 ? 2.2 : 1.6; l.distance = e[1] > 2.5 ? 14 : 8;
         l.position.set(e[0].position.x, e[0].position.y + e[1], e[0].position.z);
       });
     }
@@ -788,7 +793,7 @@
       if (!pieces.size) { this.home(); return; }
       const b = new T.Box3(); pieces.forEach(({ obj }) => b.expandByObject(obj));
       const c = b.getCenter(new T.Vector3()), s = b.getSize(new T.Vector3());
-      goal = { theta: cam.theta, phi: 0.95, r: Math.max(12, Math.min(60, Math.max(s.x, s.z) * 1.5 + 6)), x: c.x, z: c.z };
+      goal = { theta: cam.theta, phi: 0.9, r: Math.max(10, Math.min(60, Math.max(s.x, s.z) * 1.05 + 4)), x: c.x, z: c.z };
     };
 
     // ---------- Ichida yurish ----------
@@ -799,7 +804,7 @@
       const doors = [...pieces.values()].filter(({ rec }) => BY_ID[rec.t].pass && rec.l === 0);
       if (doors.length) {
         const d = doors[0].rec, p = placement(d);
-        const off = d.r % 2 ? [2.2, 0] : [0, 2.2];
+        const off = d.r % 2 ? [4, 0] : [0, 4];
         walk.pos.set(p.x + off[0], 1.6, p.z + off[1]);
         walk.yaw = Math.atan2(off[0], off[1]);
       } else { walk.pos.set(0, 1.6, HALF + 3); walk.yaw = 0; }

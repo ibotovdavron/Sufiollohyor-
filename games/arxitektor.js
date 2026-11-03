@@ -218,6 +218,7 @@
       return;
     }
     $("#arLoading", root).remove();
+    level = 0; scene.setLevel(0);
     if (!me) { mode = "view"; drawAll(); panel(first || "visit"); return; }
     let s = await loadBuild(me.name, isGuest(me));
     if (!root) return;
