@@ -217,7 +217,13 @@
   }
   function apply(rx) {
     const use = rx.use || rx.need;
-    use.forEach((id) => { if (id === "suv") return; S.cont.set(id, Math.max(0, (S.cont.get(id) || 0) - 1)); });
+    // eritilgan modda reaksiyaga kirsa, uning eritmadagi ionlari ham sarflanadi (masalan, ko'k mis ionlari)
+    const DISS = { cuso4: "p_cuso4", cuso4b: "p_cuso4", kmno4: "p_kmn" };
+    use.forEach((id) => {
+      if (id === "suv") return;
+      S.cont.set(id, Math.max(0, (S.cont.get(id) || 0) - 1));
+      if (DISS[id] && S.cont.get(id) <= 0) S.cont.set(DISS[id], 0);
+    });
     rx.make.forEach((id) => S.cont.set(id, (S.cont.get(id) || 0) + 1));
     if (!use.length) S.fired.add(rx.id);
     const fx = rx.fx || {};
