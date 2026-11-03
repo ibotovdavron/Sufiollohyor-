@@ -49,12 +49,13 @@
   const std = (k, o) => M[k] || (M[k] = new T.MeshStandardMaterial(o));
   function glassMat() {
     if (M.glass) return M.glass;
-    const m = new T.MeshStandardMaterial({ color: 0xe9f4f8, roughness: 0.03, metalness: 0.0, transparent: true, opacity: 0.16, side: T.DoubleSide, depthWrite: false, envMapIntensity: 2.2 });
+    const m = new T.MeshStandardMaterial({ color: 0xb9d3de, roughness: 0.04, metalness: 0.1, transparent: true, opacity: 0.3, side: T.DoubleSide, depthWrite: false, envMapIntensity: 1.4 });
     // Fresnel: chetlarda shisha yorqinroq va xiraroq ko'rinadi — haqiqiy shisha kabi
     m.onBeforeCompile = (sh) => {
       sh.fragmentShader = sh.fragmentShader.replace("#include <output_fragment>", `
         float fres = pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 2.5);
-        diffuseColor.a = clamp(diffuseColor.a + fres * 0.55, 0.0, 0.85);
+        diffuseColor.a = clamp(diffuseColor.a + fres * 0.65, 0.0, 0.92);
+        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.92, 0.97, 1.0), fres * 0.5);
         #include <output_fragment>`);
     };
     return (M.glass = m);
@@ -69,19 +70,19 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, mobile ? 1.6 : 2));
     renderer.outputEncoding = T.sRGBEncoding;
     renderer.toneMapping = T.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
+    renderer.toneMappingExposure = 0.82;
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
     renderer.domElement.className = "kl-canvas";
     container.appendChild(renderer.domElement);
     const scene = new T.Scene();
-    scene.background = new T.Color(0x1b2430);
+    scene.background = new T.Color(0x141c22);
     const camera = new T.PerspectiveCamera(42, 1, 0.01, 60);
 
     // Aks muhit (shisha va metall yaltirashi uchun)
     const pmrem = new T.PMREMGenerator(renderer);
     {
       const s = new T.Scene();
-      s.add(new T.Mesh(new T.BoxGeometry(10, 4, 8), new T.MeshBasicMaterial({ color: 0xe8ede9, side: T.BackSide })));
+      s.add(new T.Mesh(new T.BoxGeometry(10, 4, 8), new T.MeshBasicMaterial({ color: 0x5f6b70, side: T.BackSide })));
       const lamp = new T.Mesh(new T.BoxGeometry(3, 0.1, 0.6), new T.MeshBasicMaterial({ color: 0xffffff })); lamp.position.set(0, 1.9, 0); s.add(lamp);
       const lamp2 = lamp.clone(); lamp2.position.set(0, 1.9, 2); s.add(lamp2);
       const win = new T.Mesh(new T.PlaneGeometry(4, 2), new T.MeshBasicMaterial({ color: 0xbfe3ff })); win.position.set(0, 0.5, -3.9); s.add(win);
@@ -90,21 +91,21 @@
     }
 
     // ---------- Yorug'lik ----------
-    scene.add(new T.HemisphereLight(0xf4f8ff, 0x55504a, 0.55));
-    const key = new T.SpotLight(0xfff4e6, 2.2, 12, 0.7, 0.6, 1.2);
+    scene.add(new T.HemisphereLight(0xf4f8ff, 0x55504a, 0.32));
+    const key = new T.SpotLight(0xfff4e6, 1.5, 12, 0.6, 0.7, 1.2);
     key.position.set(0.6, 3.0, 1.2); key.target.position.set(0, BENCH_Y, 0); key.castShadow = true;
     key.shadow.mapSize.set(mobile ? 1024 : 2048, mobile ? 1024 : 2048); key.shadow.bias = -0.0002; key.shadow.normalBias = 0.01;
     scene.add(key, key.target);
-    const winLight = new T.DirectionalLight(0xdcecff, 0.7); winLight.position.set(-2, 3, -4); scene.add(winLight);
-    const fill = new T.PointLight(0xffffff, 0.5, 8); fill.position.set(-1.5, 2.6, 1.5); scene.add(fill);
+    const winLight = new T.DirectionalLight(0xdcecff, 0.4); winLight.position.set(-2, 3, -4); scene.add(winLight);
+    const fill = new T.PointLight(0xffffff, 0.3, 8); fill.position.set(-1.5, 2.6, 1.5); scene.add(fill);
 
     // ---------- Xona ----------
     const RW = 8, RD = 6.5, RH = 3.2;
     const floorT = tex(cnv(256, 256, (x, w, h) => { x.fillStyle = "#9aa0a4"; x.fillRect(0, 0, w, h); noise(x, w, h, 5000, 0.12); noise(x, w, h, 2000, 0.1, "255,255,255"); x.strokeStyle = "rgba(0,0,0,.18)"; x.lineWidth = 2; x.strokeRect(0, 0, w, h); }), [RW / 0.6, RD / 0.6]);
     const floor = new T.Mesh(new T.PlaneGeometry(RW, RD), new T.MeshStandardMaterial({ map: floorT, roughness: 0.55 }));
     floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
-    const tileT = tex(cnv(128, 128, (x, w, h) => { x.fillStyle = "#f4f6f5"; x.fillRect(0, 0, w, h); x.strokeStyle = "#c9cfcc"; x.lineWidth = 3; x.strokeRect(0, 0, w, h); }), [RW / 0.2, 1.4 / 0.2]);
-    const paint = new T.MeshStandardMaterial({ color: 0xdfeae6, roughness: 0.9 });
+    const tileT = tex(cnv(128, 128, (x, w, h) => { x.fillStyle = "#c9d3d4"; x.fillRect(0, 0, w, h); x.strokeStyle = "#a3aeb0"; x.lineWidth = 3; x.strokeRect(0, 0, w, h); }), [RW / 0.2, 1.4 / 0.2]);
+    const paint = new T.MeshStandardMaterial({ color: 0x7f9499, roughness: 0.9 });
     const tileM = new T.MeshStandardMaterial({ map: tileT, roughness: 0.25 });
     const wall = (w, h, x, y, z, ry, m) => { const o = new T.Mesh(new T.PlaneGeometry(w, h), m); o.position.set(x, y, z); o.rotation.y = ry; o.receiveShadow = true; scene.add(o); return o; };
     // orqa (-z), chap (-x), o'ng (+x), old (+z)
@@ -113,7 +114,7 @@
       wall(w, RH - 1.4, x, 1.4 + (RH - 1.4) / 2, z, ry, paint);
     });
     const ceil = new T.Mesh(new T.PlaneGeometry(RW, RD), new T.MeshStandardMaterial({ color: 0xf2f2f0, roughness: 1 })); ceil.rotation.x = Math.PI / 2; ceil.position.y = RH; scene.add(ceil);
-    for (let i = -1; i <= 1; i++) for (let j = 0; j < 2; j++) { const p = new T.Mesh(new T.BoxGeometry(1.2, 0.03, 0.3), new T.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1.2 })); p.position.set(i * 2.4, RH - 0.02, -1 + j * 2.2); scene.add(p); }
+    for (let i = -1; i <= 1; i++) for (let j = 0; j < 2; j++) { const p = new T.Mesh(new T.BoxGeometry(1.2, 0.03, 0.3), new T.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.7 })); p.position.set(i * 2.4, RH - 0.02, -1 + j * 2.2); scene.add(p); }
     // Deraza (orqa devor)
     const sky = tex(cnv(256, 256, (x, w, h) => { const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, "#7fb7ee"); g.addColorStop(0.7, "#cfe6f7"); g.addColorStop(0.71, "#8fb36a"); g.addColorStop(1, "#6f9a4f"); x.fillStyle = g; x.fillRect(0, 0, w, h); x.fillStyle = "rgba(255,255,255,.8)"; for (let i = 0; i < 5; i++) { x.beginPath(); x.ellipse(Math.random() * w, 40 + Math.random() * 70, 40, 14, 0, 0, 7); x.fill(); } }));
     const winM = new T.Mesh(new T.PlaneGeometry(2.4, 1.3), new T.MeshBasicMaterial({ map: sky })); winM.position.set(-1.6, 2.05, -RD / 2 + 0.01); scene.add(winM);
@@ -261,9 +262,9 @@
     const inner = (pts, t) => pts.map(([r, y], i) => [Math.max(0, r - t), i === 0 ? y + t : y]);
     let vtype = "stakan", vessel = null, vInfo = null, liquid = null, liqTop = null, pptLayer = null, mirrorMesh = null, holder = null;
     const vesselGroup = new T.Group(); work.add(vesselGroup);
-    const liqMat = new T.MeshStandardMaterial({ color: 0xdcecf4, roughness: 0.05, transparent: true, opacity: 0.35, depthWrite: false, envMapIntensity: 1.5 });
+    const liqMat = new T.MeshStandardMaterial({ color: 0x9fd0ea, roughness: 0.05, transparent: true, opacity: 0.5, depthWrite: false, envMapIntensity: 1.5 });
     const liqTopMat = new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.02, metalness: 0.1, transparent: true, opacity: 0.45, depthWrite: false, envMapIntensity: 2 });
-    let LS = { level: 0, color: 0xdcecf4, opacity: 0.35, cloud: 0, cloudColor: 0xffffff };
+    let LS = { level: 0, color: 0x9fd0ea, opacity: 0.5, cloud: 0, cloudColor: 0xffffff };
     function radiusAt(pts, y) {
       for (let i = 1; i < pts.length; i++) { const [r0, y0] = pts[i - 1], [r1, y1] = pts[i]; if (y >= y0 && y <= y1) return y1 === y0 ? r1 : r0 + ((r1 - r0) * (y - y0)) / (y1 - y0); }
       return pts[pts.length - 1][0];

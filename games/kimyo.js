@@ -15,7 +15,7 @@
   const loadLibs = () => libs || (libs = (async () => {
     if (!window.SofiChem) await loadScript("games/kimyo-data.js?v=1");
     if (!window.THREE) await loadScript("lib/three.min.js?v=149");
-    if (!window.SofiLab3D) await loadScript("games/kimyo3d.js?v=3");
+    if (!window.SofiLab3D) await loadScript("games/kimyo3d.js?v=4");
   })().catch((e) => { libs = null; throw e; }));
 
   // ---------- Ovozlar (Web Audio — fayl yuklanmaydi) ----------
@@ -154,7 +154,7 @@
       const c = s.kind === "sol" ? s.color : s.type === "liquid" ? s.color : s.sol;
       if (c != null && (s.type !== "solid" || anyLiquid())) { r += (c >> 16) * n; g += ((c >> 8) & 255) * n; b += (c & 255) * n; w += n; }
     });
-    let color = 0xdcecf4, opacity = 0.32;
+    let color = 0x9fd0ea, opacity = 0.5; // toza suv — och moviy, aniq ko'rinadi
     if (w) { color = (Math.round(r / w) << 16) | (Math.round(g / w) << 8) | Math.round(b / w); opacity = 0.7; }
     const ind = indicatorOf(), p = ph();
     if (ind && p != null) { const ic = IND[ind](p); if (ic != null) { color = w ? mix(color, ic, 0.85) : ic; opacity = 0.78; } }
