@@ -15,7 +15,7 @@
   const loadLibs = () => libs || (libs = (async () => {
     if (!window.SofiChem) await loadScript("games/kimyo-data.js?v=1");
     if (!window.THREE) await loadScript("lib/three.min.js?v=149");
-    if (!window.SofiLab3D) await loadScript("games/kimyo3d.js?v=1");
+    if (!window.SofiLab3D) await loadScript("games/kimyo3d.js?v=2");
   })().catch((e) => { libs = null; throw e; }));
 
   // ---------- Ovozlar (Web Audio) ----------
@@ -209,7 +209,8 @@
   // ---------- Qo'shish ----------
   const LEVEL_STEP = { stakan: 0.17, kolba: 0.16, probirka: 0.22, silindr: 0.13, kristallizator: 0.24, tigel: 0.3, chinni: 0.3 };
   async function addReagent(id) {
-    if (S.busy || !scene) return;
+    if (!scene) return;
+    if (S.busy) { hint("⏳ Kuting — oldingi modda quyilmoqda"); return; }
     const r = C.ALL[id];
     if (r.danger && /o‘qituvchi/i.test(r.danger) && !confirm(`⚠️ ${r.name}: ${r.danger}.\n\nHaqiqiy hayotda bu modda bilan faqat o‘qituvchi ishlaydi. Virtual laboratoriyada davom etamizmi?`)) return;
     S.busy = true; drawTools();

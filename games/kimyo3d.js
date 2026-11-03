@@ -512,14 +512,15 @@
     this.pour = (kind, color, o = {}) => new Promise((res) => {
       const top = vesselGroup.position.y + vInfo.h, vx = vesselGroup.position.x;
       const c = color != null ? color : 0xdcecf4;
-      pouring = { kind, t: 0, dur: kind === "liquid" ? 2.2 : kind === "metal" ? 1.6 : 1.8, res, c, top, vx, from: LS.level, to: o.toLevel, shape: o.shape, metalColor: o.metalColor, opaque: o.opaque };
+      pouring = { kind, t: 0, start: performance.now(), dur: kind === "liquid" ? 2.2 : kind === "metal" ? 1.6 : 1.8, res, c, top, vx, from: LS.level, to: o.toLevel, shape: o.shape, metalColor: o.metalColor, opaque: o.opaque };
       if (kind === "liquid") { pourG.visible = true; pLiq.material.color.set(c); pLiq.material.opacity = o.opaque ? 0.98 : 0.75; stream.material.color.set(c); stream.material.opacity = o.opaque ? 0.98 : 0.7; }
       if (kind === "solid") { spoon.visible = true; pptP.m.material.color.set(c); }
       if (kind === "indicator") { pipette.visible = true; dropP.m.material.color.set(c); }
     });
     function stepPour(dt) {
       const p = pouring; if (!p) return;
-      p.t += dt;
+      // haqiqiy vaqt bo'yicha — sekin qurilmalarda ham animatsiya o'z vaqtida tugaydi
+      p.t = (performance.now() - p.start) / 1000;
       const k = p.t / p.dur;
       if (p.kind === "liquid") {
         const tilt = Math.min(1, k * 3) * (k > 0.85 ? (1 - k) / 0.15 : 1);
@@ -700,7 +701,7 @@
       shells.push({ g, speed: 0.9 / (i + 1) + 0.2 });
     });
     const maxR = 0.9 + Math.max(0, el.shells.length - 1) * 0.55;
-    camera.position.set(0, maxR * 0.8, maxR * 3 + 1.5); camera.lookAt(0, 0, 0);
+    camera.position.set(0, maxR * 0.7, maxR * 2.1 + 0.8); camera.lookAt(0, 0, 0);
     let raf = 0, alive = true;
     const fit = () => { const w = container.clientWidth, h = container.clientHeight; if (w && h) { renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); } };
     const ro = new ResizeObserver(fit); ro.observe(container); fit();
