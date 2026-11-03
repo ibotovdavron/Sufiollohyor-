@@ -1125,29 +1125,93 @@
       if (pieces.has(rec.id)) remove1(rec.id);
       const obj = makeObj(rec);
       root.add(obj);
-      pieces.set(rec.id, { rec, obj });
+      pieces.set(rec.id, { rec, obj, merged: false });
       cellsOf(rec).forEach((k) => occ.set(k, rec.id));
       if (BY_ID[rec.t].light) lightsDirty = true;
       if (BY_ID[rec.t].autoRoof) roofDirty = true;
+      scheduleBatch();
     }
     function remove1(id) {
       const p = pieces.get(id);
       if (!p) return;
-      root.remove(p.obj);
+      if (p.merged) batchStale = true; else root.remove(p.obj);
       cellsOf(p.rec).forEach((k) => { if (occ.get(k) === id) occ.delete(k); });
       pieces.delete(id);
       if (BY_ID[p.rec.t].light) lightsDirty = true;
       if (BY_ID[p.rec.t].autoRoof) roofDirty = true;
+      scheduleBatch();
+    }
+
+    // ---------- Birlashtirish (tezlik uchun) ----------
+    // Tahrir tugagach, barcha jihozlar material va qavat bo'yicha bir nechta katta to'rga birlashtiriladi:
+    // minglab chizish chaqiruvlari o'rniga bir necha o'nta — telefonlarda ham silliq ishlaydi.
+    const batch = new T.Group(); scene.add(batch);
+    const flatCache = new Map();
+    let batchTimer = 0, batchStale = false;
+    function scheduleBatch() { clearTimeout(batchTimer); batchTimer = setTimeout(rebuildBatch, 700); }
+    function flatGeo(geo) {
+      let f = flatCache.get(geo.uuid);
+      if (f) return f;
+      const g = geo.index ? geo.toNonIndexed() : geo;
+      const pos = g.attributes.position.array, nrm = g.attributes.normal ? g.attributes.normal.array : null, uv = g.attributes.uv ? g.attributes.uv.array : null;
+      f = { pos, nrm, uv, n: pos.length / 3 };
+      flatCache.set(geo.uuid, f);
+      return f;
+    }
+    const _v = new T.Vector3(), _n = new T.Vector3(), _nm = new T.Matrix3();
+    function rebuildBatch() {
+      batch.children.slice().forEach((m) => { batch.remove(m); m.geometry.dispose(); });
+      const groups = new Map();
+      pieces.forEach((p) => {
+        const it = BY_ID[p.rec.t], roofL = it.layer === "roof";
+        p.obj.updateMatrixWorld(true);
+        p.obj.traverse((o) => {
+          if (!o.isMesh || !o.material || o.material.isMeshBasicMaterial && o.material.colorWrite === false) return;
+          const key = o.material.uuid + "|" + p.rec.l + "|" + (roofL ? 1 : 0) + "|" + (o.castShadow ? 1 : 0);
+          let gr = groups.get(key);
+          if (!gr) groups.set(key, (gr = { mat: o.material, l: p.rec.l, roof: roofL, shadow: o.castShadow, glass: !!o.userData.glass, items: [], n: 0 }));
+          const f = flatGeo(o.geometry);
+          gr.items.push([f, o.matrixWorld.clone(), p.rec.id]); gr.n += f.n;
+        });
+        if (!p.merged) { root.remove(p.obj); p.merged = true; }
+      });
+      groups.forEach((gr) => {
+        const pos = new Float32Array(gr.n * 3), nrm = new Float32Array(gr.n * 3), uv = new Float32Array(gr.n * 2), tri = [];
+        let o = 0;
+        gr.items.forEach(([f, mw, pid]) => {
+          _nm.getNormalMatrix(mw);
+          for (let i = 0; i < f.n; i++) {
+            _v.fromArray(f.pos, i * 3).applyMatrix4(mw); _v.toArray(pos, (o + i) * 3);
+            if (f.nrm) { _n.fromArray(f.nrm, i * 3).applyMatrix3(_nm).normalize(); _n.toArray(nrm, (o + i) * 3); }
+            if (f.uv) { uv[(o + i) * 2] = f.uv[i * 2]; uv[(o + i) * 2 + 1] = f.uv[i * 2 + 1]; }
+          }
+          for (let t = 0; t < f.n / 3; t++) tri.push(pid);
+          o += f.n;
+        });
+        const geo = new T.BufferGeometry();
+        geo.setAttribute("position", new T.BufferAttribute(pos, 3));
+        geo.setAttribute("normal", new T.BufferAttribute(nrm, 3));
+        geo.setAttribute("uv", new T.BufferAttribute(uv, 2));
+        geo.computeBoundingSphere(); geo.computeBoundingBox();
+        const m = new T.Mesh(geo, gr.mat);
+        m.castShadow = gr.shadow; m.receiveShadow = true;
+        m.userData = { tri, level: gr.l, roof: gr.roof, glass: gr.glass, batch: true };
+        if (gr.glass) m.renderOrder = 2;
+        batch.add(m);
+      });
+      batchStale = false;
+      applyView();
     }
     function canPlace(rec, ignore) {
       if (!BY_ID[rec.t] || !inBounds(rec)) return false;
       return cellsOf(rec).every((k) => !occ.has(k) || occ.get(k) === ignore);
     }
     this.canPlace = canPlace;
-    this.setPieces = (list) => { [...pieces.keys()].forEach(remove1); list.forEach(add1); applyView(); };
+    // setPieces — darhol birlashtiradi; o'chirish/o'zgartirish birlashtirilgan jihozda — darhol qayta yig'iladi
+    this.setPieces = (list) => { [...pieces.keys()].forEach(remove1); list.forEach(add1); clearTimeout(batchTimer); rebuildBatch(); };
     this.add = (rec) => { add1(rec); applyView(); };
-    this.remove = (id) => { remove1(id); applyView(); };
-    this.update = (rec) => { add1(rec); applyView(); };
+    this.remove = (id) => { remove1(id); if (batchStale) { clearTimeout(batchTimer); rebuildBatch(); } else applyView(); };
+    this.update = (rec) => { add1(rec); if (batchStale) { clearTimeout(batchTimer); rebuildBatch(); } else applyView(); };
     this.get = (id) => pieces.get(id) && pieces.get(id).rec;
 
     // ---------- Avtomatik qiya tom ----------
@@ -1222,7 +1286,7 @@
     function refreshLights() {
       lightsDirty = false;
       const ls = [];
-      pieces.forEach(({ rec, obj }) => { const it = BY_ID[rec.t]; if (it.light && obj.visible) ls.push([obj, it.light]); });
+      pieces.forEach(({ rec, obj }) => { const it = BY_ID[rec.t]; if (it.light && obj.visible) { obj.updateMatrixWorld(); ls.push([obj, it.light]); } });
       lightPool.forEach((l, i) => {
         const e = ls[i];
         if (!e || !night) { l.intensity = 0; return; }
@@ -1235,12 +1299,9 @@
     let viewLevel = MAXL, showRoofs = true, mode = "view";
     function applyView() {
       const building = mode === "build" || mode === "select" || mode === "erase";
-      pieces.forEach(({ rec, obj }) => {
-        const it = BY_ID[rec.t];
-        let vis = !building || rec.l <= viewLevel;
-        if (building && it.layer === "roof" && rec.l >= viewLevel && !showRoofs) vis = false;
-        obj.visible = vis;
-      });
+      const visFor = (l, roof) => { let v = !building || l <= viewLevel; if (building && roof && l >= viewLevel && !showRoofs) v = false; return v; };
+      pieces.forEach(({ rec, obj }) => { obj.visible = visFor(rec.l, BY_ID[rec.t].layer === "roof"); });
+      batch.children.forEach((m) => { m.visible = visFor(m.userData.level, m.userData.roof); });
       grid.visible = building; grid.position.y = viewLevel * H + 0.02 + (viewLevel ? BASE : 0);
       border.visible = building || mode === "view";
       plotM.visible = building;
@@ -1276,7 +1337,7 @@
     this.highlight = (id) => {
       const p = id && pieces.get(id);
       if (!p) { selBox.visible = false; return; }
-      selBox.box.setFromObject(p.obj); selBox.visible = true;
+      p.obj.updateMatrixWorld(true); selBox.box.setFromObject(p.obj); selBox.visible = true;
     };
     function recAt(point) {
       if (!tool || !point) return null;
@@ -1397,10 +1458,14 @@
       const r = el.getBoundingClientRect();
       ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
       ray.setFromCamera(ndc, camera);
-      const vis = []; root.children.forEach((o) => { if (o.visible) vis.push(o); });
+      const vis = []; root.children.forEach((o) => { if (o.visible) vis.push(o); }); batch.children.forEach((o) => { if (o.visible) vis.push(o); });
+      // qiya tom kataklari: ko'rinmas tanlash qutilari (birlashtirilmaydi)
+      pieces.forEach(({ rec, obj, merged }) => { if (merged && BY_ID[rec.t].autoRoof && obj.visible) vis.push(obj); });
       const hits = ray.intersectObjects(vis, true);
       const hit = hits.find((h) => !h.object.userData.glass && !h.object.userData.pick) || hits[0];
-      return hit ? hit.object.userData.pid : null;
+      if (!hit) return null;
+      if (hit.object.userData.batch) return hit.object.userData.tri[hit.faceIndex] || null;
+      return hit.object.userData.pid;
     }
     el.addEventListener("pointerdown", (e) => {
       el.setPointerCapture(e.pointerId); pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });

@@ -17,7 +17,7 @@
   let libs = null;
   const loadLibs = () => libs || (libs = (async () => {
     if (!window.THREE) await loadScript("lib/three.min.js?v=149");
-    if (!window.SofiArch3D) await loadScript("games/arxitektor3d.js?v=3");
+    if (!window.SofiArch3D) await loadScript("games/arxitektor3d.js?v=4");
   })().catch((e) => { libs = null; throw e; }));
   const sfx = {
     put() { api.beep(420, 0.05, "triangle", 0.05); setTimeout(() => api.beep(300, 0.05, "triangle", 0.04), 45); },
