@@ -137,6 +137,10 @@
     } else if (name === "panel") {
       color = tex(canvas(256, 256, (x, w, h) => { x.fillStyle = "#4a4d52"; x.fillRect(0, 0, w, h); noise(x, w, h, 2500, 0.08, "255,255,255"); x.fillStyle = "#2a2c30"; [0, 128].forEach((y) => x.fillRect(0, y, w, 3)); [0, 128].forEach((xx) => x.fillRect(xx, 0, 3, h)); }));
       bump = tex(canvas(128, 128, (x, w, h) => { x.fillStyle = "#ccc"; x.fillRect(0, 0, w, h); x.fillStyle = "#333"; [0, 64].forEach((y) => x.fillRect(0, y, w, 2)); [0, 64].forEach((xx) => x.fillRect(xx, 0, 2, h)); }), null, false);
+    } else if (name === "composite" || name === "compositeD") {
+      const dark = name === "compositeD";
+      color = tex(canvas(256, 256, (x, w, h) => { x.fillStyle = dark ? "#3b3f45" : "#dfe2e6"; x.fillRect(0, 0, w, h); const g = x.createLinearGradient(0, 0, w, h); g.addColorStop(0, "rgba(255,255,255,.08)"); g.addColorStop(1, "rgba(0,0,0,.06)"); x.fillStyle = g; x.fillRect(0, 0, w, h); x.fillStyle = dark ? "#1d1f23" : "#9aa0a8"; x.fillRect(0, 0, w, 3); x.fillRect(0, 85, w, 3); x.fillRect(0, 170, w, 3); x.fillRect(0, 0, 3, h); }));
+      bump = tex(canvas(64, 64, (x, w, h) => { x.fillStyle = "#ddd"; x.fillRect(0, 0, w, h); x.fillStyle = "#222"; x.fillRect(0, 0, w, 2); x.fillRect(0, 21, w, 2); x.fillRect(0, 42, w, 2); x.fillRect(0, 0, 2, h); }), null, false);
     } else if (name === "laminate") {
       const draw = (bw) => canvas(256, 256, (x, w, h) => {
         for (let i = 0; i < 8; i++) { const v = Math.random(), off = Math.random() * w; x.fillStyle = bw ? "#aaa" : `rgb(${206 + v * 22 | 0},${176 + v * 18 | 0},${132 + v * 14 | 0})`; x.fillRect(0, i * 32, w, 32);
@@ -170,13 +174,13 @@
     const key = kind + "|" + color + "|" + (opt.rep || "") + "|" + (opt.key || "");
     if (MATS[key]) return MATS[key];
     let m;
-    const texKinds = { brick: 1, brickY: 1, brickW: 1, brickD: 1, travertine: 1, panel: 1, laminate: 1, carpet: 1, asphalt: 1, plaster: 1, wood: 1, planks: 1, parquet: 1, tiles: 1, marble: 1, stone: 1, roof: 1, fabric: 1, concrete: 1, suzani: 1 };
+    const texKinds = { composite: 1, compositeD: 1, brick: 1, brickY: 1, brickW: 1, brickD: 1, travertine: 1, panel: 1, laminate: 1, carpet: 1, asphalt: 1, plaster: 1, wood: 1, planks: 1, parquet: 1, tiles: 1, marble: 1, stone: 1, roof: 1, fabric: 1, concrete: 1, suzani: 1 };
     if (texKinds[kind]) {
       const tx = getTex(kind);
       let map = tx.color, bump = tx.bump;
       if (opt.rep) { map = map.clone(); map.repeat.set(opt.rep[0], opt.rep[1]); map.needsUpdate = true; if (bump) { bump = bump.clone(); bump.repeat.copy(map.repeat); bump.needsUpdate = true; } }
-      const rough = { brickY: 0.9, brickW: 0.9, brickD: 0.85, travertine: 0.7, panel: 0.45, laminate: 0.4, carpet: 1, asphalt: 0.95, brick: 0.92, plaster: 0.95, wood: 0.6, planks: 0.75, parquet: 0.45, tiles: 0.25, marble: 0.15, stone: 0.95, roof: 0.75, fabric: 1, concrete: 0.9, suzani: 0.95 }[kind];
-      m = new T.MeshStandardMaterial({ map, bumpMap: bump || null, bumpScale: /^brick/.test(kind) ? 0.04 : kind === "roof" ? 0.05 : kind === "travertine" ? 0.025 : 0.015, roughness: rough, color: color ?? 0xffffff });
+      const rough = { composite: 0.28, compositeD: 0.3, brickY: 0.9, brickW: 0.9, brickD: 0.85, travertine: 0.7, panel: 0.45, laminate: 0.4, carpet: 1, asphalt: 0.95, brick: 0.92, plaster: 0.95, wood: 0.6, planks: 0.75, parquet: 0.45, tiles: 0.25, marble: 0.15, stone: 0.95, roof: 0.75, fabric: 1, concrete: 0.9, suzani: 0.95 }[kind];
+      m = new T.MeshStandardMaterial({ map, bumpMap: bump || null, bumpScale: /^brick/.test(kind) ? 0.04 : kind === "roof" ? 0.05 : kind === "travertine" ? 0.025 : 0.015, roughness: rough, color: color ?? 0xffffff, metalness: /^composite/.test(kind) ? 0.55 : kind === "panel" ? 0.25 : 0 });
     } else if (kind === "glass") {
       m = new T.MeshStandardMaterial({ color: 0xbfd8e6, roughness: 0.04, metalness: 0.15, transparent: true, opacity: 0.28, envMapIntensity: 1.6, depthWrite: false });
     } else if (kind === "water") {
@@ -197,8 +201,27 @@
     } else if (kind === "clay") {
       m = new T.MeshStandardMaterial({ color: color ?? 0xb7774a, roughness: 0.95 });
     } else m = new T.MeshStandardMaterial({ color: color ?? 0xffffff, roughness: opt.rough ?? 0.7, metalness: opt.metal ?? 0 });
+    if (!m.transparent && kind !== "glow" && kind !== "screen") addAO(m);
     MATS[key] = m;
     return m;
+  }
+  // Yumshoq soya (arzon “ambient occlusion”): vertikal sirtlar pol va shift yonida biroz qorayadi,
+  // shunda devor, mebel va daraxtlar yerga “o'tirgandek” ko'rinadi.
+  function addAO(m) {
+    m.onBeforeCompile = (sh) => {
+      sh.vertexShader = "varying vec3 vAoW; varying vec3 vAoN;\n" + sh.vertexShader.replace("#include <project_vertex>",
+        "#include <project_vertex>\nvAoW = (modelMatrix * vec4(transformed, 1.0)).xyz; vAoN = normalize(mat3(modelMatrix) * objectNormal);");
+      sh.fragmentShader = "varying vec3 vAoW; varying vec3 vAoN;\n" + sh.fragmentShader.replace("#include <color_fragment>",
+        `#include <color_fragment>
+        float hIn = mod(vAoW.y + 0.001, 3.0);
+        float vert = 1.0 - abs(vAoN.y);
+        float aoB = mix(0.62, 1.0, smoothstep(0.0, 0.55, hIn));
+        float aoT = mix(0.86, 1.0, smoothstep(3.0, 2.55, hIn));
+        float aoD = mix(1.0, aoB * aoT, vert);
+        float aoF = vAoN.y > 0.6 ? 1.0 : 1.0;
+        diffuseColor.rgb *= aoD * aoF;`);
+    };
+    m.customProgramCacheKey = () => "ao1";
   }
 
   // ===================== GEOMETRIYA YORDAMCHILARI =====================
@@ -278,7 +301,9 @@
     { id: "tosh", name: "Dekor tosh", sw: "#9a958c", k: "stone", rep: [0.8, 2.4] },
     { id: "yogoch", name: "Yog‘och", sw: "#a36c3d", k: "planks", rep: [1, 2.5] },
     { id: "beton", name: "Beton", sw: "#b6b2aa", k: "concrete", rep: [0.6, 1.6] },
-    { id: "panel", name: "Fasad panel", sw: "#4a4d52", k: "panel", rep: [1, 3] }
+    { id: "panel", name: "Fasad panel", sw: "#4a4d52", k: "panel", rep: [1, 3] },
+    { id: "kompozit", name: "Alyukobond (oq)", sw: "#dfe2e6", k: "composite", rep: [1, 3] },
+    { id: "kompozit2", name: "Alyukobond (grafit)", sw: "#3b3f45", k: "compositeD", rep: [1, 3] }
   ];
   const WMAT = {}; WALL_MATS.forEach((m) => (WMAT[m.id] = m));
   const wallMat = (m, c, h = H) => { const w = WMAT[m] || WMAT.suvoq; return mat(w.k, w.paint ? col(c, 0xf2efe9) : 0xffffff, { rep: [w.rep[0], (w.rep[1] * h) / H] }); };
@@ -725,11 +750,12 @@
   }
   function car(kind, c) {
     const g = new T.Group();
-    const paint = new T.MeshPhysicalMaterial({ color: col(c, { sedan: 0x8c1d24, jip: 0x1f2124, sport: 0xe0a23a }[kind]), roughness: 0.22, metalness: 0.55, clearcoat: 1, clearcoatRoughness: 0.06, envMapIntensity: 1.3 });
+    const paint = new T.MeshPhysicalMaterial({ color: col(c, { sedan: 0x8c1d24, jip: 0x1f2124, sport: 0xe0a23a, elektro: 0xf2efe9 }[kind]), roughness: 0.22, metalness: 0.55, clearcoat: 1, clearcoatRoughness: 0.06, envMapIntensity: 1.3 });
     const glass = new T.MeshStandardMaterial({ color: 0x10161d, roughness: 0.03, metalness: 0.6, envMapIntensity: 1.8 });
     const P = {
       sedan: { body: [[2.2, 0.3], [2.28, 0.62], [1.2, 0.78], [-1.6, 0.82], [-2.2, 0.78], [-2.25, 0.35], [2.2, 0.3]], cab: [[1.05, 0.78], [0.35, 1.28], [-0.85, 1.3], [-1.55, 0.82]], w: 1.78, r: 0.34, wz: 1.35 },
       jip: { body: [[2.25, 0.42], [2.3, 0.95], [1.5, 1.08], [-2.2, 1.12], [-2.28, 0.45], [2.25, 0.42]], cab: [[1.4, 1.06], [0.9, 1.75], [-2.05, 1.78], [-2.15, 1.1]], w: 1.92, r: 0.42, wz: 1.45 },
+      elektro: { body: [[2.25, 0.3], [2.3, 0.6], [1.3, 0.8], [-1.9, 0.86], [-2.25, 0.8], [-2.25, 0.35], [2.25, 0.3]], cab: [[1.25, 0.8], [0.2, 1.38], [-1.2, 1.36], [-2.05, 0.86]], w: 1.92, r: 0.36, wz: 1.45 },
       sport: { body: [[2.2, 0.25], [2.3, 0.48], [1.0, 0.66], [-1.9, 0.72], [-2.2, 0.68], [-2.22, 0.3], [2.2, 0.25]], cab: [[0.75, 0.66], [0.05, 1.08], [-0.75, 1.08], [-1.6, 0.72]], w: 1.9, r: 0.33, wz: 1.35 }
     }[kind];
     const body = carBody(P.body, P.w, paint); body.castShadow = true; body.receiveShadow = true; g.add(body);
@@ -871,6 +897,79 @@
     return g; } });
   item({ id: "asfalt", cat: "hovli", name: "Asfalt yo‘l", icon: "⬛", layer: "floor", size: [1, 1], build: () => floorTile(mat("asphalt", 0xffffff, { rep: [0.5, 0.5] })) });
 
+  // ===================== ZAMONAVIY QURILISH =====================
+  item({ id: "w_fasad", cat: "qurilish", name: "Shisha fasad", icon: "🏙️", layer: "wall", build: () => {
+    const g = new T.Group(), al = mat("metal", 0x2b2e33); al.roughness = 0.35;
+    B(g, 1, 0.12, WT, al, 0, 0, 0); B(g, 1, 0.5, WT, mat("compositeD", 0xffffff, { rep: [1, 0.5] }), 0, H - 0.5, 0);
+    [-0.5, 0.5].forEach((x) => B(g, 0.07, H, WT + 0.04, al, x, 0, 0)); B(g, 1, 0.05, 0.12, al, 0, 1.05, 0); B(g, 1, 0.05, 0.12, al, 0, H - 0.55, 0);
+    const gl = new T.MeshStandardMaterial({ color: 0x9db8c8, roughness: 0.02, metalness: 0.35, transparent: true, opacity: 0.35, envMapIntensity: 2.2, depthWrite: false });
+    add(g, boxG(0.94, H - 0.67, 0.025), gl, 0, 0.12 + (H - 0.67) / 2, 0, false).userData.glass = true;
+    return g; } });
+  item({ id: "w_lamel", cat: "qurilish", name: "Yog‘och lamel fasad", icon: "🪵", layer: "wall", build: () => {
+    const g = new T.Group(); wallBody(g, mat("compositeD", 0xffffff, { rep: [1, 3] }));
+    const w = mat("wood", 0xb07a45, { rep: [0.2, 2], key: "lam" });
+    for (let i = 0; i < 9; i++) B(g, 0.05, H, 0.08, w, -0.44 + i * 0.11, 0, WT / 2 + 0.05);
+    return g; } });
+  item({ id: "lamel_darvoza", cat: "qurilish", name: "Zamonaviy darvoza", icon: "🚧", layer: "wall", pass: true, low: true, build: () => {
+    const g = new T.Group(), al = mat("metal", 0x2b2e33), w = mat("wood", 0xb07a45, { rep: [1, 0.1], key: "gate" });
+    [-0.5, 0.5].forEach((x) => B(g, 0.08, 1.9, 0.12, al, x, 0, 0));
+    for (let i = 0; i < 12; i++) B(g, 0.92, 0.1, 0.04, w, 0, 0.12 + i * 0.145, 0);
+    return g; } });
+  item({ id: "kozirek", cat: "qurilish", name: "Shisha soyabon (kozirek)", icon: "🔲", layer: "obj", size: [2, 1], build: () => {
+    const g = new T.Group(), al = mat("metal", 0xcfd3d8);
+    const gl = new T.MeshStandardMaterial({ color: 0xcfe3ee, roughness: 0.05, metalness: 0.2, transparent: true, opacity: 0.35, envMapIntensity: 1.8, depthWrite: false });
+    add(g, boxG(1.9, 0.03, 1.0), gl, 0, 2.62, 0, false).userData.glass = true;
+    [-0.8, 0.8].forEach((x) => { const r = add(g, cylG(0.012, 0.012, 1.25, 6), al, x, 2.95, -0.1); r.rotation.x = -0.9; });
+    B(g, 1.9, 0.05, 0.05, al, 0, 2.6, 0.48); B(g, 1.9, 0.08, 0.06, al, 0, 2.58, -0.47);
+    return g; } });
+  item({ id: "pergola", cat: "hovli", name: "Alyuminiy pergola", icon: "⬛", layer: "obj", size: [3, 3], build: () => {
+    const g = new T.Group(), al = mat("metal", 0x2b2e33); al.roughness = 0.4;
+    [[-1.4, -1.4], [1.4, -1.4], [-1.4, 1.4], [1.4, 1.4]].forEach(([x, z]) => B(g, 0.14, 2.7, 0.14, al, x, 0, z));
+    B(g, 3, 0.2, 0.14, al, 0, 2.6, -1.4); B(g, 3, 0.2, 0.14, al, 0, 2.6, 1.4); B(g, 0.14, 0.2, 3, al, -1.4, 2.6, 0); B(g, 0.14, 0.2, 3, al, 1.4, 2.6, 0);
+    for (let i = 0; i < 12; i++) { const l = add(g, boxG(2.7, 0.02, 0.18), mat("metal", 0xe8e8e6), 0, 2.72, -1.25 + i * 0.227); l.rotation.x = 0.6; }
+    RB(g, 1.6, 0.05, 0.9, 0.02, mat("wood", 0xb07a45), 0, 0.72, 0); B(g, 0.08, 0.72, 0.08, al, 0, 0, 0);
+    [-1, 1].forEach((z) => RB(g, 1.4, 0.4, 0.5, 0.06, mat("fabric", 0xd9d4cc), 0, 0, z * 0.8));
+    return g; } });
+  item({ id: "quyosh", cat: "qurilish", name: "Quyosh paneli", icon: "☀️", layer: "obj", size: [2, 1], build: () => {
+    const g = new T.Group(), al = mat("metal", 0xcfd3d8);
+    const pv = new T.MeshStandardMaterial({ color: 0x16243d, roughness: 0.15, metalness: 0.7, envMapIntensity: 1.5 });
+    const grid = new T.CanvasTexture(canvas(128, 64, (x, w, h) => { x.fillStyle = "#16243d"; x.fillRect(0, 0, w, h); x.strokeStyle = "#7c8ea8"; x.lineWidth = 1; for (let i = 0; i <= 12; i++) { x.beginPath(); x.moveTo((i * w) / 12, 0); x.lineTo((i * w) / 12, h); x.stroke(); } for (let j = 0; j <= 6; j++) { x.beginPath(); x.moveTo(0, (j * h) / 6); x.lineTo(w, (j * h) / 6); x.stroke(); } }));
+    grid.encoding = T.sRGBEncoding; pv.map = grid;
+    const p = add(g, boxG(1.9, 0.04, 0.95), pv, 0, 0.55, 0); p.rotation.x = -0.5;
+    [[-0.85, 0.3, 0.3], [0.85, 0.3, 0.3], [-0.85, 0.75, -0.3], [0.85, 0.75, -0.3]].forEach(([x, h, z]) => B(g, 0.04, h, 0.04, al, x, 0, z));
+    return g; } });
+  item({ id: "bollard", cat: "hovli", name: "Bog‘ chirog‘i", icon: "🔦", layer: "obj", size: [1, 1], light: 0.7, build: () => {
+    const g = new T.Group(), al = mat("metal", 0x2b2e33);
+    C(g, 0.08, 0.08, 0.6, al, 0, 0, 0, 12); C(g, 0.075, 0.075, 0.12, mat("glow"), 0, 0.5, 0, 12).userData.lamp = true; C(g, 0.09, 0.09, 0.03, al, 0, 0.62, 0, 12);
+    return g; } });
+  item({ id: "devor_chiroq", cat: "mebel", name: "Devor chirog‘i", icon: "💡", layer: "obj", size: [1, 1], light: 2.1, build: () => {
+    const g = new T.Group(); B(g, 0.12, 0.3, 0.1, mat("metal", 0x2b2e33), 0, 1.95, -0.45); B(g, 0.08, 0.04, 0.06, mat("glow"), 0, 1.93, -0.45).userData.lamp = true; B(g, 0.08, 0.04, 0.06, mat("glow"), 0, 2.23, -0.45).userData.lamp = true;
+    return g; } });
+  item({ id: "yashil_devor", cat: "hovli", name: "Yashil devor", icon: "🌿", layer: "obj", size: [1, 1], build: () => {
+    const g = new T.Group(); B(g, 0.98, 2.4, 0.06, mat("plain", 0x2b2e33), 0, 0, -0.46);
+    for (let i = 0; i < 45; i++) add(g, lumpyG(0.12, 1, 0.5), mat("leaf", [0x3f7d35, 0x4b8a38, 0x2f6b28, 0x5aa543][i % 4]), rand(-0.45, 0.45), rand(0.1, 2.35), -0.4).scale.set(1.2, 1, 0.6);
+    return g; } });
+  item({ id: "gultuvak_uzun", cat: "hovli", name: "Beton gultuvak", icon: "🪴", layer: "obj", size: [2, 1], build: () => {
+    const g = new T.Group(); B(g, 1.9, 0.5, 0.5, mat("concrete", 0xffffff, { rep: [1, 0.3], key: "pl" }), 0, 0, 0); B(g, 1.8, 0.02, 0.4, mat("clay", 0x3b2a1e), 0, 0.48, 0);
+    for (let i = 0; i < 30; i++) { const b = add(g, cylG(0, 0.015, rand(0.3, 0.6), 3), mat("leaf", 0x6f9a3a), rand(-0.85, 0.85), 0.5, rand(-0.15, 0.15), false); b.rotation.z = rand(-0.35, 0.35); b.position.y = 0.5 + 0.2; }
+    return g; } });
+  item({ id: "zaryadlash", cat: "hovli", name: "Elektromobil zaryadlash", icon: "🔌", layer: "obj", size: [1, 1], build: () => {
+    const g = new T.Group(); RB(g, 0.3, 1.3, 0.2, 0.04, mat("ceramic", 0xf3f3f1), 0, 0, -0.35); add(g, boxG(0.18, 0.1, 0.005), mat("screen"), 0, 1.05, -0.248, false);
+    B(g, 0.06, 0.12, 0.05, mat("plain", 0x111111), 0.08, 0.7, -0.22); const cab = add(g, new T.TorusGeometry(0.15, 0.015, 6, 16, Math.PI * 1.4), mat("plain", 0x111111), 0.05, 0.5, -0.2); cab.rotation.y = Math.PI / 2;
+    add(g, boxG(0.22, 0.05, 0.005), new T.MeshStandardMaterial({ color: 0x35d07f, emissive: 0x1a8a4a, emissiveIntensity: 0.8 }), 0, 1.2, -0.248, false);
+    return g; } });
+  item({ id: "elektro", cat: "hovli", name: "Elektromobil", icon: "⚡", layer: "obj", size: [2, 5], paint: 0, build: (c) => car("elektro", c) });
+  item({ id: "burchak_divan", cat: "mebel", name: "Burchak divan", icon: "🛋️", layer: "obj", size: [3, 2], paint: 6, build: (c) => {
+    const g = new T.Group(), f = mat("fabric", col(c, 0x8aa1b8)), leg = mat("metal", 0x2b2e33);
+    RB(g, 2.9, 0.32, 0.9, 0.06, f, 0, 0.1, -0.5); RB(g, 0.9, 0.32, 1.0, 0.06, f, 1.0, 0.1, 0.45);
+    RB(g, 2.9, 0.5, 0.2, 0.08, f, 0, 0.36, -0.88); RB(g, 0.2, 0.5, 1.9, 0.08, f, 1.38, 0.36, 0.0);
+    for (let i = 0; i < 3; i++) RB(g, 0.85, 0.14, 0.7, 0.06, f, -1.0 + i * 0.95, 0.42, -0.45);
+    RB(g, 0.8, 0.14, 0.9, 0.06, f, 0.95, 0.42, 0.5);
+    [[-1.4, -0.9], [1.4, -0.9], [-1.4, -0.08], [1.4, 0.92], [0.58, 0.92]].forEach(([x, z]) => B(g, 0.04, 0.1, 0.04, leg, x, 0, z));
+    [[-0.9, 0xe0a23a], [0.2, 0xf2efe9]].forEach(([x, cc]) => { const pl = RB(g, 0.4, 0.38, 0.12, 0.05, mat("fabric", cc), x, 0.52, -0.7); pl.rotation.x = -0.2; });
+    RB(g, 1.0, 0.36, 0.6, 0.02, mat("marble", 0xffffff), -0.5, 0, 0.6);
+    return g; } });
+
   const BY_ID = {};
   CAT.forEach((c) => { BY_ID[c.id] = c; if (!c.size) c.size = [1, 1]; });
   const CATEGORIES = [
@@ -911,7 +1010,7 @@
     if (T.ColorManagement) T.ColorManagement.legacyMode = false;
     let renderer;
     try { renderer = new T.WebGLRenderer({ antialias: true, powerPreference: "high-performance", preserveDrawingBuffer: false }); } catch (e) { throw new Error("WebGL yo‘q"); }
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.outputEncoding = T.sRGBEncoding;
     renderer.toneMapping = T.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
@@ -938,7 +1037,7 @@
 
     const hemi = new T.HemisphereLight(0xdcecff, 0x5b6b3a, 0.55); scene.add(hemi);
     const sun = new T.DirectionalLight(0xfff0d8, 2.2);
-    sun.position.set(18, 30, 12); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+    sun.position.set(18, 30, 12); sun.castShadow = true; sun.shadow.mapSize.set(matchMedia("(max-width: 700px)").matches ? 2048 : 4096, matchMedia("(max-width: 700px)").matches ? 2048 : 4096);
     Object.assign(sun.shadow.camera, { left: -22, right: 22, top: 22, bottom: -22, near: 1, far: 90 });
     sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
     scene.add(sun); scene.add(sun.target);
@@ -948,6 +1047,37 @@
     ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
     const plotM = new T.Mesh(new T.PlaneGeometry(30, 30), new T.MeshStandardMaterial({ color: 0x6fa046, roughness: 1, transparent: true, opacity: 0.25 }));
     plotM.rotation.x = -Math.PI / 2; plotM.position.y = 0.005; scene.add(plotM);
+    // Quyosh / oy diski
+    const glowT = new T.CanvasTexture(canvas(128, 128, (x) => { const g = x.createRadialGradient(64, 64, 3, 64, 64, 63); g.addColorStop(0, "rgba(255,255,245,1)"); g.addColorStop(0.15, "rgba(255,250,225,.95)"); g.addColorStop(0.35, "rgba(255,230,170,.3)"); g.addColorStop(1, "rgba(255,220,150,0)"); x.fillStyle = g; x.fillRect(0, 0, 128, 128); }));
+    const sunDisc = new T.Sprite(new T.SpriteMaterial({ map: glowT, transparent: true, depthWrite: false, fog: false }));
+    sunDisc.position.copy(sun.position).normalize().multiplyScalar(260); sunDisc.scale.set(70, 70, 1); scene.add(sunDisc);
+    // Uzoqda zamonaviy shahar (osmono'par binolar), tunda derazalari yonadi
+    const city = new T.Group(); scene.add(city);
+    const winTex = new T.CanvasTexture(canvas(64, 128, (x, w, h) => { x.fillStyle = "#3a4656"; x.fillRect(0, 0, w, h); for (let i = 0; i < 8; i++) for (let j = 0; j < 16; j++) { x.fillStyle = Math.random() < 0.45 ? "#ffd88a" : "#1c2430"; x.fillRect(4 + i * 7.5, 4 + j * 7.8, 5, 5); } }));
+    winTex.encoding = T.sRGBEncoding; winTex.wrapS = winTex.wrapT = T.RepeatWrapping;
+    const cityMat = [0x8fa3b8, 0xa9b7c6, 0x7d8a99, 0xc3ccd6].map((c) => new T.MeshStandardMaterial({ color: c, roughness: 0.3, metalness: 0.6, emissiveMap: winTex, emissive: 0x000000, envMapIntensity: 1.2 }));
+    for (let i = 0; i < 46; i++) {
+      const a = -Math.PI * 0.95 + (i / 46) * Math.PI * 0.9 + rand(-0.02, 0.02), r = rand(150, 200), h = rand(20, 75), w = rand(8, 16), d = rand(8, 16);
+      const b = new T.Mesh(new T.BoxGeometry(w, h, d), cityMat[i % 4]); b.position.set(Math.cos(a) * r, h / 2 - 1, Math.sin(a) * r); b.rotation.y = rand(0, 1.5); city.add(b);
+    }
+    // Maydon atrofida baland o't (shamolda tebranmaydi — tez ishlashi uchun)
+    {
+      const blade = new T.BufferGeometry();
+      blade.setAttribute("position", new T.Float32BufferAttribute([-0.04, 0, 0, 0.04, 0, 0, 0, 0.35, 0.02], 3));
+      blade.setAttribute("color", new T.Float32BufferAttribute([0.5, 0.6, 0.35, 0.5, 0.6, 0.35, 1.1, 1.15, 0.9], 3));
+      blade.computeVertexNormals();
+      const N = matchMedia("(max-width: 700px)").matches ? 9000 : 18000;
+      const gm = new T.InstancedMesh(blade, new T.MeshStandardMaterial({ vertexColors: true, roughness: 1, side: T.DoubleSide }), N);
+      const m4 = new T.Matrix4(), q = new T.Quaternion(), e = new T.Euler(), pp = new T.Vector3(), sc = new T.Vector3(), cc = new T.Color();
+      let n = 0;
+      while (n < N) {
+        const x = rand(-45, 45), z = rand(-45, 45);
+        if (Math.abs(x) < 15.6 && Math.abs(z) < 15.6) continue;
+        pp.set(x, 0, z); e.set(rand(-0.2, 0.2), rand(0, 6.28), rand(-0.2, 0.2)); q.setFromEuler(e); sc.set(rand(0.8, 1.3), rand(0.6, 1.5), 1);
+        m4.compose(pp, q, sc); gm.setMatrixAt(n, m4); cc.setHSL(rand(0.22, 0.3), rand(0.4, 0.6), rand(0.24, 0.36)); gm.setColorAt(n, cc); n++;
+      }
+      gm.receiveShadow = true; gm.frustumCulled = false; scene.add(gm);
+    }
     // Atrof: uzoqdagi daraxtlar va tepaliklar
     const far = new T.Group(); scene.add(far);
     for (let i = 0; i < 40; i++) {
@@ -1334,6 +1464,8 @@
         scene.background = skyTex("#4a8fd6", "#a5cff0", "#e6f2f8"); scene.environment = ENV.day; scene.fog = new T.Fog(0xcfe3ef, 80, 300);
         sun.intensity = 1.9; sun.color.set(0xfff0d8); hemi.intensity = 0.45; renderer.toneMappingExposure = 0.92;
       }
+      cityMat.forEach((m) => { m.emissive.set(night ? 0xffffff : 0x000000); m.emissiveIntensity = night ? 0.9 : 0; });
+      sunDisc.material.color.set(night ? 0x9fb4ff : 0xffffff); sunDisc.scale.setScalar(night ? 26 : 70);
       Object.values(MATS).forEach((m) => { if (m.userData.glow) m.emissiveIntensity = night ? 2.4 : 0.4; if (m.userData.glassNight !== undefined) m.emissiveIntensity = night ? 0.25 : 0; });
       clouds.forEach((c) => c.material.color.set(night ? 0x26304d : 0xffffff));
       lightsDirty = true;

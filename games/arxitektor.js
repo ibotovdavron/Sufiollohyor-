@@ -17,7 +17,7 @@
   let libs = null;
   const loadLibs = () => libs || (libs = (async () => {
     if (!window.THREE) await loadScript("lib/three.min.js?v=149");
-    if (!window.SofiArch3D) await loadScript("games/arxitektor3d.js?v=2");
+    if (!window.SofiArch3D) await loadScript("games/arxitektor3d.js?v=3");
   })().catch((e) => { libs = null; throw e; }));
   const sfx = {
     put() { api.beep(420, 0.05, "triangle", 0.05); setTimeout(() => api.beep(300, 0.05, "triangle", 0.04), 45); },
@@ -155,6 +155,32 @@
       for (let x = -14; x < 14; x++) if (x < -3 || x >= 8) put(L, "w_past", x, 15, 0, 0, -1, "travertin");
       for (let x = -3; x < -1; x++) put(L, "darvoza", x, 15); for (let x = 4; x < 8; x++) put(L, "darvoza", x, 15);
       for (let x = -1; x < 4; x++) put(L, "w_past", x, 15, 0, 0, -1, "travertin");
+      return L; } },
+    zvilla: { name: "Zamonaviy villa", icon: "🏙️", note: "2 qavat · shisha fasad · quyosh panellari · elektromobil", make() {
+      const L = [];
+      // 1-qavat: shisha fasadli katta zal
+      fill(L, "pol_marmar", 0, -6, -4, 4, 3);
+      room(L, 0, -6, -4, 4, 3, "kompozit2", { "s-6": "w_fasad", "s-5": "w_fasad", "s-4": "w_fasad", "s-3": "w_fasad", "s-1": "w_kirish", s0: "w_fasad", s1: "w_fasad", s2: "w_fasad", s3: "w_fasad", "w-3": "w_fasad", "w-2": "w_fasad", "w-1": "w_fasad", w0: "w_fasad", w1: "w_fasad", w2: "w_fasad", "n-4": "w_deraza", n0: "w_deraza" });
+      put(L, "burchak_divan", -5, -3); put(L, "tv_katta", -5, 1, 0, 2); put(L, "orol", 0, -1); put(L, "oshxona", 1, -4); put(L, "oshxona", 2, -4); put(L, "plita", 0, -4); put(L, "muzlatgich", 3, -4); put(L, "qandil", 0, 1); put(L, "yashil_devor", -2, -4); put(L, "gul", -6, 2);
+      put(L, "zina", 3, 0, 0, 2);
+      put(L, "kozirek", -2, 3);
+      // 2-qavat: konsol (oldinga chiqqan), lamel fasad
+      fill(L, "pol_parket", 1, -6, -4, 5, 5, (x, z) => x === 3 && z >= 0 && z < 3);
+      room(L, 1, -6, -4, 5, 5, "kompozit", { "s-6": "w_lamel", "s-5": "w_panorama", "s-4": "w_panorama", "s-3": "w_lamel", "s-2": "w_balkon", "s-1": "w_lamel", s0: "w_panorama", s1: "w_panorama", s2: "w_lamel", s3: "w_lamel", s4: "w_lamel", "w-2": "w_panorama", w1: "w_panorama", "e-2": "w_deraza", e2: "w_deraza" });
+      put(L, "karavot", -5, -3, 1); put(L, "komod", -3, -4, 1); put(L, "devor_chiroq", -6, -1, 1, 1); put(L, "rasm", -4, -4, 1); put(L, "yozuv", 0, -4, 1); put(L, "kompyuter", 1, -4, 1); put(L, "bola_karavot", 0, 2, 1, 1); put(L, "dush", 4, -4, 1); put(L, "unitaz", 4, -3, 1, 3);
+      // tekis tom, quyosh panellari
+      fill(L, "tom", 1, -7, -5, 6, 6);
+      put(L, "quyosh", -5, -3, 2); put(L, "quyosh", -3, -3, 2); put(L, "quyosh", -1, -3, 2); put(L, "quyosh", -5, -1, 2); put(L, "quyosh", -3, -1, 2); put(L, "quyosh", -1, -1, 2);
+      // hovli
+      fill(L, "pol_travertin", 0, -6, 3, 4, 6, (x) => x >= -2 && x < 0);
+      put(L, "basseyn", -10, 4); fill(L, "pol_travertin", 0, -11, 3, -7, 10, (x, z) => x >= -10 && x < -7 && z >= 4 && z < 9);
+      put(L, "shezlong", -6, 7); put(L, "shezlong", -5, 7); put(L, "soyabon", -4, 8); put(L, "pergola", 1, 7);
+      fill(L, "asfalt", 0, 6, -4, 10, 15); put(L, "elektro", 7, -2, 0, 0, 0); put(L, "zaryadlash", 9, -4); put(L, "jip", 7, 5, 0, 0, 5);
+      fill(L, "yolak", 0, -2, 6, 0, 15);
+      for (let z = 6; z < 15; z += 2) { put(L, "bollard", -3, z); put(L, "bollard", 0, z); }
+      put(L, "gultuvak_uzun", -6, 10); put(L, "gultuvak_uzun", 2, 10); put(L, "gilos", -12, -6); put(L, "chinor", 12, -10); put(L, "archa", -13, 12); put(L, "archa", 13, 12); put(L, "bayroq", 12, 13);
+      for (let x = -14; x < 14; x++) if (!(x >= -2 && x < 0) && !(x >= 6 && x < 10)) put(L, "w_past", x, 15, 0, 0, -1, "kompozit2");
+      for (let x = -2; x < 0; x++) put(L, "lamel_darvoza", x, 15); for (let x = 6; x < 10; x++) put(L, "lamel_darvoza", x, 15);
       return L; } },
     zamonaviy: { name: "3 qavatli uy", icon: "🏢", note: "3 qavat · panorama oynalar · tom terrasasi", make() {
       const L = [];
@@ -302,7 +328,7 @@
     seq = list.length;
     scene.setPieces(list);
     st.list = list;
-    setMode("build");
+    setMode(list.length ? "view" : "build");
     if (!list.length) { setTimeout(() => panel("welcome"), 300); }
     else scene.focusAll();
     if (first) panel(first);
@@ -344,6 +370,7 @@
   function pick(id) {
     if (viewing) { const p = viewing.list.find((x) => x.id === id); if (p) hint(`${window.SofiArch3D.BY_ID[p.t].icon} ${window.SofiArch3D.BY_ID[p.t].name}`, 1200); return; }
     if (mode === "select") select(id);
+    else if (mode === "view") { const p = st && st.list.find((x) => x.id === id); if (p) hint(`${window.SofiArch3D.BY_ID[p.t].icon} ${window.SofiArch3D.BY_ID[p.t].name} · ${p.l + 1}-qavat`, 1200); }
   }
   function select(id) {
     selected = id;
@@ -427,12 +454,12 @@
     const b = (id, ico, label, on, dis) => `<button type="button" class="ar-tool ${on ? "on" : ""}" data-t="${id}" ${dis ? "disabled" : ""} title="${esc(label)}"><span>${ico}</span><b>${esc(label)}</b></button>`;
     box.innerHTML = viewing || !st
       ? b("walk", "🚶", "Ichida yurish") + b("focus", "🎯", "Ko‘rinish") + b("visit", "🏡", "Mehmonga") + b("rating", "🏆", "Reyting")
-      : b("build", "🧱", "Qurish", mode === "build") + b("select", "👆", "Tanlash", mode === "select") + b("erase", "🧽", "O‘chirish", mode === "erase") +
+      : b("view", "👁", "Ko‘rish", mode === "view") + b("build", "🧱", "Qurish", mode === "build") + b("select", "👆", "Tanlash", mode === "select") + b("erase", "🧽", "O‘chirish", mode === "erase") +
         b("rotate", "🔄", "Burish", false, !(tool || selected)) + b("undo", "↶", "Bekor", false, !undo.length) + b("roof", roofs ? "🏠" : "🏚️", roofs ? "Tom bor" : "Tomsiz") +
         b("walk", "🚶", "Ichida yurish") + b("more", "☰", "Yana");
     $$("[data-t]", box).forEach((x) => (x.onclick = () => {
       const t = x.dataset.t;
-      if (t === "build" || t === "select" || t === "erase") setMode(t);
+      if (t === "build" || t === "select" || t === "erase" || t === "view") { setMode(t); if (t === "view") scene.focusAll(); }
       else if (t === "rotate") rotate();
       else if (t === "undo") doUndo();
       else if (t === "roof") { roofs = !roofs; scene.setRoofs(roofs); drawTools(); }
@@ -445,8 +472,8 @@
     const box = $("#arLevels", root);
     if (!box) return;
     if (viewing || !st || mode === "walk") { box.innerHTML = ""; return; }
-    box.innerHTML = `<span>Qavat</span>` + [3, 2, 1, 0].map((l) => `<button type="button" class="${l === level ? "on" : ""}" data-l="${l}">${l + 1}</button>`).join("");
-    $$("[data-l]", box).forEach((x) => (x.onclick = () => { level = +x.dataset.l; scene.setLevel(level); sfx.tap(); drawLevels(); hint(`${level + 1}-qavat${level ? " — pol va devorlar pastki devorlar ustiga qo‘yiladi" : ""}`, 1600); }));
+    box.innerHTML = `<span>Qavat</span>` + [3, 2, 1, 0].map((l) => `<button type="button" class="${l === level && mode !== "view" ? "on" : ""}" data-l="${l}">${l + 1}</button>`).join("");
+    $$("[data-l]", box).forEach((x) => (x.onclick = () => { level = +x.dataset.l; scene.setLevel(level); if (mode === "view") setMode("build"); sfx.tap(); drawLevels(); hint(`${level + 1}-qavat${level ? " — pol va devorlar pastki devorlar ustiga qo‘yiladi" : ""}`, 1600); }));
   }
   function drawPanel() {
     const box = $("#arPanel", root);
@@ -589,7 +616,8 @@
       const rec = { ...r, id: "p" + (seq + 1) };
       if (st.list.length < MAX_PIECES && scene.canPlace(rec)) { seq++; st.list.push(rec); scene.add(rec); added++; }
     });
-    commit(); setMode("build"); scene.focusAll(); sfx.put();
+    commit(); level = 0; scene.setLevel(0); setMode("view"); scene.focusAll(); sfx.put();
+    setTimeout(() => hint("👁 Butun uy ko‘rinmoqda. O‘zgartirish uchun “🧱 Qurish” yoki qavat raqamini bosing", 3800), 600);
     api.toast(`${T0.icon} “${T0.name}” qo‘yildi (${added} ta jihoz). Endi uni o‘zgartiring!`, "good");
   }
   async function visit(name) {
