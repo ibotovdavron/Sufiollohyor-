@@ -6,7 +6,7 @@
 (() => {
   "use strict";
   const T = window.THREE;
-  const H = 3, HALF = 15, MAXL = 2, BASE = 0.06;
+  const H = 3, HALF = 15, MAXL = 3, BASE = 0.06;
   const rand = (a, b) => a + Math.random() * (b - a);
 
   // ===================== TEKSTURALAR =====================
@@ -103,6 +103,53 @@
         x.fillStyle = "#4a7a2c"; x.fillRect(0, 0, w, h);
         for (let i = 0; i < 4200; i++) { const g = 85 + Math.random() * 70 | 0; x.strokeStyle = `rgba(${45 + Math.random() * 40 | 0},${g},${28 + Math.random() * 30 | 0},.6)`; x.lineWidth = 1; const px = Math.random() * w, py = Math.random() * h; x.beginPath(); x.moveTo(px, py); x.lineTo(px + rand(-2, 2), py - rand(2, 6)); x.stroke(); }
       }), [40, 40]);
+    } else if (name === "brickY" || name === "brickW" || name === "brickD") {
+      const pal = { brickY: [[214, 176, 112], [36, 30, 18], "#d8d0c2"], brickW: [[232, 228, 218], [16, 16, 14], "#bdb7ad"], brickD: [[78, 62, 56], [26, 22, 20], "#2c2725"] }[name];
+      const draw = (bw) => canvas(256, 256, (x, w, h) => {
+        x.fillStyle = bw ? "#777" : pal[2]; x.fillRect(0, 0, w, h);
+        const bh = 32, bl = 64;
+        for (let r = 0; r < h / bh; r++) for (let k = -1; k < w / bl + 1; k++) {
+          const ox = k * bl + (r % 2 ? bl / 2 : 0), v = Math.random();
+          x.fillStyle = bw ? `rgb(${210 + v * 40 | 0},${210 + v * 40 | 0},${210 + v * 40 | 0})` : `rgb(${pal[0][0] + (v - 0.5) * pal[1][0] | 0},${pal[0][1] + (v - 0.5) * pal[1][1] | 0},${pal[0][2] + (v - 0.5) * pal[1][2] | 0})`;
+          x.fillRect(ox + 3, r * bh + 3, bl - 6, bh - 6);
+        }
+        if (!bw) noise(x, w, h, 2500, 0.12);
+      });
+      color = tex(draw(false)); bump = tex(draw(true), null, false);
+    } else if (name === "travertine") {
+      // Travertin: och-bej, gorizontal qatlamli, mayda g'ovakli tosh plitalar
+      const draw = (bw) => canvas(512, 512, (x, w, h) => {
+        const rows = 4, cols = 2;
+        for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+          const v = Math.random(), x0 = c * (w / cols) + (r % 2 ? w / cols / 2 : 0), y0 = r * (h / rows);
+          for (const dx of [0, -w]) {
+            x.fillStyle = bw ? "#bbb" : `rgb(${222 + v * 14 | 0},${206 + v * 12 | 0},${178 + v * 10 | 0})`;
+            x.fillRect(x0 + dx, y0, w / cols, h / rows);
+            for (let k = 0; k < 22; k++) { const yy = y0 + Math.random() * (h / rows); x.fillStyle = bw ? `rgba(0,0,0,${Math.random() * 0.15})` : `rgba(${150 + Math.random() * 40 | 0},${120 + Math.random() * 30 | 0},${80},${0.05 + Math.random() * 0.12})`; x.fillRect(x0 + dx, yy, w / cols, 1 + Math.random() * 3); }
+          }
+        }
+        for (let i = 0; i < 900; i++) { const rx = Math.random() * w, ry = Math.random() * h; x.fillStyle = bw ? "rgba(0,0,0,.7)" : "rgba(120,100,70,.45)"; x.beginPath(); x.ellipse(rx, ry, 0.6 + Math.random() * 3, 0.4 + Math.random() * 1, 0, 0, 7); x.fill(); }
+        x.fillStyle = bw ? "#333" : "rgba(170,150,120,.9)";
+        for (let r = 0; r <= rows; r++) x.fillRect(0, r * (h / rows) - 1, w, 2);
+        for (let r = 0; r < rows; r++) for (let c = 0; c <= cols; c++) x.fillRect(c * (w / cols) + (r % 2 ? w / cols / 2 : 0) - 1, r * (h / rows), 2, h / rows);
+      });
+      color = tex(draw(false)); bump = tex(draw(true), null, false);
+    } else if (name === "panel") {
+      color = tex(canvas(256, 256, (x, w, h) => { x.fillStyle = "#4a4d52"; x.fillRect(0, 0, w, h); noise(x, w, h, 2500, 0.08, "255,255,255"); x.fillStyle = "#2a2c30"; [0, 128].forEach((y) => x.fillRect(0, y, w, 3)); [0, 128].forEach((xx) => x.fillRect(xx, 0, 3, h)); }));
+      bump = tex(canvas(128, 128, (x, w, h) => { x.fillStyle = "#ccc"; x.fillRect(0, 0, w, h); x.fillStyle = "#333"; [0, 64].forEach((y) => x.fillRect(0, y, w, 2)); [0, 64].forEach((xx) => x.fillRect(xx, 0, 2, h)); }), null, false);
+    } else if (name === "laminate") {
+      const draw = (bw) => canvas(256, 256, (x, w, h) => {
+        for (let i = 0; i < 8; i++) { const v = Math.random(), off = Math.random() * w; x.fillStyle = bw ? "#aaa" : `rgb(${206 + v * 22 | 0},${176 + v * 18 | 0},${132 + v * 14 | 0})`; x.fillRect(0, i * 32, w, 32);
+          for (let k = 0; k < 10; k++) { x.strokeStyle = bw ? "rgba(0,0,0,.15)" : "rgba(120,80,40,.12)"; x.beginPath(); const y = i * 32 + Math.random() * 32; x.moveTo(0, y); x.bezierCurveTo(w / 3, y + 2, (2 * w) / 3, y - 2, w, y); x.stroke(); }
+          x.fillStyle = bw ? "#333" : "rgba(80,50,20,.35)"; x.fillRect(0, i * 32, w, 1.5); x.fillRect(off, i * 32, 1.5, 32); }
+      });
+      color = tex(draw(false)); bump = tex(draw(true), null, false);
+    } else if (name === "carpet") {
+      color = tex(canvas(128, 128, (x, w, h) => { x.fillStyle = "#c9c2b6"; x.fillRect(0, 0, w, h); noise(x, w, h, 7000, 0.12); noise(x, w, h, 4000, 0.1, "255,255,255"); }));
+      bump = tex(canvas(128, 128, (x, w, h) => { x.fillStyle = "#888"; x.fillRect(0, 0, w, h); noise(x, w, h, 8000, 0.6); }), null, false);
+    } else if (name === "asphalt") {
+      color = tex(canvas(256, 256, (x, w, h) => { x.fillStyle = "#3b3c3e"; x.fillRect(0, 0, w, h); noise(x, w, h, 12000, 0.25, "255,255,255"); noise(x, w, h, 8000, 0.3); }));
+      bump = tex(canvas(128, 128, (x, w, h) => { x.fillStyle = "#888"; x.fillRect(0, 0, w, h); noise(x, w, h, 6000, 0.7); }), null, false);
     } else if (name === "suzani") {
       color = tex(canvas(256, 256, (x, w, h) => {
         x.fillStyle = "#8f1d22"; x.fillRect(0, 0, w, h);
@@ -123,13 +170,13 @@
     const key = kind + "|" + color + "|" + (opt.rep || "") + "|" + (opt.key || "");
     if (MATS[key]) return MATS[key];
     let m;
-    const texKinds = { brick: 1, plaster: 1, wood: 1, planks: 1, parquet: 1, tiles: 1, marble: 1, stone: 1, roof: 1, fabric: 1, concrete: 1, suzani: 1 };
+    const texKinds = { brick: 1, brickY: 1, brickW: 1, brickD: 1, travertine: 1, panel: 1, laminate: 1, carpet: 1, asphalt: 1, plaster: 1, wood: 1, planks: 1, parquet: 1, tiles: 1, marble: 1, stone: 1, roof: 1, fabric: 1, concrete: 1, suzani: 1 };
     if (texKinds[kind]) {
       const tx = getTex(kind);
       let map = tx.color, bump = tx.bump;
       if (opt.rep) { map = map.clone(); map.repeat.set(opt.rep[0], opt.rep[1]); map.needsUpdate = true; if (bump) { bump = bump.clone(); bump.repeat.copy(map.repeat); bump.needsUpdate = true; } }
-      const rough = { brick: 0.92, plaster: 0.95, wood: 0.6, planks: 0.75, parquet: 0.45, tiles: 0.25, marble: 0.15, stone: 0.95, roof: 0.75, fabric: 1, concrete: 0.9, suzani: 0.95 }[kind];
-      m = new T.MeshStandardMaterial({ map, bumpMap: bump || null, bumpScale: kind === "brick" ? 0.04 : kind === "roof" ? 0.05 : 0.015, roughness: rough, color: color ?? 0xffffff });
+      const rough = { brickY: 0.9, brickW: 0.9, brickD: 0.85, travertine: 0.7, panel: 0.45, laminate: 0.4, carpet: 1, asphalt: 0.95, brick: 0.92, plaster: 0.95, wood: 0.6, planks: 0.75, parquet: 0.45, tiles: 0.25, marble: 0.15, stone: 0.95, roof: 0.75, fabric: 1, concrete: 0.9, suzani: 0.95 }[kind];
+      m = new T.MeshStandardMaterial({ map, bumpMap: bump || null, bumpScale: /^brick/.test(kind) ? 0.04 : kind === "roof" ? 0.05 : kind === "travertine" ? 0.025 : 0.015, roughness: rough, color: color ?? 0xffffff });
     } else if (kind === "glass") {
       m = new T.MeshStandardMaterial({ color: 0xbfd8e6, roughness: 0.04, metalness: 0.15, transparent: true, opacity: 0.28, envMapIntensity: 1.6, depthWrite: false });
     } else if (kind === "water") {
@@ -218,6 +265,24 @@
     B(g, w + 0.12, 0.04, WT + 0.16, mat("marble", 0xffffff), cx, y0 - 0.04, 0);
   }
 
+  // ===================== DEVOR MATERIALLARI =====================
+  // rep: [gorizontal, vertikal] — 1 m devor uchun takrorlanish
+  const WALL_MATS = [
+    { id: "suvoq", name: "Suvoq (bo‘yaladi)", sw: "#efe9df", k: "plaster", rep: [1, 3], paint: true },
+    { id: "gisht", name: "Qizil g‘isht", sw: "#a8452c", k: "brick", rep: [1.2, 3.4] },
+    { id: "sariq", name: "Sariq g‘isht", sw: "#d7b06d", k: "brickY", rep: [1.2, 3.4] },
+    { id: "oq", name: "Oq g‘isht", sw: "#e6e2d8", k: "brickW", rep: [1.2, 3.4] },
+    { id: "qora", name: "To‘q g‘isht", sw: "#4b3e38", k: "brickD", rep: [1.2, 3.4] },
+    { id: "travertin", name: "Travertin", sw: "#dcc9a6", k: "travertine", rep: [0.7, 1.6] },
+    { id: "marmar", name: "Marmar", sw: "#ecebe8", k: "marble", rep: [0.6, 1.5] },
+    { id: "tosh", name: "Dekor tosh", sw: "#9a958c", k: "stone", rep: [0.8, 2.4] },
+    { id: "yogoch", name: "Yog‘och", sw: "#a36c3d", k: "planks", rep: [1, 2.5] },
+    { id: "beton", name: "Beton", sw: "#b6b2aa", k: "concrete", rep: [0.6, 1.6] },
+    { id: "panel", name: "Fasad panel", sw: "#4a4d52", k: "panel", rep: [1, 3] }
+  ];
+  const WMAT = {}; WALL_MATS.forEach((m) => (WMAT[m.id] = m));
+  const wallMat = (m, c, h = H) => { const w = WMAT[m] || WMAT.suvoq; return mat(w.k, w.paint ? col(c, 0xf2efe9) : 0xffffff, { rep: [w.rep[0], (w.rep[1] * h) / H] }); };
+
   // ===================== KATALOG =====================
   // layer: wall | floor | obj | rug | roof ; size: [w, d] katak
   const CAT = [];
@@ -225,13 +290,13 @@
   const WALL_MAT = { devor_gisht: ["brick", 0xffffff], devor_suvoq: ["plaster", null], devor_yogoch: ["planks", 0xffffff] };
 
   // ---------- QURILISH ----------
-  item({ id: "devor_suvoq", cat: "qurilish", name: "Suvoq devor", icon: "⬜", layer: "wall", paint: 0, build: (c) => { const g = new T.Group(); wallBody(g, mat("plaster", col(c, 0xf2efe9), { rep: [1, 3] })); return g; } });
-  item({ id: "devor_gisht", cat: "qurilish", name: "G‘isht devor", icon: "🧱", layer: "wall", build: () => { const g = new T.Group(); wallBody(g, mat("brick", 0xffffff, { rep: [1.2, 3.4] })); return g; } });
-  item({ id: "devor_yogoch", cat: "qurilish", name: "Yog‘och devor", icon: "🪵", layer: "wall", build: () => { const g = new T.Group(); wallBody(g, mat("planks", 0xffffff, { rep: [1, 2.5] })); return g; } });
-  item({ id: "deraza", cat: "qurilish", name: "Derazali devor", icon: "🪟", layer: "wall", paint: 0, build: (c) => { const g = new T.Group(); wallWithHole(g, mat("plaster", col(c, 0xf2efe9), { rep: [1, 3] }), -0.36, 0.36, 0.9, 2.2); windowFrame(g, -0.36, 0.36, 0.9, 2.2); return g; } });
-  item({ id: "deraza_gisht", cat: "qurilish", name: "G‘isht + deraza", icon: "🏠", layer: "wall", build: () => { const g = new T.Group(); wallWithHole(g, mat("brick", 0xffffff, { rep: [1.2, 3.4] }), -0.36, 0.36, 0.9, 2.2); windowFrame(g, -0.36, 0.36, 0.9, 2.2); return g; } });
+  item({ id: "devor_suvoq", hidden: true, cat: "qurilish", name: "Suvoq devor", icon: "⬜", layer: "wall", paint: 0, build: (c) => { const g = new T.Group(); wallBody(g, mat("plaster", col(c, 0xf2efe9), { rep: [1, 3] })); return g; } });
+  item({ id: "devor_gisht", hidden: true, cat: "qurilish", name: "G‘isht devor", icon: "🧱", layer: "wall", build: () => { const g = new T.Group(); wallBody(g, mat("brick", 0xffffff, { rep: [1.2, 3.4] })); return g; } });
+  item({ id: "devor_yogoch", hidden: true, cat: "qurilish", name: "Yog‘och devor", icon: "🪵", layer: "wall", build: () => { const g = new T.Group(); wallBody(g, mat("planks", 0xffffff, { rep: [1, 2.5] })); return g; } });
+  item({ id: "deraza", hidden: true, cat: "qurilish", name: "Derazali devor", icon: "🪟", layer: "wall", paint: 0, build: (c) => { const g = new T.Group(); wallWithHole(g, mat("plaster", col(c, 0xf2efe9), { rep: [1, 3] }), -0.36, 0.36, 0.9, 2.2); windowFrame(g, -0.36, 0.36, 0.9, 2.2); return g; } });
+  item({ id: "deraza_gisht", hidden: true, cat: "qurilish", name: "G‘isht + deraza", icon: "🏠", layer: "wall", build: () => { const g = new T.Group(); wallWithHole(g, mat("brick", 0xffffff, { rep: [1.2, 3.4] }), -0.36, 0.36, 0.9, 2.2); windowFrame(g, -0.36, 0.36, 0.9, 2.2); return g; } });
   item({ id: "vitraj", cat: "qurilish", name: "Katta oyna", icon: "🔲", layer: "wall", build: () => { const g = new T.Group(); const fm = mat("metal", 0x2b2d31); B(g, 1, 0.08, WT, fm, 0, 0, 0); B(g, 1, 0.08, WT, fm, 0, H - 0.08, 0); [-0.5, 0, 0.5].forEach((x) => B(g, 0.06, H, WT, fm, x, 0, 0)); B(g, 1, 0.05, 0.08, fm, 0, 1.1, 0); add(g, boxG(0.96, H - 0.16, 0.02), mat("glass"), 0, H / 2, 0, false).userData.glass = true; return g; } });
-  item({ id: "eshik", cat: "qurilish", name: "Eshikli devor", icon: "🚪", layer: "wall", pass: true, paint: 0, build: (c) => {
+  item({ id: "eshik", hidden: true, cat: "qurilish", name: "Eshikli devor", icon: "🚪", layer: "wall", pass: true, paint: 0, build: (c) => {
     const g = new T.Group(); wallWithHole(g, mat("plaster", col(c, 0xf2efe9), { rep: [1, 3] }), -0.42, 0.42, 0, 2.15);
     const wd = mat("wood", 0x8a5a36), fm = mat("plastic", 0xf4f2ee);
     B(g, 0.06, 2.15, WT + 0.04, fm, -0.42, 0, 0); B(g, 0.06, 2.15, WT + 0.04, fm, 0.42, 0, 0); B(g, 0.9, 0.06, WT + 0.04, fm, 0, 2.12, 0);
@@ -240,7 +305,7 @@
     [0.5, 1.3].forEach((y) => B(door, 0.6, 0.5, 0.012, wd, 0.38, y, 0.024));
     S(door, 0.035, mat("metal", 0xd6b25a), 0.7, 1.0, 0.05);
     return g; } });
-  item({ id: "eshik_kirish", cat: "qurilish", name: "Kirish eshigi", icon: "🏛️", layer: "wall", pass: true, build: () => {
+  item({ id: "eshik_kirish", hidden: true, cat: "qurilish", name: "Kirish eshigi", icon: "🏛️", layer: "wall", pass: true, build: () => {
     const g = new T.Group(); wallWithHole(g, mat("brick", 0xffffff, { rep: [1.2, 3.4] }), -0.44, 0.44, 0, 2.3);
     const wd = mat("wood", 0x5a3520);
     // ikki tavaqali eshik — ochiq holda (ichkariga kirish mumkin)
@@ -252,7 +317,7 @@
     });
     B(g, 1.0, 0.1, 0.36, mat("stone", 0xffffff), 0, 2.3, 0.12);
     return g; } });
-  item({ id: "past_devor", cat: "qurilish", name: "Past devor", icon: "▬", layer: "wall", paint: 0, low: true, build: (c) => { const g = new T.Group(); const m = mat("plaster", col(c, 0xe8d8b8), { rep: [1, 1] }); B(g, 1, 1, WT, m, 0, 0, 0); [-0.5, 0.5].forEach((x) => B(g, WT, 1, WT, m, x, 0, 0)); B(g, 1.04, 0.06, WT + 0.08, mat("stone", 0xffffff), 0, 1, 0); return g; } });
+  item({ id: "past_devor", hidden: true, cat: "qurilish", name: "Past devor", icon: "▬", layer: "wall", paint: 0, low: true, build: (c) => { const g = new T.Group(); const m = mat("plaster", col(c, 0xe8d8b8), { rep: [1, 1] }); B(g, 1, 1, WT, m, 0, 0, 0); [-0.5, 0.5].forEach((x) => B(g, WT, 1, WT, m, x, 0, 0)); B(g, 1.04, 0.06, WT + 0.08, mat("stone", 0xffffff), 0, 1, 0); return g; } });
   item({ id: "panjara", cat: "qurilish", name: "Panjara", icon: "🚧", layer: "wall", paint: 3, low: true, build: (c) => { const g = new T.Group(); const m = mat("wood", col(c, 0x9c6b43)); [-0.5, 0.5].forEach((x) => B(g, 0.1, 1.1, 0.1, m, x, 0, 0)); [0.35, 0.8].forEach((y) => B(g, 1, 0.08, 0.04, m, 0, y, 0.04)); for (let i = 0; i < 5; i++) B(g, 0.1, 1.0, 0.025, m, -0.4 + i * 0.2, 0, 0.07); return g; } });
   item({ id: "darvoza", cat: "qurilish", name: "Darvoza", icon: "⛩️", layer: "wall", pass: true, low: true, build: () => { const g = new T.Group(); const m = mat("metal", 0x2f3135); [-0.5, 0.5].forEach((x) => B(g, 0.12, 1.9, 0.12, mat("brick", 0xffffff), x, 0, 0)); B(g, 0.88, 0.05, 0.04, m, 0, 0.15, 0); B(g, 0.88, 0.05, 0.04, m, 0, 1.55, 0); for (let i = 0; i < 9; i++) { C(g, 0.012, 0.012, 1.45, m, -0.4 + i * 0.1, 0.15, 0, 6); S(g, 0.025, mat("metal", 0xd6b25a), -0.4 + i * 0.1, 1.64, 0, 6); } return g; } });
   item({ id: "pol_parket", cat: "qurilish", name: "Parket pol", icon: "🟫", layer: "floor", size: [1, 1], build: () => floorTile(mat("parquet", 0xffffff, { rep: [0.5, 0.5] })) });
@@ -262,7 +327,7 @@
   item({ id: "tom", cat: "qurilish", name: "Tekis tom", icon: "🟧", layer: "roof", size: [1, 1], build: () => { const g = new T.Group(); B(g, 1.02, 0.22, 1.02, mat("concrete", 0xd9d4cc, { rep: [0.5, 0.5] }), 0, 0, 0); return g; } });
   // Qiya tom: har katak — belgi; sahna barcha tom kataklaridan bitta nishabli (to'rt qiyali) tom yig'adi
   let PICK_MAT = null;
-  item({ id: "qiya_tom", cat: "qurilish", name: "Qiya tom", icon: "🔺", layer: "roof", size: [1, 1], autoRoof: true, build: () => {
+  item({ id: "qiya_tom", cat: "qurilish", name: "Qiya tom", icon: "🔺", layer: "roof", size: [1, 1], autoRoof: true, paint: 0, build: () => {
     const g = new T.Group();
     if (!PICK_MAT) PICK_MAT = new T.MeshBasicMaterial({ colorWrite: false, depthWrite: false });
     const m = add(g, boxG(1, 0.4, 1), PICK_MAT, 0, 0.2, 0, false); m.receiveShadow = false; m.userData.pick = true;
@@ -430,7 +495,7 @@
     return g; } });
   item({ id: "yolak", cat: "hovli", name: "Tosh yo‘lak", icon: "🪨", layer: "floor", size: [1, 1], build: () => floorTile(mat("stone", 0xffffff, { rep: [0.6, 0.6] })) });
   item({ id: "maysa", cat: "hovli", name: "Maysazor", icon: "🟩", layer: "floor", size: [1, 1], build: () => { const g = new T.Group(); add(g, boxG(1, 0.04, 1), mat("leaf", 0x4f9a3a), 0, 0.02, 0, false); for (let i = 0; i < 30; i++) { const b = add(g, cylG(0, 0.012, rand(0.06, 0.12), 3), mat("leaf", 0x5aa543), rand(-0.48, 0.48), 0.07, rand(-0.48, 0.48), false); b.rotation.z = rand(-0.3, 0.3); } return g; } });
-  item({ id: "hovuz", cat: "hovli", name: "Hovuz", icon: "🏊", layer: "obj", size: [2, 2], build: () => {
+  item({ id: "hovuz", cat: "hovli", name: "Kichik hovuz", icon: "🏊", layer: "obj", size: [2, 2], build: () => {
     const g = new T.Group(), s = mat("tiles", 0x9fd3e6, { rep: [2, 2] });
     B(g, 2, 0.3, 0.14, mat("marble", 0xffffff), 0, 0, -0.93); B(g, 2, 0.3, 0.14, mat("marble", 0xffffff), 0, 0, 0.93);
     B(g, 0.14, 0.3, 2, mat("marble", 0xffffff), -0.93, 0, 0); B(g, 0.14, 0.3, 2, mat("marble", 0xffffff), 0.93, 0, 0);
@@ -475,7 +540,7 @@
     const top = add(g, cylG(0.05, 0.05, 1.9, 10), m, 0, 2.18, 0); top.rotation.z = Math.PI / 2;
     [-0.45, 0.45].forEach((x) => { [-0.18, 0.18].forEach((dx) => C(g, 0.008, 0.008, 1.7, mat("metal", 0xcccccc), x + dx, 0.48, 0, 4)); RB(g, 0.45, 0.04, 0.2, 0.02, mat("wood", 0xe0a23a), x, 0.45, 0); });
     return g; } });
-  item({ id: "mashina", cat: "hovli", name: "Mashina", icon: "🚗", layer: "obj", size: [2, 4], paint: 7, build: (c) => {
+  item({ id: "mashina", hidden: true, cat: "hovli", name: "Mashina", icon: "🚗", layer: "obj", size: [2, 4], paint: 7, build: (c) => {
     const g = new T.Group(), body = new T.MeshStandardMaterial({ color: col(c, 0x3f6e9e), roughness: 0.25, metalness: 0.6 });
     RB(g, 1.75, 0.6, 4.1, 0.2, body, 0, 0.3, 0); RB(g, 1.55, 0.55, 2.1, 0.2, body, 0, 0.8, -0.25);
     const gl = mat("glass"); RB(g, 1.5, 0.46, 2.0, 0.18, new T.MeshStandardMaterial({ color: 0x1a222b, roughness: 0.05, metalness: 0.4, envMapIntensity: 1.5 }), 0, 0.84, -0.25);
@@ -484,6 +549,327 @@
     [[-0.82, 1.3], [0.82, 1.3], [-0.82, -1.3], [0.82, -1.3]].forEach(([x, z]) => { const t = add(g, cylG(0.34, 0.34, 0.24, 20), tire, x, 0.34, z); t.rotation.z = Math.PI / 2; const r = add(g, cylG(0.2, 0.2, 0.25, 12), rim, x, 0.34, z); r.rotation.z = Math.PI / 2; });
     [-0.6, 0.6].forEach((x) => { add(g, boxG(0.3, 0.12, 0.04), mat("glow"), x, 0.65, 2.05, false); add(g, boxG(0.3, 0.1, 0.04), mat("plain", 0xb3161b), x, 0.68, -2.05, false); });
     return g; } });
+
+  // ===================== QO'SHIMCHA: materialli devorlar va ko'p jihozlar =====================
+  const frameFor = (m) => (m === "panel" || m === "qora" || m === "beton" ? 0x2b2d31 : 0xf6f6f4);
+  item({ id: "w_devor", cat: "qurilish", name: "Devor", icon: "🧱", layer: "wall", mats: true, paint: 0, build: (c, m) => { const g = new T.Group(); wallBody(g, wallMat(m, c)); return g; } });
+  item({ id: "w_deraza", cat: "qurilish", name: "Derazali devor", icon: "🪟", layer: "wall", mats: true, paint: 0, build: (c, m) => { const g = new T.Group(); wallWithHole(g, wallMat(m, c), -0.36, 0.36, 0.9, 2.2); windowFrame(g, -0.36, 0.36, 0.9, 2.2, frameFor(m)); return g; } });
+  item({ id: "w_panorama", cat: "qurilish", name: "Panorama oyna", icon: "🖼️", layer: "wall", mats: true, paint: 0, build: (c, m) => { const g = new T.Group(); wallWithHole(g, wallMat(m, c), -0.44, 0.44, 0.15, 2.7); windowFrame(g, -0.44, 0.44, 0.15, 2.7, frameFor(m)); return g; } });
+  item({ id: "w_eshik", cat: "qurilish", name: "Xona eshigi", icon: "🚪", layer: "wall", pass: true, mats: true, paint: 0, build: (c, m) => {
+    const g = new T.Group(); wallWithHole(g, wallMat(m, c), -0.42, 0.42, 0, 2.15);
+    const wd = mat("wood", 0x8a5a36), fm = mat("plastic", 0xf4f2ee);
+    B(g, 0.06, 2.15, WT + 0.04, fm, -0.42, 0, 0); B(g, 0.06, 2.15, WT + 0.04, fm, 0.42, 0, 0); B(g, 0.9, 0.06, WT + 0.04, fm, 0, 2.12, 0);
+    const door = new T.Group(); door.position.set(-0.38, 0, 0.05); door.rotation.y = -1.15; g.add(door);
+    B(door, 0.76, 2.08, 0.04, wd, 0.38, 0.02, 0); [0.5, 1.3].forEach((y) => B(door, 0.6, 0.5, 0.012, wd, 0.38, y, 0.024));
+    S(door, 0.035, mat("metal", 0xd6b25a), 0.7, 1.0, 0.05);
+    return g; } });
+  item({ id: "w_kirish", cat: "qurilish", name: "Kirish eshigi", icon: "🏛️", layer: "wall", pass: true, mats: true, paint: 0, build: (c, m) => {
+    const g = new T.Group(); wallWithHole(g, wallMat(m, c), -0.44, 0.44, 0, 2.3);
+    const wd = mat("wood", 0x4a2a16);
+    [[-1, -0.42], [1, 0.42]].forEach(([s, hx]) => {
+      const leaf = new T.Group(); leaf.position.set(hx, 0, 0.04); leaf.rotation.y = s * 1.2; g.add(leaf);
+      B(leaf, 0.43, 2.26, 0.05, wd, -s * 0.215, 0.02, 0);
+      for (let i = 0; i < 3; i++) RB(leaf, 0.3, 0.56, 0.02, 0.01, wd, -s * 0.215, 0.22 + i * 0.7, 0.03);
+      C(leaf, 0.02, 0.02, 0.22, mat("metal", 0xd6b25a), -s * 0.38, 0.95, 0.06, 8);
+    });
+    B(g, 1.0, 0.1, 0.4, mat("travertine", 0xffffff, { rep: [0.5, 0.1] }), 0, 2.3, 0.12);
+    return g; } });
+  const ARCH = {};
+  function archGeo() {
+    if (ARCH.g) return ARCH.g;
+    const s = new T.Shape(); s.moveTo(-0.5, 0); s.lineTo(0.5, 0); s.lineTo(0.5, H); s.lineTo(-0.5, H); s.lineTo(-0.5, 0);
+    const hole = new T.Path(); hole.moveTo(-0.4, 0.001); hole.lineTo(0.4, 0.001); hole.lineTo(0.4, 2.0); hole.absarc(0, 2.0, 0.4, 0, Math.PI, false); hole.lineTo(-0.4, 0.001);
+    s.holes.push(hole);
+    const g = new T.ExtrudeGeometry(s, { depth: WT, bevelEnabled: false, curveSegments: 18 }); g.translate(0, 0, -WT / 2);
+    return (ARCH.g = g);
+  }
+  item({ id: "w_arka", cat: "qurilish", name: "Arka (ravoq)", icon: "🕌", layer: "wall", pass: true, mats: true, paint: 0, build: (c, m) => {
+    const g = new T.Group(); add(g, archGeo(), wallMat(m, c, 1), 0, 0, 0);
+    [-0.5, 0.5].forEach((x) => B(g, WT, H, WT, wallMat(m, c), x, 0, 0)); return g; } });
+  item({ id: "w_garaj", cat: "qurilish", name: "Garaj darvozasi", icon: "🏠", layer: "wall", mats: true, paint: 0, build: (c, m) => {
+    const g = new T.Group(); B(g, 1, H - 2.4, WT, wallMat(m, c), 0, 2.4, 0);
+    const pm = mat("metal", 0xe9e9e6); pm.roughness = 0.45; pm.metalness = 0.5;
+    for (let i = 0; i < 6; i++) { B(g, 1.0, 0.38, 0.05, pm, 0, i * 0.4, 0); B(g, 1.0, 0.02, 0.06, mat("metal", 0xb8bcc2), 0, i * 0.4 + 0.38, 0); }
+    return g; } });
+  item({ id: "w_balkon", cat: "qurilish", name: "Balkon eshigi", icon: "🚪", layer: "wall", pass: true, mats: true, paint: 0, build: (c, m) => {
+    const g = new T.Group(); wallWithHole(g, wallMat(m, c), -0.42, 0.42, 0, 2.4);
+    const fm = mat("plastic", frameFor(m));
+    B(g, 0.84, 0.06, WT + 0.04, fm, 0, 2.34, 0); [-0.39, 0.39, 0].forEach((x) => B(g, 0.05, 2.4, WT + 0.04, fm, x, 0, 0));
+    add(g, boxG(0.8, 2.3, 0.02), mat("glass"), 0, 1.17, 0, false).userData.glass = true;
+    return g; } });
+  item({ id: "w_past", cat: "qurilish", name: "Past devor", icon: "▬", layer: "wall", low: true, mats: true, paint: 0, build: (c, m) => { const g = new T.Group(); const mm = wallMat(m, c, 1); B(g, 1, 1, WT, mm, 0, 0, 0); [-0.5, 0.5].forEach((x) => B(g, WT, 1, WT, mm, x, 0, 0)); B(g, 1.04, 0.06, WT + 0.08, mat("marble", 0xffffff), 0, 1, 0); return g; } });
+  item({ id: "perila_shisha", cat: "qurilish", name: "Shisha perila", icon: "🔳", layer: "wall", low: true, build: () => {
+    const g = new T.Group(), m = mat("metal", 0xcfd3d8);
+    [-0.5, 0.5].forEach((x) => B(g, 0.05, 1.05, 0.05, m, x, 0, 0)); B(g, 1.02, 0.05, 0.07, m, 0, 1.02, 0);
+    add(g, boxG(0.94, 0.9, 0.015), mat("glass"), 0, 0.53, 0, false).userData.glass = true; return g; } });
+  item({ id: "perila_metal", cat: "qurilish", name: "Metall perila", icon: "⛓️", layer: "wall", low: true, build: () => {
+    const g = new T.Group(), m = mat("metal", 0x232428);
+    B(g, 1.02, 0.05, 0.06, m, 0, 1.0, 0); B(g, 1.0, 0.03, 0.03, m, 0, 0.1, 0);
+    for (let i = 0; i <= 8; i++) C(g, 0.01, 0.01, 0.92, m, -0.5 + i * 0.125, 0.1, 0, 6);
+    for (let i = 0; i < 4; i++) { const t = add(g, new T.TorusGeometry(0.07, 0.008, 6, 16), m, -0.375 + i * 0.25, 0.55, 0); t.castShadow = false; }
+    return g; } });
+  item({ id: "w_ustun", cat: "qurilish", name: "Kvadrat ustun", icon: "▮", layer: "obj", size: [1, 1], mats: true, paint: 0, build: (c, m) => { const g = new T.Group(); B(g, 0.4, H - 0.06, 0.4, wallMat(m, c), 0, 0, 0); B(g, 0.5, 0.12, 0.5, mat("marble", 0xffffff), 0, H - 0.18, 0); return g; } });
+  item({ id: "pol_laminat", cat: "qurilish", name: "Laminat pol", icon: "🟨", layer: "floor", size: [1, 1], build: () => floorTile(mat("laminate", 0xffffff, { rep: [0.5, 0.5] })) });
+  item({ id: "pol_gilam", cat: "qurilish", name: "Gilam pol", icon: "🟪", layer: "floor", size: [1, 1], paint: 6, build: (c) => floorTile(mat("carpet", col(c, 0xc9c2b6), { rep: [1, 1] })) });
+  item({ id: "pol_travertin", cat: "qurilish", name: "Travertin pol", icon: "🟫", layer: "floor", size: [1, 1], build: () => floorTile(mat("travertine", 0xffffff, { rep: [0.5, 0.5], key: "fl" })) });
+
+  // ---------- Mebel (qo'shimcha) ----------
+  item({ id: "orol", cat: "mebel", name: "Oshxona oroli", icon: "🍽️", layer: "obj", size: [2, 1], paint: 5, build: (c) => {
+    const g = new T.Group(), w = mat("wood", col(c, 0x2f2f33));
+    RB(g, 1.8, 0.86, 0.8, 0.02, w, 0, 0.04, 0); B(g, 1.9, 0.05, 0.92, mat("marble", 0xffffff), 0, 0.9, 0);
+    B(g, 0.5, 0.01, 0.36, mat("metal", 0x9aa3ad), -0.45, 0.95, 0); C(g, 0.015, 0.015, 0.3, mat("metal", 0xd8dce0), -0.45, 0.95, -0.25, 8);
+    [-0.5, 0, 0.5].forEach((x) => { C(g, 0.17, 0.15, 0.04, mat("fabric", 0xe8d8b8), x, 0.74, 0.62, 16); C(g, 0.015, 0.015, 0.72, mat("metal", 0x222222), x, 0, 0.62, 6); });
+    return g; } });
+  item({ id: "kir", cat: "mebel", name: "Kir yuvish mashinasi", icon: "🧺", layer: "obj", size: [1, 1], build: () => {
+    const g = new T.Group(); RB(g, 0.6, 0.85, 0.6, 0.03, mat("ceramic"), 0, 0, -0.18);
+    const r = add(g, new T.TorusGeometry(0.19, 0.035, 10, 28), mat("metal", 0xc8ccd1), 0, 0.42, 0.125); r.castShadow = false;
+    const d = add(g, cylG(0.17, 0.17, 0.02, 24), mat("glass"), 0, 0.42, 0.12, false); d.rotation.x = Math.PI / 2;
+    B(g, 0.56, 0.1, 0.01, mat("plastic", 0xd9dde2), 0, 0.72, 0.125); C(g, 0.03, 0.03, 0.02, mat("metal", 0x999999), 0.18, 0.77, 0.13, 12).rotation.x = Math.PI / 2;
+    return g; } });
+  item({ id: "unitaz", cat: "mebel", name: "Unitaz", icon: "🚽", layer: "obj", size: [1, 1], build: () => {
+    const g = new T.Group(), m = mat("ceramic");
+    RB(g, 0.42, 0.4, 0.2, 0.04, m, 0, 0.42, -0.4); C(g, 0.12, 0.15, 0.38, m, 0, 0, -0.12, 18);
+    const bowl = add(g, sphG(0.2, 20), m, 0, 0.36, -0.05); bowl.scale.set(0.95, 0.35, 1.2);
+    RB(g, 0.38, 0.04, 0.46, 0.03, m, 0, 0.42, -0.08);
+    return g; } });
+  item({ id: "dush", cat: "mebel", name: "Dush kabina", icon: "🚿", layer: "obj", size: [1, 1], build: () => {
+    const g = new T.Group(); B(g, 0.92, 0.12, 0.92, mat("ceramic"), 0, 0, 0);
+    const gl = mat("glass"); [[0, 0.45, 0.9, 0.02], [0.45, 0, 0.02, 0.9]].forEach(([x, z, w, d]) => add(g, boxG(w, 2.0, d), gl, x, 1.12, z, false).userData.glass = true);
+    B(g, 0.92, 0.03, 0.03, mat("metal", 0xcfd3d8), 0, 2.1, 0.45); C(g, 0.015, 0.015, 1.9, mat("metal", 0xcfd3d8), -0.4, 0.12, -0.4, 8);
+    C(g, 0.12, 0.12, 0.02, mat("metal", 0xcfd3d8), -0.3, 2.02, -0.3, 18);
+    return g; } });
+  item({ id: "kamin", cat: "mebel", name: "Kamin", icon: "🔥", layer: "obj", size: [2, 1], light: 0.6, build: () => {
+    const g = new T.Group(), st = mat("travertine", 0xffffff, { rep: [0.5, 0.5], key: "k" });
+    B(g, 1.6, 1.1, 0.5, st, 0, 0, -0.25); B(g, 1.8, 0.08, 0.6, mat("marble", 0xffffff), 0, 1.1, -0.22);
+    B(g, 0.8, 0.6, 0.02, mat("plain", 0x111111), 0, 0.2, 0.005);
+    [[-0.15, 0], [0.12, 0.3]].forEach(([x, a]) => { const l = add(g, cylG(0.05, 0.05, 0.5, 8), mat("wood", 0x4a2a16), x, 0.28, -0.05); l.rotation.z = Math.PI / 2; l.rotation.y = a; });
+    for (let i = 0; i < 5; i++) { const f = add(g, new T.ConeGeometry(0.07, 0.3, 8), mat("glow"), -0.2 + i * 0.1, 0.45, -0.05, false); f.scale.set(1, 1 + Math.random() * 0.5, 1); f.userData.lamp = true; }
+    B(g, 0.6, 0.4, 0.03, mat("wood", 0x8a5a36), 0, 1.6, -0.45);
+    return g; } });
+  item({ id: "qandil", cat: "mebel", name: "Qandil (shift)", icon: "🕯️", layer: "obj", size: [1, 1], light: 2.3, build: () => {
+    const g = new T.Group(), gold = mat("metal", 0xd6b25a);
+    C(g, 0.01, 0.01, 0.5, gold, 0, H - 0.5, 0, 6); C(g, 0.12, 0.12, 0.03, gold, 0, H - 0.03, 0, 16);
+    const ring = add(g, new T.TorusGeometry(0.35, 0.02, 8, 32), gold, 0, H - 0.62, 0); ring.rotation.x = Math.PI / 2;
+    for (let i = 0; i < 6; i++) { const a = (i / 6) * 6.28; C(g, 0.03, 0.03, 0.12, mat("glow"), Math.cos(a) * 0.35, H - 0.6, Math.sin(a) * 0.35, 8).userData.lamp = true; }
+    for (let i = 0; i < 12; i++) { const a = (i / 12) * 6.28; add(g, new T.OctahedronGeometry(0.03), mat("glass"), Math.cos(a) * 0.25, H - 0.75, Math.sin(a) * 0.25, false); }
+    return g; } });
+  item({ id: "konditsioner", cat: "mebel", name: "Konditsioner", icon: "❄️", layer: "obj", size: [1, 1], build: () => {
+    const g = new T.Group(); RB(g, 0.85, 0.28, 0.2, 0.05, mat("ceramic"), 0, 2.35, -0.38);
+    B(g, 0.75, 0.02, 0.06, mat("plastic", 0xd0d4d8), 0, 2.36, -0.27); return g; } });
+  item({ id: "akvarium", cat: "mebel", name: "Akvarium", icon: "🐠", layer: "obj", size: [1, 1], build: () => {
+    const g = new T.Group(); RB(g, 0.9, 0.75, 0.4, 0.02, mat("wood", 0x2f2f33), 0, 0, -0.25);
+    add(g, boxG(0.88, 0.5, 0.38), mat("water"), 0, 1.0, -0.25); B(g, 0.9, 0.04, 0.4, mat("plain", 0x222222), 0, 1.25, -0.25); B(g, 0.86, 0.05, 0.36, mat("clay", 0xd9c18a), 0, 0.75, -0.25);
+    const cs = [0xff7a1a, 0xffd21a, 0x1ab0ff, 0xff3b6b];
+    for (let i = 0; i < 6; i++) { const f = add(g, sphG(0.03, 8), mat("plastic", cs[i % 4]), rand(-0.35, 0.35), rand(0.85, 1.15), -0.25 + rand(-0.1, 0.1), false); f.scale.set(1.6, 1, 0.6); }
+    for (let i = 0; i < 5; i++) { const p = add(g, cylG(0.004, 0.012, rand(0.15, 0.35), 4), mat("leaf", 0x2f8a3a), rand(-0.38, 0.38), 0.9, -0.3, false); p.position.y = 0.8 + 0.1; }
+    return g; } });
+  item({ id: "komod", cat: "mebel", name: "Komod", icon: "🗃️", layer: "obj", size: [1, 1], paint: 1, build: (c) => {
+    const g = new T.Group(), w = mat("wood", col(c, 0xe8d8b8));
+    RB(g, 0.9, 0.85, 0.45, 0.015, w, 0, 0.06, -0.25); [0, 1, 2].forEach((i) => { B(g, 0.84, 0.005, 0.01, mat("plain", 0x6b5a48), 0, 0.33 + i * 0.27, -0.022); C(g, 0.015, 0.015, 0.02, mat("metal", 0xd6b25a), 0, 0.2 + i * 0.27, -0.02, 8).rotation.x = Math.PI / 2; });
+    [[-0.4, -0.05], [0.4, -0.05], [-0.4, -0.44], [0.4, -0.44]].forEach(([x, z]) => C(g, 0.02, 0.015, 0.06, mat("wood", 0x3b2618), x, 0, z, 8));
+    C(g, 0.09, 0.07, 0.22, mat("ceramic", 0x2f6fb5), 0.25, 0.91, -0.25, 14); return g; } });
+  item({ id: "bola_karavot", cat: "mebel", name: "Bolalar karavoti", icon: "🧸", layer: "obj", size: [1, 2], paint: 11, build: (c) => {
+    const g = new T.Group(), w = mat("wood", 0xf2efe9), f = mat("fabric", col(c, 0xd98aa8));
+    RB(g, 0.95, 0.3, 1.9, 0.03, w, 0, 0.1, 0); RB(g, 0.85, 0.18, 1.8, 0.06, mat("fabric", 0xf6f4ef), 0, 0.38, 0); RB(g, 0.88, 0.06, 1.2, 0.03, f, 0, 0.54, 0.25);
+    RB(g, 0.95, 0.8, 0.06, 0.03, w, 0, 0, -0.95); RB(g, 0.5, 0.12, 0.3, 0.06, mat("fabric", 0xf6f4ef), 0, 0.56, -0.7);
+    const bear = mat("fabric", 0xb07a45); S(g, 0.1, bear, 0.25, 0.68, -0.4, 12); S(g, 0.07, bear, 0.25, 0.83, -0.4, 12); return g; } });
+  item({ id: "yozuv", cat: "mebel", name: "Yozuv stoli", icon: "✏️", layer: "obj", size: [1, 1], paint: 3, build: (c) => {
+    const g = new T.Group(), w = mat("wood", col(c, 0x9c6b43));
+    RB(g, 0.98, 0.04, 0.6, 0.01, w, 0, 0.72, -0.18); B(g, 0.04, 0.72, 0.58, w, -0.46, 0, -0.18); RB(g, 0.35, 0.7, 0.56, 0.01, w, 0.3, 0, -0.18);
+    C(g, 0.07, 0.08, 0.02, mat("metal", 0x222222), -0.3, 0.76, -0.38, 12); const arm = add(g, cylG(0.008, 0.008, 0.4, 6), mat("metal", 0x222222), -0.3, 0.97, -0.33); arm.rotation.x = 0.4;
+    C(g, 0.03, 0.08, 0.1, mat("glow"), -0.3, 1.1, -0.23, 12).userData.lamp = true;
+    [[0x3f6e9e, 0.06], [0xb84a3a, 0.04]].forEach(([cc, h], i) => B(g, 0.22, h, 0.28, mat("plastic", cc), 0.05, 0.76 + i * 0.06, -0.3));
+    return g; } });
+  item({ id: "kozgu", cat: "mebel", name: "Ko‘zgu", icon: "🪞", layer: "obj", size: [1, 1], build: () => {
+    const g = new T.Group(); const fr = add(g, rboxG(0.6, 1.7, 0.05, 0.02), mat("metal", 0xd6b25a), 0, 0.9, -0.4); fr.rotation.x = -0.12;
+    const mm = new T.MeshStandardMaterial({ color: 0xdfe7ee, metalness: 1, roughness: 0.02, envMapIntensity: 1.8 });
+    const mr = add(g, boxG(0.52, 1.6, 0.01), mm, 0, 0.9, -0.37, false); mr.rotation.x = -0.12; return g; } });
+  item({ id: "rasm", cat: "mebel", name: "Devor rasmi", icon: "🖼️", layer: "obj", size: [1, 1], build: () => {
+    const g = new T.Group(); B(g, 0.9, 0.65, 0.04, mat("wood", 0x4a2a16), 0, 1.35, -0.46);
+    const art = new T.CanvasTexture(canvas(128, 96, (x, w, h) => { const gr = x.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, "#f7b267"); gr.addColorStop(0.55, "#f4845f"); gr.addColorStop(0.56, "#4b7a3a"); gr.addColorStop(1, "#2f5a2a"); x.fillStyle = gr; x.fillRect(0, 0, w, h); x.fillStyle = "#fff4c2"; x.beginPath(); x.arc(90, 40, 12, 0, 7); x.fill(); x.fillStyle = "#3a2a5a"; x.beginPath(); x.moveTo(0, 60); x.lineTo(40, 30); x.lineTo(80, 60); x.fill(); }));
+    art.encoding = T.sRGBEncoding;
+    add(g, boxG(0.8, 0.55, 0.01), new T.MeshStandardMaterial({ map: art, roughness: 0.7 }), 0, 1.675, -0.435, false); return g; } });
+  item({ id: "soat", cat: "mebel", name: "Katta soat", icon: "🕰️", layer: "obj", size: [1, 1], build: () => {
+    const g = new T.Group(), w = mat("wood", 0x5a3520);
+    RB(g, 0.5, 2.0, 0.32, 0.02, w, 0, 0, -0.3); C(g, 0.17, 0.17, 0.02, mat("ceramic", 0xf4efe2), 0, 1.62, -0.13, 24).rotation.x = Math.PI / 2;
+    const h1 = B(g, 0.012, 0.12, 0.01, mat("plain", 0x111111), 0, 1.6, -0.115); h1.rotation.z = 0.6;
+    add(g, boxG(0.3, 0.9, 0.01), mat("glass"), 0, 0.85, -0.135, false); C(g, 0.06, 0.06, 0.01, mat("metal", 0xd6b25a), 0, 0.5, -0.15, 16).rotation.x = Math.PI / 2;
+    return g; } });
+  item({ id: "tv_katta", cat: "mebel", name: "Katta televizor", icon: "📺", layer: "obj", size: [2, 1], build: () => {
+    const g = new T.Group(); RB(g, 1.8, 0.4, 0.42, 0.02, mat("wood", 0xe8d8b8), 0, 0.05, -0.27); B(g, 1.8, 0.05, 0.42, mat("plain", 0x1b1b1e), 0, 0, -0.27);
+    RB(g, 1.6, 0.92, 0.04, 0.01, mat("plastic", 0x0d0d10), 0, 1.1, -0.47); add(g, boxG(1.54, 0.86, 0.005), mat("screen"), 0, 1.56, -0.447, false);
+    C(g, 0.08, 0.06, 0.3, mat("plain", 0x111111), -0.7, 0.45, -0.3, 12); C(g, 0.08, 0.06, 0.3, mat("plain", 0x111111), 0.7, 0.45, -0.3, 12);
+    return g; } });
+  item({ id: "bilyard", cat: "mebel", name: "Bilyard stoli", icon: "🎱", layer: "obj", size: [2, 3], build: () => {
+    const g = new T.Group(), w = mat("wood", 0x4a2a16);
+    RB(g, 1.5, 0.15, 2.7, 0.04, w, 0, 0.66, 0); B(g, 1.3, 0.02, 2.5, mat("fabric", 0x1f7a3a), 0, 0.8, 0);
+    [[-0.68, -1.25], [0.68, -1.25], [-0.68, 1.25], [0.68, 1.25], [-0.68, 0], [0.68, 0]].forEach(([x, z]) => C(g, 0.045, 0.045, 0.02, mat("plain", 0x050505), x, 0.81, z, 12));
+    [[-0.6, -1.2], [0.6, -1.2], [-0.6, 1.2], [0.6, 1.2]].forEach(([x, z]) => C(g, 0.08, 0.06, 0.66, w, x, 0, z, 10));
+    const bc = [0xffffff, 0xe0302a, 0xf2c94c, 0x2a5ad9, 0x111111, 0x7a2ad9, 0xff8a1a];
+    bc.forEach((cc, i) => S(g, 0.03, mat("ceramic", cc), -0.2 + (i % 3) * 0.07, 0.84, 0.4 + Math.floor(i / 3) * 0.07, 12));
+    return g; } });
+  item({ id: "trenajyor", cat: "mebel", name: "Yugurish trenajyori", icon: "🏃", layer: "obj", size: [1, 2], build: () => {
+    const g = new T.Group(), d = mat("plain", 0x1c1d20);
+    RB(g, 0.75, 0.2, 1.7, 0.04, d, 0, 0, 0.05); B(g, 0.5, 0.01, 1.4, mat("fabric", 0x2a2a2a), 0, 0.2, 0.1);
+    [-0.33, 0.33].forEach((x) => { const p = add(g, cylG(0.025, 0.025, 1.2, 8), mat("metal", 0x9aa3ad), x, 0.75, -0.65); p.rotation.x = 0.2; });
+    RB(g, 0.7, 0.25, 0.12, 0.03, d, 0, 1.3, -0.75); add(g, boxG(0.3, 0.15, 0.01), mat("screen"), 0, 1.43, -0.69, false);
+    return g; } });
+
+  // ---------- Hovli (qo'shimcha) ----------
+  // Avtomobil korpusi: yon profil cho'zilib quriladi
+  function carBody(profile, width, paint) {
+    const s = new T.Shape(); s.moveTo(profile[0][0], profile[0][1]); profile.slice(1).forEach(([a, b]) => s.lineTo(a, b));
+    const e = new T.ExtrudeGeometry(s, { depth: width - 0.16, bevelEnabled: true, bevelThickness: 0.08, bevelSize: 0.06, bevelSegments: 4, curveSegments: 6 });
+    e.translate(0, 0, -(width - 0.16) / 2); e.rotateY(-Math.PI / 2); e.computeVertexNormals();
+    return new T.Mesh(e, paint);
+  }
+  function car(kind, c) {
+    const g = new T.Group();
+    const paint = new T.MeshPhysicalMaterial({ color: col(c, { sedan: 0x8c1d24, jip: 0x1f2124, sport: 0xe0a23a }[kind]), roughness: 0.22, metalness: 0.55, clearcoat: 1, clearcoatRoughness: 0.06, envMapIntensity: 1.3 });
+    const glass = new T.MeshStandardMaterial({ color: 0x10161d, roughness: 0.03, metalness: 0.6, envMapIntensity: 1.8 });
+    const P = {
+      sedan: { body: [[2.2, 0.3], [2.28, 0.62], [1.2, 0.78], [-1.6, 0.82], [-2.2, 0.78], [-2.25, 0.35], [2.2, 0.3]], cab: [[1.05, 0.78], [0.35, 1.28], [-0.85, 1.3], [-1.55, 0.82]], w: 1.78, r: 0.34, wz: 1.35 },
+      jip: { body: [[2.25, 0.42], [2.3, 0.95], [1.5, 1.08], [-2.2, 1.12], [-2.28, 0.45], [2.25, 0.42]], cab: [[1.4, 1.06], [0.9, 1.75], [-2.05, 1.78], [-2.15, 1.1]], w: 1.92, r: 0.42, wz: 1.45 },
+      sport: { body: [[2.2, 0.25], [2.3, 0.48], [1.0, 0.66], [-1.9, 0.72], [-2.2, 0.68], [-2.22, 0.3], [2.2, 0.25]], cab: [[0.75, 0.66], [0.05, 1.08], [-0.75, 1.08], [-1.6, 0.72]], w: 1.9, r: 0.33, wz: 1.35 }
+    }[kind];
+    const body = carBody(P.body, P.w, paint); body.castShadow = true; body.receiveShadow = true; g.add(body);
+    const cab = carBody(P.cab.concat([P.cab[0]]), P.w - 0.22, glass); cab.castShadow = true; g.add(cab);
+    // tom (bo'yoq) — kabina ustida yupqa
+    const top = P.cab.slice(1, 3); const rs = new T.Shape(); rs.moveTo(top[0][0] - 0.05, top[0][1] - 0.04); rs.lineTo(top[1][0] + 0.05, top[1][1] - 0.04); rs.lineTo(top[1][0], top[1][1] + 0.02); rs.lineTo(top[0][0], top[0][1] + 0.02);
+    const roof = new T.ExtrudeGeometry(rs, { depth: P.w - 0.3, bevelEnabled: false }); roof.translate(0, 0, -(P.w - 0.3) / 2); roof.rotateY(-Math.PI / 2);
+    add(g, roof, paint, 0, 0, 0);
+    const tire = mat("plain", 0x141414, { rough: 0.9 }), rim = new T.MeshStandardMaterial({ color: 0xd0d4d9, metalness: 0.9, roughness: 0.25 });
+    [[-1, P.wz], [1, P.wz], [-1, -P.wz], [1, -P.wz]].forEach(([sx, z]) => {
+      const x = sx * (P.w / 2 - 0.12);
+      const t = add(g, new T.TorusGeometry(P.r * 0.72, P.r * 0.3, 12, 24), tire, x, P.r, z); t.rotation.y = Math.PI / 2;
+      const r = add(g, cylG(P.r * 0.55, P.r * 0.55, 0.2, 18), rim, x, P.r, z); r.rotation.z = Math.PI / 2;
+      for (let k = 0; k < 5; k++) { const sp = add(g, boxG(0.21, 0.04, P.r * 0.9), rim, x + sx * 0.01, P.r, z, false); sp.rotation.x = (k / 5) * Math.PI; }
+      const arch = add(g, cylG(P.r + 0.06, P.r + 0.06, 0.24, 18, 1), mat("plain", 0x0b0b0b), x, P.r, z, false); arch.rotation.z = Math.PI / 2; arch.scale.set(1, 1, 1); arch.visible = false;
+    });
+    const fz = P.body[0][0] + 0.06, rz = P.body[P.body.length - 2][0] - 0.04;
+    [-1, 1].forEach((sx) => {
+      add(g, boxG(0.34, 0.1, 0.06), mat("glow"), sx * (P.w / 2 - 0.3), P.body[1][1] - 0.15, fz, false).userData.lamp = true;
+      add(g, boxG(0.34, 0.08, 0.05), new T.MeshStandardMaterial({ color: 0x9b0d12, emissive: 0x5a0000, roughness: 0.3 }), sx * (P.w / 2 - 0.3), P.body[P.body.length - 3][1] - 0.15, rz, false);
+      const mir = add(g, rboxG(0.16, 0.1, 0.08, 0.03), paint, sx * (P.w / 2 + 0.04), P.cab[0][1] + 0.05, P.cab[0][0] - 0.15); mir.castShadow = false;
+    });
+    B(g, P.w * 0.5, 0.12, 0.04, mat("plain", 0x1a1a1a), 0, P.body[0][1] + 0.05, fz + 0.01);
+    B(g, 0.52, 0.12, 0.01, mat("ceramic", 0xffffff), 0, P.body[0][1] + 0.02, rz - 0.03);
+    return g;
+  }
+  item({ id: "sedan", cat: "hovli", name: "Sedan", icon: "🚗", layer: "obj", size: [2, 5], paint: 9, build: (c) => car("sedan", c) });
+  item({ id: "jip", cat: "hovli", name: "Jip (SUV)", icon: "🚙", layer: "obj", size: [2, 5], paint: 5, build: (c) => car("jip", c) });
+  item({ id: "sport", cat: "hovli", name: "Sport avtomobil", icon: "🏎️", layer: "obj", size: [2, 5], paint: 10, build: (c) => car("sport", c) });
+  item({ id: "velosiped", cat: "hovli", name: "Velosiped", icon: "🚲", layer: "obj", size: [1, 2], build: () => {
+    const g = new T.Group(), m = mat("metal", 0x2a5ad9), tr = mat("plain", 0x141414);
+    [-0.5, 0.5].forEach((z) => { const w = add(g, new T.TorusGeometry(0.32, 0.025, 8, 28), tr, 0, 0.34, z); w.rotation.y = Math.PI / 2; });
+    [[0, 0.55, 0, 0.7, 0.9], [0, 0.55, -0.25, 0.55, 0.3]].forEach(([x, y, z, len, a]) => { const b = add(g, cylG(0.02, 0.02, len, 6), m, x, y, z); b.rotation.x = a; });
+    const fr = add(g, cylG(0.02, 0.02, 0.62, 6), m, 0, 0.62, 0.05); fr.rotation.x = Math.PI / 2; const sd = add(g, cylG(0.02, 0.02, 0.4, 6), m, 0, 0.55, -0.22); sd.rotation.x = -0.3;
+    RB(g, 0.12, 0.05, 0.25, 0.02, tr, 0, 0.78, -0.25); B(g, 0.5, 0.025, 0.025, tr, 0, 0.92, 0.4);
+    return g; } });
+  item({ id: "basseyn", cat: "hovli", name: "Katta basseyn", icon: "🏊", layer: "floor", size: [3, 5], build: () => {
+    const g = new T.Group(), edge = mat("travertine", 0xffffff, { rep: [1, 1], key: "pool" });
+    B(g, 3, 0.1, 0.3, edge, 0, 0, -2.35); B(g, 3, 0.1, 0.3, edge, 0, 0, 2.35); B(g, 0.3, 0.1, 5, edge, -1.35, 0, 0); B(g, 0.3, 0.1, 5, edge, 1.35, 0, 0);
+    B(g, 2.4, 0.02, 4.4, mat("tiles", 0x6fc3e0, { rep: [3, 5] }), 0, -0.01, 0);
+    const wm = new T.MeshPhysicalMaterial({ color: 0x3aa9d9, roughness: 0.04, metalness: 0, transmission: 0.55, thickness: 1.2, transparent: true, opacity: 0.85, envMapIntensity: 1.6 });
+    add(g, boxG(2.4, 0.03, 4.4), wm, 0, 0.06, 0, false);
+    const m = mat("metal", 0xd8dce0);
+    [-0.25, 0.25].forEach((x) => { const t = add(g, new T.TorusGeometry(0.25, 0.02, 6, 16, Math.PI), m, x, 0.15, -2.15); t.rotation.y = Math.PI / 2; });
+    return g; } });
+  item({ id: "jakuzi", cat: "hovli", name: "Jakuzi", icon: "🛁", layer: "obj", size: [2, 2], build: () => {
+    const g = new T.Group(); C(g, 0.95, 0.98, 0.7, mat("wood", 0x6e4a2e), 0, 0, 0, 32); C(g, 0.8, 0.8, 0.05, mat("water"), 0, 0.6, 0, 32);
+    const r = add(g, new T.TorusGeometry(0.9, 0.06, 10, 40), mat("ceramic", 0xf2efe9), 0, 0.7, 0); r.rotation.x = Math.PI / 2;
+    for (let i = 0; i < 20; i++) S(g, 0.02 + Math.random() * 0.02, mat("ceramic", 0xffffff), rand(-0.6, 0.6), 0.66, rand(-0.6, 0.6), 6);
+    return g; } });
+  item({ id: "shezlong", cat: "hovli", name: "Shezlong", icon: "🏖️", layer: "obj", size: [1, 2], paint: 0, build: (c) => {
+    const g = new T.Group(), w = mat("wood", 0x9c6b43), f = mat("fabric", col(c, 0xf2efe9));
+    [[-0.3, 0.75], [0.3, 0.75], [-0.3, -0.6], [0.3, -0.6]].forEach(([x, z]) => B(g, 0.05, 0.3, 0.05, w, x, 0, z));
+    RB(g, 0.66, 0.06, 1.3, 0.02, w, 0, 0.3, 0.2); RB(g, 0.6, 0.06, 1.2, 0.03, f, 0, 0.36, 0.2);
+    const back = new T.Group(); back.position.set(0, 0.33, -0.45); back.rotation.x = 0.9; g.add(back); RB(back, 0.66, 0.06, 0.6, 0.02, w, 0, 0, -0.3); RB(back, 0.6, 0.06, 0.55, 0.03, f, 0, 0.05, -0.3);
+    return g; } });
+  item({ id: "soyabon", cat: "hovli", name: "Soyabon", icon: "⛱️", layer: "obj", size: [1, 1], paint: 9, build: (c) => {
+    const g = new T.Group(); C(g, 0.22, 0.25, 0.08, mat("concrete", 0xffffff), 0, 0, 0, 16); C(g, 0.025, 0.025, 2.3, mat("metal", 0xe6e6e6), 0, 0.08, 0, 8);
+    const top = add(g, new T.ConeGeometry(1.25, 0.45, 8, 1, true), new T.MeshStandardMaterial({ color: col(c, 0xb84a3a), roughness: 0.9, side: T.DoubleSide }), 0, 2.3, 0); top.castShadow = true;
+    return g; } });
+  item({ id: "mangal", cat: "hovli", name: "Mangal", icon: "🍢", layer: "obj", size: [1, 1], build: () => {
+    const g = new T.Group(), m = mat("metal", 0x2a2b2e);
+    [[-0.35, -0.12], [0.35, -0.12], [-0.35, 0.12], [0.35, 0.12]].forEach(([x, z]) => B(g, 0.03, 0.7, 0.03, m, x, 0, z));
+    B(g, 0.8, 0.22, 0.3, m, 0, 0.7, 0); B(g, 0.74, 0.03, 0.24, mat("glow"), 0, 0.85, 0).userData.lamp = true;
+    for (let i = 0; i < 5; i++) { const sk = add(g, cylG(0.006, 0.006, 0.5, 4), mat("metal", 0xcccccc), -0.3 + i * 0.15, 0.95, 0); sk.rotation.x = Math.PI / 2; for (let k = 0; k < 4; k++) add(g, boxG(0.035, 0.035, 0.035), mat("clay", 0x6b3a1c), -0.3 + i * 0.15, 0.95, -0.12 + k * 0.08, false); }
+    return g; } });
+  item({ id: "besedka", cat: "hovli", name: "Besedka (shiypon)", icon: "🛕", layer: "obj", size: [3, 3], build: () => {
+    const g = new T.Group(), w = mat("wood", 0x7a4e30);
+    [[-1.35, -1.35], [1.35, -1.35], [-1.35, 1.35], [1.35, 1.35]].forEach(([x, z]) => B(g, 0.14, 2.5, 0.14, w, x, 0, z));
+    B(g, 3, 0.06, 3, mat("planks", 0xffffff, { rep: [1.5, 1.5] }), 0, 0, 0);
+    const rf = add(g, new T.ConeGeometry(2.3, 1.1, 4, 1), mat("roof", 0xffffff, { rep: [3, 2], key: "bes" }), 0, 3.05, 0); rf.rotation.y = Math.PI / 4;
+    B(g, 3, 0.12, 3, w, 0, 2.5, 0);
+    [-1.35, 1.35].forEach((z) => B(g, 2.7, 0.06, 0.06, w, 0, 0.9, z)); B(g, 0.06, 0.06, 2.7, w, -1.35, 0.9, 0);
+    RB(g, 1.2, 0.05, 0.8, 0.02, w, 0, 0.72, 0); B(g, 0.08, 0.72, 0.08, w, 0, 0, 0);
+    [-1.0, 1.0].forEach((x) => RB(g, 0.4, 0.06, 1.8, 0.02, w, x, 0.45, 0));
+    return g; } });
+  item({ id: "ishkom", cat: "hovli", name: "Uzum ishkomi", icon: "🍇", layer: "obj", size: [2, 3], build: () => {
+    const g = new T.Group(), w = mat("wood", 0x6b4226);
+    [[-0.9, -1.4], [0.9, -1.4], [-0.9, 0], [0.9, 0], [-0.9, 1.4], [0.9, 1.4]].forEach(([x, z]) => C(g, 0.05, 0.06, 2.4, w, x, 0, z, 8));
+    for (let i = 0; i < 7; i++) { const b = add(g, cylG(0.02, 0.02, 2.9, 6), w, -0.9 + i * 0.3, 2.42, 0); b.rotation.x = Math.PI / 2; }
+    for (let i = 0; i < 40; i++) { const l = add(g, lumpyG(0.25, 1, 0.5), mat("leaf", [0x4b8a38, 0x3f7d35, 0x5a9a3e][i % 3]), rand(-0.95, 0.95), 2.5 + rand(-0.05, 0.12), rand(-1.45, 1.45)); l.scale.set(1, 0.45, 1); }
+    for (let i = 0; i < 14; i++) { const x = rand(-0.8, 0.8), z = rand(-1.3, 1.3), gm = mat("plastic", i % 2 ? 0x5b2a6e : 0x9ab83a); for (let k = 0; k < 7; k++) S(g, 0.035, gm, x + rand(-0.04, 0.04), 2.32 - k * 0.035 + rand(-0.01, 0.01), z + rand(-0.04, 0.04), 6); }
+    [-0.9, 0.9].forEach((x) => { const v = add(g, cylG(0.03, 0.05, 2.4, 6), mat("wood", 0x4a2f1c), x + 0.08, 0, -1.3); v.position.y = 1.2; });
+    return g; } });
+  item({ id: "basketbol", cat: "hovli", name: "Basketbol halqasi", icon: "🏀", layer: "obj", size: [1, 1], build: () => {
+    const g = new T.Group(); C(g, 0.06, 0.07, 3.05, mat("metal", 0x2a2b2e), 0, 0, -0.35, 10);
+    B(g, 1.1, 0.75, 0.04, mat("ceramic", 0xffffff), 0, 2.85, -0.25); B(g, 0.45, 0.35, 0.045, mat("plastic", 0xd33a2a), 0, 2.95, -0.245);
+    const r = add(g, new T.TorusGeometry(0.22, 0.015, 6, 20), mat("metal", 0xe2541f), 0, 3.05, 0.0); r.rotation.x = Math.PI / 2;
+    add(g, new T.CylinderGeometry(0.22, 0.14, 0.35, 12, 1, true), new T.MeshStandardMaterial({ color: 0xffffff, wireframe: true }), 0, 2.88, 0, false);
+    S(g, 0.12, mat("plastic", 0xe2741f), 0.4, 0.12, 0.3, 14); return g; } });
+  item({ id: "batut", cat: "hovli", name: "Batut", icon: "🤸", layer: "obj", size: [2, 2], build: () => {
+    const g = new T.Group(), m = mat("metal", 0x9aa3ad);
+    for (let i = 0; i < 6; i++) { const a = (i / 6) * 6.28; C(g, 0.025, 0.025, 0.8, m, Math.cos(a) * 0.85, 0, Math.sin(a) * 0.85, 6); C(g, 0.015, 0.015, 1.3, m, Math.cos(a) * 0.85, 0.8, Math.sin(a) * 0.85, 6); }
+    C(g, 0.88, 0.88, 0.08, mat("plastic", 0x2a5ad9), 0, 0.76, 0, 32); C(g, 0.75, 0.75, 0.01, mat("plain", 0x111111), 0, 0.84, 0, 32);
+    add(g, new T.CylinderGeometry(0.86, 0.86, 1.2, 24, 1, true), new T.MeshStandardMaterial({ color: 0x111111, wireframe: true, transparent: true, opacity: 0.5 }), 0, 1.45, 0, false);
+    return g; } });
+  item({ id: "tepalik", cat: "hovli", name: "Sirpanchiq", icon: "🛝", layer: "obj", size: [1, 3], build: () => {
+    const g = new T.Group(), m = mat("metal", 0x3f6e9e), pl = mat("plastic", 0xf2c94c);
+    [[-0.3, -1.2], [0.3, -1.2], [-0.3, -0.7], [0.3, -0.7]].forEach(([x, z]) => C(g, 0.03, 0.03, 1.6, m, x, 0, z, 8));
+    B(g, 0.66, 0.06, 0.56, pl, 0, 1.55, -0.95);
+    for (let i = 0; i < 5; i++) B(g, 0.6, 0.04, 0.06, m, 0, 0.3 + i * 0.3, -1.25);
+    const sl = add(g, boxG(0.55, 0.05, 2.1), pl, 0, 0.85, 0.35); sl.rotation.x = 0.72;
+    [-0.29, 0.29].forEach((x) => { const s2 = add(g, boxG(0.04, 0.14, 2.1), pl, x, 0.9, 0.35); s2.rotation.x = 0.72; });
+    return g; } });
+  item({ id: "it_uyi", cat: "hovli", name: "It uyi", icon: "🐕", layer: "obj", size: [1, 1], build: () => {
+    const g = new T.Group(), w = mat("planks", 0xffffff, { rep: [0.6, 0.6], key: "dog" });
+    B(g, 0.7, 0.55, 0.8, w, 0, 0, 0); const rf = add(g, new T.ConeGeometry(0.62, 0.35, 4), mat("roof", 0xffffff, { key: "dog" }), 0, 0.72, 0); rf.rotation.y = Math.PI / 4; rf.scale.set(1, 1, 1.15);
+    B(g, 0.3, 0.35, 0.02, mat("plain", 0x111111), 0, 0, 0.405);
+    const dg = mat("fabric", 0xc98a4a); const bd = add(g, sphG(0.16, 12), dg, 0.15, 0.16, 0.55); bd.scale.set(0.8, 0.8, 1.4); S(g, 0.1, dg, 0.15, 0.32, 0.72, 12);
+    return g; } });
+  item({ id: "chinor", cat: "hovli", name: "Chinor", icon: "🌳", layer: "obj", size: [1, 1], build: () => {
+    const g = new T.Group(), tr = mat("wood", 0x8a7a66);
+    C(g, 0.22, 0.38, 3.6, tr, 0, 0, 0, 12);
+    [[0.6, 3.4, 0.2, 0.5], [-0.5, 3.6, -0.3, -0.5]].forEach(([x, y, z, a]) => { const b = add(g, cylG(0.1, 0.16, 2.2, 8), tr, x * 0.7, y, z * 0.7); b.rotation.set(z, 0, -a); });
+    for (let i = 0; i < 12; i++) add(g, lumpyG(1.2, 2, 0.35), mat("leaf", [0x3a7a2e, 0x2f6b28, 0x4a8a35][i % 3]), rand(-1.4, 1.4), 4.6 + rand(-0.6, 1.4), rand(-1.4, 1.4)).scale.setScalar(rand(0.7, 1.05));
+    return g; } });
+  item({ id: "gilos", cat: "hovli", name: "Gilos (gullagan)", icon: "🌸", layer: "obj", size: [1, 1], build: () => {
+    const g = new T.Group(), tr = mat("wood", 0x4a2f1c);
+    C(g, 0.08, 0.13, 1.5, tr, 0, 0, 0, 8);
+    for (let i = 0; i < 8; i++) add(g, lumpyG(0.65, 2, 0.4), mat("leaf", [0xf3b6cc, 0xf7c9d9, 0xeaa0bb][i % 3]), rand(-0.6, 0.6), 1.9 + rand(-0.3, 0.6), rand(-0.6, 0.6)).scale.setScalar(rand(0.7, 1));
+    return g; } });
+  item({ id: "atirgul", cat: "hovli", name: "Atirgul butasi", icon: "🌹", layer: "obj", size: [1, 1], build: () => {
+    const g = new T.Group(); for (let i = 0; i < 4; i++) add(g, lumpyG(0.35, 2, 0.4), mat("leaf", 0x2f6b28), rand(-0.2, 0.2), 0.35 + rand(0, 0.25), rand(-0.2, 0.2));
+    for (let i = 0; i < 14; i++) { const a = Math.random() * 6.28, r = rand(0.2, 0.42); S(g, 0.05, mat("plastic", i % 4 ? 0xc81d3a : 0xf2f2f2), Math.cos(a) * r, 0.4 + Math.random() * 0.4, Math.sin(a) * r, 8); }
+    return g; } });
+  item({ id: "bayroq", cat: "hovli", name: "O‘zbekiston bayrog‘i", icon: "🇺🇿", layer: "obj", size: [1, 1], build: () => {
+    const g = new T.Group(); C(g, 0.18, 0.22, 0.2, mat("marble", 0xffffff), 0, 0, 0, 16); C(g, 0.035, 0.045, 5.8, mat("metal", 0xd8dce0), 0, 0.2, 0, 10); S(g, 0.07, mat("metal", 0xd6b25a), 0, 6.05, 0, 12);
+    const fl = new T.CanvasTexture(canvas(300, 150, (x, w, h) => {
+      x.fillStyle = "#1eb4e6"; x.fillRect(0, 0, w, h * 0.32); x.fillStyle = "#ce1126"; x.fillRect(0, h * 0.32, w, h * 0.02); x.fillStyle = "#fff"; x.fillRect(0, h * 0.34, w, h * 0.32);
+      x.fillStyle = "#ce1126"; x.fillRect(0, h * 0.66, w, h * 0.02); x.fillStyle = "#1eb53a"; x.fillRect(0, h * 0.68, w, h * 0.32);
+      x.fillStyle = "#fff"; x.beginPath(); x.arc(42, 24, 17, 0, 7); x.fill(); x.fillStyle = "#1eb4e6"; x.beginPath(); x.arc(49, 24, 15, 0, 7); x.fill();
+      x.fillStyle = "#fff"; const rows = [3, 4, 5]; rows.forEach((n, r) => { for (let i = 0; i < n; i++) { const sx = 110 - i * 15, sy = 12 + r * 13; x.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + (k * Math.PI) / 5, rr = k % 2 ? 2.2 : 5; x.lineTo(sx + Math.cos(a) * rr, sy + Math.sin(a) * rr); } x.fill(); } });
+    }));
+    fl.encoding = T.sRGBEncoding;
+    const geo = new T.PlaneGeometry(1.8, 0.9, 12, 1), pp = geo.attributes.position;
+    for (let i = 0; i < pp.count; i++) pp.setZ(i, Math.sin(pp.getX(i) * 3) * 0.06);
+    geo.computeVertexNormals();
+    const f = add(g, geo, new T.MeshStandardMaterial({ map: fl, side: T.DoubleSide, roughness: 0.85 }), 0.93, 5.5, 0); f.castShadow = true;
+    return g; } });
+  item({ id: "asfalt", cat: "hovli", name: "Asfalt yo‘l", icon: "⬛", layer: "floor", size: [1, 1], build: () => floorTile(mat("asphalt", 0xffffff, { rep: [0.5, 0.5] })) });
 
   const BY_ID = {};
   CAT.forEach((c) => { BY_ID[c.id] = c; if (!c.size) c.size = [1, 1]; });
@@ -589,13 +975,16 @@
     const occ = new Map();    // katak kaliti -> id
     const proto = new Map();  // tur|rang -> namuna guruh
     const lamps = [];
-    function protoOf(t, c) {
-      const k = t + "|" + c;
-      if (!proto.has(k)) proto.set(k, BY_ID[t].build(c));
+    function protoOf(t, c, m) {
+      const k = t + "|" + c + "|" + (m || "");
+      if (!proto.has(k)) proto.set(k, BY_ID[t].build(c, m || "suvoq"));
       return proto.get(k);
     }
+    const slabG = new T.BoxGeometry(1, 0.22, 1);
     function makeObj(rec) {
-      const o = protoOf(rec.t, rec.c).clone();
+      const o = protoOf(rec.t, rec.c, rec.m).clone();
+      // yuqori qavat poli: ostida shift (oq suvoq) bilan qalin plita
+      if (BY_ID[rec.t].layer === "floor" && rec.l > 0) { const sl = new T.Mesh(slabG, mat("plaster", 0xf4f1ea, { key: "ceil" })); sl.position.y = -0.11; sl.castShadow = true; sl.receiveShadow = true; o.add(sl); }
       const p = placement(rec);
       o.position.set(p.x, p.y, p.z); o.rotation.y = p.ry;
       o.traverse((m) => { m.userData.pid = rec.id; });
@@ -639,9 +1028,11 @@
       roofDirty = false;
       roofs.children.slice().forEach((m) => { roofs.remove(m); m.geometry.dispose(); });
       const byL = {};
-      pieces.forEach(({ rec }) => { if (rec.t === "qiya_tom") (byL[rec.l] = byL[rec.l] || new Set()).add(rec.x + "," + rec.z); });
+      const roofC = {};
+      pieces.forEach(({ rec }) => { if (rec.t === "qiya_tom") { (byL[rec.l] = byL[rec.l] || new Set()).add(rec.x + "," + rec.z); roofC[rec.l] = roofC[rec.l] ?? rec.c; } });
       Object.keys(byL).forEach((L) => {
         const R = byL[L], has = (x, z) => R.has(x + "," + z);
+        const tint = roofC[L] != null && roofC[L] > 0 ? PALETTE[roofC[L]] : 0xffffff;
         // burchak nuqtalari: tashqi chegara 0, ichkari — chegaradan uzoqligi (Chebyshev)
         const corners = new Map();
         R.forEach((k) => { const [x, z] = k.split(",").map(Number); [[0, 0], [1, 0], [0, 1], [1, 1]].forEach(([a, b]) => corners.set((x + a) + "," + (z + b), Infinity)); });
@@ -677,7 +1068,7 @@
         geo.setAttribute("position", new T.Float32BufferAttribute(pos, 3));
         geo.setAttribute("uv", new T.Float32BufferAttribute(uv, 2));
         geo.setIndex(idx); geo.computeVertexNormals();
-        const m = new T.Mesh(geo, mat("roof", 0xffffff, { key: "auto", rep: [1, 1] }));
+        const m = new T.Mesh(geo, mat("roof", tint, { key: "auto", rep: [1, 1] }));
         m.material.side = T.DoubleSide;
         m.castShadow = true; m.receiveShadow = true; m.userData.level = +L;
         roofs.add(m);
@@ -740,11 +1131,11 @@
     const ghostOK = new T.MeshStandardMaterial({ color: 0x35d07f, transparent: true, opacity: 0.55, emissive: 0x0d5a2c, depthWrite: false });
     const ghostBad = new T.MeshStandardMaterial({ color: 0xff5a4f, transparent: true, opacity: 0.55, emissive: 0x5a0d0d, depthWrite: false });
     let tool = null, ghostRec = null, lastPoint = null;
-    this.setTool = (t, r = 0, c = -1) => {
-      tool = t ? { t, r, c } : null;
+    this.setTool = (t, r = 0, c = -1, m) => {
+      tool = t ? { t, r, c, m } : null;
       ghost.clear();
       if (tool) {
-        const g = BY_ID[t].build(c);
+        const g = BY_ID[t].build(c, m || "suvoq");
         g.traverse((m) => { if (m.isMesh) { m.material = ghostOK; m.castShadow = false; m.renderOrder = 5; } });
         ghost.add(g);
       }
@@ -768,7 +1159,9 @@
         const [w, d] = dims(it, r);
         x = Math.floor(point.x - w / 2 + 0.5); z = Math.floor(point.z - d / 2 + 0.5);
       }
-      return { t: tool.t, x, z, l: viewLevel, r, c: tool.c };
+      const out = { t: tool.t, x, z, l: viewLevel, r, c: tool.c };
+      if (it.mats) out.m = tool.m || "suvoq";
+      return out;
     }
     function updateGhost() {
       if (!tool || mode !== "build" || !lastPoint) { ghost.visible = false; ghostRec = null; return; }
@@ -991,6 +1384,7 @@
   Arch3D.BY_ID = BY_ID;
   Arch3D.CATEGORIES = CATEGORIES;
   Arch3D.PALETTE = PALETTE;
+  Arch3D.WALL_MATS = WALL_MATS;
   Arch3D.MAXL = MAXL;
   Arch3D.HALF = HALF;
   window.SofiArch3D = Arch3D;

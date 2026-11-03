@@ -162,3 +162,16 @@ body.ar-open .ch-fab, body.ar-open .ch-panel, body.ar-open .bottom-nav { display
 .ar-art .house { position: absolute; left: 50%; top: 38%; transform: translate(-50%, -50%); font-size: 78px; filter: drop-shadow(0 14px 12px rgba(0, 0, 0, .45)); animation: csBob 3.6s ease-in-out infinite; }
 .ar-art .mini { position: absolute; font-size: 26px; filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .4)); }
 .ar-art .m1 { left: 14%; bottom: 18px; } .ar-art .m2 { right: 30%; bottom: 8px; } .ar-art .m3 { left: 30%; top: 8px; }
+/* Material tanlash */
+.ar-mats { display: flex; gap: 5px; overflow-x: auto; width: 100%; padding-bottom: 2px; margin-bottom: 6px; scrollbar-width: thin; }
+.ar-mats button { flex: none; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(147, 197, 253, .3); background: rgba(255, 255, 255, .06); color: inherit; border-radius: 999px; padding: 4px 10px 4px 4px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.ar-mats button i { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, .25); box-shadow: inset 0 -3px 5px rgba(0, 0, 0, .25); }
+.ar-mats button.on { background: #fb923c; border-color: #fb923c; color: #2a1200; }
+.ar-sel .ar-mats button { border-color: #c9d6e6; background: #fff; }
+.ar-sel .ar-mats button.on { background: #fb923c; }
+/* Shablonlar */
+.ar-tpls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+.ar-tpl { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 8px; border-radius: 16px; border: 2px solid #dbe5f2; background: #fff; font: inherit; cursor: pointer; transition: transform .15s, border-color .15s; }
+.ar-tpl:hover { transform: translateY(-3px); border-color: #fb923c; }
+.ar-tpl span { font-size: 34px; } .ar-tpl b { font-size: 14px; } .ar-tpl small { color: #4b5d75; font-size: 11px; line-height: 1.35; }
+@media (max-width: 520px) { .ar-tpls { grid-template-columns: 1fr; } .ar-tpl { flex-direction: row; text-align: left; } .ar-tpl span { font-size: 28px; } }

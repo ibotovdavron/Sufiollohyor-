@@ -17,7 +17,7 @@
   let libs = null;
   const loadLibs = () => libs || (libs = (async () => {
     if (!window.THREE) await loadScript("lib/three.min.js?v=149");
-    if (!window.SofiArch3D) await loadScript("games/arxitektor3d.js?v=1");
+    if (!window.SofiArch3D) await loadScript("games/arxitektor3d.js?v=2");
   })().catch((e) => { libs = null; throw e; }));
   const sfx = {
     put() { api.beep(420, 0.05, "triangle", 0.05); setTimeout(() => api.beep(300, 0.05, "triangle", 0.04), 45); },
@@ -35,8 +35,8 @@
   const lget = (n) => { try { return JSON.parse(localStorage.getItem(LKEY + n)); } catch (e) { return null; } };
   const lset = (s) => { try { localStorage.setItem(LKEY + s.name, JSON.stringify(s)); } catch (e) { api.toast("Qurilmada joy yetmadi.", "bad"); } };
   // Ixcham saqlash: [t, x, z, l, r, c]
-  const pack = (list) => list.map((p) => [p.t, p.x, p.z, p.l, p.r, p.c]);
-  const unpack = (arr) => (arr || []).map((a, i) => ({ id: "p" + (i + 1), t: a[0], x: a[1], z: a[2], l: a[3] || 0, r: a[4] || 0, c: a[5] ?? -1 }));
+  const pack = (list) => list.map((p) => (p.m ? [p.t, p.x, p.z, p.l, p.r, p.c, p.m] : [p.t, p.x, p.z, p.l, p.r, p.c]));
+  const unpack = (arr) => (arr || []).map((a, i) => { const o = { id: "p" + (i + 1), t: a[0], x: a[1], z: a[2], l: a[3] || 0, r: a[4] || 0, c: a[5] ?? -1 }; if (a[6]) o.m = a[6]; return o; });
   async function loadBuild(name, guest) {
     let st = lget(name);
     const d = db();
@@ -94,26 +94,98 @@
     return s.likedBy.length;
   }
 
-  // ---------- Namuna uy ----------
-  function templateHouse() {
-    const L = [];
-    const w = (t, x, z, r) => L.push({ t, x, z, l: 0, r, c: -1 });
-    const x0 = -4, x1 = 4, z0 = -3, z1 = 3;
-    for (let x = x0; x < x1; x++) for (let z = z0; z < z1; z++) L.push({ t: x < 0 ? "pol_parket" : "pol_plitka", x, z, l: 0, r: 0, c: -1 });
-    for (let x = x0; x < x1; x++) { w(x === -1 ? "eshik_kirish" : x === -3 || x === 2 ? "deraza_gisht" : "devor_gisht", x, z1, 0); w(x === 1 || x === -2 ? "deraza_gisht" : "devor_gisht", x, z0, 0); }
-    for (let z = z0; z < z1; z++) { w(z === 0 ? "deraza_gisht" : "devor_gisht", x0, z, 1); w(z === -1 ? "deraza_gisht" : "devor_gisht", x1, z, 1); }
-    for (let z = z0; z < z1; z++) w(z === 1 ? "eshik" : "devor_suvoq", 0, z, 1);
-    for (let x = x0 - 1; x <= x1; x++) for (let z = z0 - 1; z <= z1; z++) L.push({ t: "qiya_tom", x, z, l: 0, r: 0, c: -1 });
-    const o = (t, x, z, r = 0) => L.push({ t, x, z, l: 0, r, c: -1 });
-    o("divan", -3, -3, 0); o("gilam", -3, -1, 0); o("tv", -3, 2, 2); o("lampa", -4 + 3, -3); o("gul", -4, 2); o("kreslo", -1, 0, 1);
-    o("oshxona", 3, -3, 0); o("plita", 2, -3, 0); o("muzlatgich", 1, -3, 0); o("stol", 1, 0, 0); o("stul", 1, 1, 2); o("stul", 2, 1, 2); o("stul", 1, -1, 0); o("stul", 2, -1, 0);
-    for (let x = -1; x < 1; x++) for (let z = 3; z < 9; z++) L.push({ t: "yolak", x, z, l: 0, r: 0, c: -1 });
-    o("daraxt", -6, 6); o("olma", 5, 6); o("archa", -8, -5); o("gulzor", 1, 4); o("gulzor", -2, 4); o("sori", 3, 7, 0); o("tandir", -5, 8); o("fonar", 1, 8); o("buta", -3, 5); o("buta", 3, 4);
-    for (let x = -10; x < 10; x++) { if (x === -1 || x === 0) continue; L.push({ t: "panjara", x, z: 10, l: 0, r: 0, c: -1 }); }
-    L.push({ t: "darvoza", x: -1, z: 10, l: 0, r: 0, c: -1 }); L.push({ t: "darvoza", x: 0, z: 10, l: 0, r: 0, c: -1 });
-    return L;
+  // ---------- Namuna uylar ----------
+  // Yordamchi: to'rtburchak xona devorlari (x0..x1, z0..z1 tugunlar), maxsus qirralar bilan
+  function room(L, l, x0, z0, x1, z1, m, special = {}, c = -1) {
+    for (let x = x0; x < x1; x++) {
+      L.push({ t: special["s" + x] || "w_devor", x, z: z1, l, r: 0, c, m });
+      L.push({ t: special["n" + x] || "w_devor", x, z: z0, l, r: 0, c, m });
+    }
+    for (let z = z0; z < z1; z++) {
+      L.push({ t: special["w" + z] || "w_devor", x: x0, z, l, r: 1, c, m });
+      L.push({ t: special["e" + z] || "w_devor", x: x1, z, l, r: 1, c, m });
+    }
   }
-
+  const fill = (L, t, l, x0, z0, x1, z1, skip) => { for (let x = x0; x < x1; x++) for (let z = z0; z < z1; z++) if (!skip || !skip(x, z)) L.push({ t, x, z, l, r: 0, c: -1 }); };
+  const put = (L, t, x, z, l = 0, r = 0, c = -1, m) => { const o = { t, x, z, l, r, c }; if (m) o.m = m; L.push(o); };
+  const TEMPLATES = {
+    gisht: { name: "G‘ishtli uy", icon: "🏡", note: "1 qavat · qiya tom · hovli, so‘ri, tandir", make() {
+      const L = [];
+      fill(L, "pol_parket", 0, -4, -3, 0, 3); fill(L, "pol_plitka", 0, 0, -3, 4, 3);
+      room(L, 0, -4, -3, 4, 3, "gisht", { "s-1": "w_kirish", "s-3": "w_deraza", s2: "w_deraza", n1: "w_deraza", "n-2": "w_deraza", w0: "w_deraza", "e-1": "w_deraza" });
+      for (let z = -3; z < 3; z++) put(L, z === 1 ? "w_eshik" : "w_devor", 0, z, 0, 1, -1, "suvoq");
+      fill(L, "qiya_tom", 0, -5, -4, 5, 4);
+      put(L, "divan", -3, -3); put(L, "gilam", -3, -1); put(L, "tv", -3, 2, 0, 2); put(L, "lampa", -1, -3); put(L, "gul", -4, 2); put(L, "kreslo", -1, 0, 0, 1);
+      put(L, "oshxona", 3, -3); put(L, "plita", 2, -3); put(L, "muzlatgich", 1, -3); put(L, "stol", 1, 0); put(L, "stul", 1, 1, 0, 2); put(L, "stul", 2, 1, 0, 2); put(L, "stul", 1, -1); put(L, "stul", 2, -1); put(L, "qandil", 2, 0);
+      fill(L, "yolak", 0, -1, 3, 1, 10);
+      put(L, "daraxt", -6, 6); put(L, "olma", 5, 6); put(L, "archa", -8, -5); put(L, "gulzor", 1, 4); put(L, "gulzor", -2, 4); put(L, "sori", 3, 7); put(L, "tandir", -5, 8); put(L, "fonar", 1, 8); put(L, "atirgul", -3, 5); put(L, "buta", 3, 4);
+      for (let x = -10; x < 10; x++) if (x !== -1 && x !== 0) put(L, "panjara", x, 10);
+      put(L, "darvoza", -1, 10); put(L, "darvoza", 0, 10);
+      return L; } },
+    villa: { name: "Travertin villa", icon: "🏛️", note: "2 qavat · balkon · garaj, jip · katta basseyn", make() {
+      const L = [], M = "travertin";
+      // 1-qavat: mehmonxona, oshxona, zina; garaj (o'ngda)
+      fill(L, "pol_marmar", 0, -6, -4, 4, 4);
+      room(L, 0, -6, -4, 4, 4, M, { "s-6": "w_panorama", "s-5": "w_panorama", "s-4": "w_panorama", "s-2": "w_kirish", s1: "w_deraza", s2: "w_deraza", "n-5": "w_deraza", "n-2": "w_deraza", n1: "w_deraza", "w-2": "w_deraza", w1: "w_deraza" });
+      fill(L, "pol_beton", 0, 4, -4, 8, 4);
+      room(L, 0, 4, -4, 8, 4, M, { s4: "w_garaj", s5: "w_garaj", s6: "w_garaj", s7: "w_garaj", e0: "w_deraza", "e4": "w_devor" });
+      put(L, "jip", 5, -1, 0, 0, 5); put(L, "velosiped", 7, -3);
+      put(L, "divan", -6, -1, 0, 1); put(L, "gilam", -5, -1); put(L, "tv_katta", -2, -1, 0, 3); put(L, "kamin", -5, -4); put(L, "kreslo", -3, 1, 0, 3); put(L, "qandil", -4, 0); put(L, "gul", -6, 3); put(L, "pianino", -1, 3, 0, 2);
+      put(L, "orol", 1, 0); put(L, "oshxona", 1, -4); put(L, "oshxona", 2, -4); put(L, "plita", 3, -4); put(L, "muzlatgich", 0, -4); put(L, "akvarium", -1, -4);
+      put(L, "zina", 3, 1, 0, 2);
+      // 2-qavat: yotoqxonalar, balkon
+      fill(L, "pol_laminat", 1, -6, -4, 4, 4, (x, z) => x === 3 && z >= 1);
+      fill(L, "pol_travertin", 1, -6, 4, 4, 6);
+      room(L, 1, -6, -4, 4, 4, M, { "s-5": "w_balkon", "s-4": "w_panorama", "s-1": "w_balkon", s0: "w_panorama", s2: "w_deraza", "n-4": "w_deraza", "n-1": "w_deraza", n2: "w_deraza", "w-2": "w_deraza", w1: "w_deraza" });
+      for (let z = -4; z < 4; z++) put(L, z === 2 ? "w_eshik" : "w_devor", -1, z, 1, 1, -1, "suvoq");
+      for (let x = -6; x < 4; x++) put(L, "perila_shisha", x, 6, 1);
+      put(L, "perila_shisha", -6, 4, 1, 1); put(L, "perila_shisha", -6, 5, 1, 1); put(L, "perila_shisha", 4, 4, 1, 1); put(L, "perila_shisha", 4, 5, 1, 1);
+      put(L, "karavot", -5, -3); put(L, "shkaf", -6, -4 + 0, 1); put(L, "komod", -3, -4, 1); put(L, "kozgu", -2, -4, 1); put(L, "lampa", -6, 0, 1);
+      put(L, "bola_karavot", 0, -3, 1); put(L, "yozuv", 2, -4, 1); put(L, "javon", 1, -4, 1); put(L, "kompyuter", 3, -4, 1); put(L, "kreslo", 0, 2, 1, 2);
+      put(L, "shezlong", -5, 4, 1); put(L, "gul", -2, 5, 1); put(L, "gul", 2, 5, 1);
+      // garaj tomi — terrasa
+      fill(L, "pol_beton", 1, 4, -4, 8, 4); for (let x = 4; x < 8; x++) { put(L, "perila_metal", x, 4, 1); put(L, "perila_metal", x, -4, 1); } for (let z = -4; z < 4; z++) put(L, "perila_metal", 8, z, 1, 1);
+      // tom
+      fill(L, "tom", 1, -7, -5, 5, 5);
+      // hovli: basseyn, shezlonglar, soyabon, besedka, ishkom
+      put(L, "basseyn", -7, 8); for (let x = -9; x < -3; x++) for (let z = 7; z < 14; z++) if (!(x >= -7 && x < -4 && z >= 8 && z < 13)) put(L, "pol_travertin", x, z);
+      put(L, "shezlong", -3, 9); put(L, "shezlong", -2, 9); put(L, "soyabon", -1, 10); put(L, "besedka", 4, 9); put(L, "mangal", 8, 10); put(L, "ishkom", 9, 2);
+      fill(L, "asfalt", 0, 4, 4, 8, 15); fill(L, "yolak", 0, -3, 4, -1, 15);
+      put(L, "chinor", -12, -8); put(L, "gilos", 11, -6); put(L, "archa", -12, 4); put(L, "archa", 12, 8); put(L, "atirgul", 1, 5); put(L, "atirgul", -1, 6); put(L, "bayroq", -12, 13);
+      for (let x = -14; x < 14; x++) if (x < -3 || x >= 8) put(L, "w_past", x, 15, 0, 0, -1, "travertin");
+      for (let x = -3; x < -1; x++) put(L, "darvoza", x, 15); for (let x = 4; x < 8; x++) put(L, "darvoza", x, 15);
+      for (let x = -1; x < 4; x++) put(L, "w_past", x, 15, 0, 0, -1, "travertin");
+      return L; } },
+    zamonaviy: { name: "3 qavatli uy", icon: "🏢", note: "3 qavat · panorama oynalar · tom terrasasi", make() {
+      const L = [];
+      const floors = [["pol_marmar", "panel"], ["pol_laminat", "oq"], ["pol_parket", "panel"]];
+      floors.forEach(([fl, M], l) => {
+        fill(L, fl, l, -4, -4, 4, 3, (x, z) => l > 0 && x === 2 && z >= 0);
+        const sp = { "s-4": "w_panorama", "s-3": "w_panorama", "s-2": "w_panorama", s1: "w_panorama", s2: "w_panorama", s3: "w_panorama", "n-3": "w_deraza", n0: "w_deraza", n2: "w_deraza", "w-2": "w_panorama", w0: "w_panorama", "e-2": "w_deraza", e1: "w_deraza" };
+        if (l === 0) sp.s0 = "w_kirish", sp["s-1"] = "w_kirish";
+        else sp["s-1"] = "w_balkon";
+        room(L, l, -4, -4, 4, 3, M, sp);
+        put(L, "zina", 2, 0, l, 2);
+      });
+      // 1-qavat
+      put(L, "divan", -4, -2, 0, 1); put(L, "gilam", -3, -2); put(L, "tv_katta", -1, -2, 0, 3); put(L, "orol", 0, -4); put(L, "oshxona", -2, -4); put(L, "plita", -1, -4); put(L, "muzlatgich", -3, -4); put(L, "qandil", -2, 1);
+      // 2-qavat
+      put(L, "karavot", -4, -4, 1); put(L, "shkaf", -2, -4, 1); put(L, "kozgu", -1, -4, 1); put(L, "bilyard", 0, -4, 1); put(L, "lampa", -4, 1, 1); put(L, "rasm", -3, -4, 1);
+      // 3-qavat
+      put(L, "bola_karavot", -4, -4, 2); put(L, "yozuv", -2, -4, 2); put(L, "trenajyor", 0, -4, 2); put(L, "akvarium", 1, -4, 2); put(L, "kreslo", -3, 0, 2, 1); put(L, "dush", 3, -4, 2); put(L, "unitaz", 3, -3, 2, 3);
+      // balkonlar
+      [1, 2].forEach((l) => { fill(L, "pol_beton", l, -4, 3, 1, 5); for (let x = -4; x < 1; x++) put(L, "perila_shisha", x, 5, l); put(L, "perila_shisha", -4, 3, l, 1); put(L, "perila_shisha", -4, 4, l, 1); put(L, "perila_shisha", 1, 3, l, 1); put(L, "perila_shisha", 1, 4, l, 1); });
+      put(L, "shezlong", -3, 3, 1); put(L, "gul", 0, 3, 2);
+      // tom terrasasi
+      fill(L, "pol_travertin", 3, -4, -4, 4, 3, (x, z) => x === 2 && z >= 0);
+      for (let x = -4; x < 4; x++) { put(L, "perila_shisha", x, 3, 3); put(L, "perila_shisha", x, -4, 3); } for (let z = -4; z < 3; z++) { put(L, "perila_shisha", -4, z, 3, 1); put(L, "perila_shisha", 4, z, 3, 1); }
+      put(L, "jakuzi", -3, -3, 3); put(L, "soyabon", 0, -2, 3); put(L, "shezlong", 1, -3, 3); put(L, "gul", -4, 1, 3); put(L, "gul", 3, -4, 3);
+      // hovli
+      put(L, "sport", -10, 4, 0, 0, 10); put(L, "sedan", -13, 4, 0, 0, 7); fill(L, "asfalt", 0, -14, 3, -7, 12);
+      fill(L, "yolak", 0, -1, 3, 1, 12); put(L, "basketbol", 8, 6); put(L, "batut", 9, -2); put(L, "tepalik", 6, -5); put(L, "it_uyi", 10, 9);
+      put(L, "chinor", 11, -11); put(L, "gilos", -8, -8); put(L, "gilos", 5, 9); put(L, "fonar", 1, 10); put(L, "fonar", -2, 10); put(L, "favvora", 3, 5);
+      return L; } }
+  };
   // =========================================================
   // KARTA
   // =========================================================
@@ -140,6 +212,7 @@
   // OYNA
   // =========================================================
   let root = null, scene = null, st = null, viewing = null, cleanups = [];
+  let lastMat = "gisht";
   let mode = "view", cat = "qurilish", tool = null, level = 0, roofs = true, night = false, selected = null, undo = [], seq = 0, prevMode = "build";
 
   function shell() {
@@ -285,13 +358,14 @@
     if (m === "walk" && mode !== "walk") prevMode = mode;
     mode = m;
     if (m !== "select") select(null);
-    if (scene) { scene.setMode(m); if (m === "build" && tool) scene.setTool(tool.t, tool.r, tool.c); }
+    if (scene) { scene.setMode(m); if (m === "build" && tool) scene.setTool(tool.t, tool.r, tool.c, tool.m); }
     if (m === "walk") { api.toast("🚶 Uy ichida yuring! Sudrab atrofga qarang.", "good"); }
     drawAll();
   }
   function setTool(t) {
-    tool = t ? { t, r: tool && tool.t === t ? tool.r : 0, c: tool && tool.t === t ? tool.c : -1 } : null;
-    if (scene) scene.setTool(tool && tool.t, tool && tool.r, tool && tool.c);
+    const keepM = tool && tool.m;
+    tool = t ? { t, r: tool && tool.t === t ? tool.r : 0, c: tool && tool.t === t ? tool.c : -1, m: window.SofiArch3D.BY_ID[t].mats ? keepM || lastMat : undefined } : null;
+    if (scene) scene.setTool(tool && tool.t, tool && tool.r, tool && tool.c, tool && tool.m);
     if (t && mode !== "build") setMode("build"); else drawAll();
     if (t) { const it = window.SofiArch3D.BY_ID[t]; hint(it.autoRoof ? "🔺 Tom kataklarini belgilang — tom o‘zi qiya bo‘lib yig‘iladi (devordan 1 katak chiqarib qo‘ysangiz, chiroyli bo‘ladi)" : `${it.icon} ${it.name} — qo‘yish uchun joyni bosing${it.layer === "wall" ? " (katak chizig‘iga)" : ""}`, it.autoRoof ? 3500 : 2200); }
   }
@@ -310,11 +384,24 @@
     }
   }
   function paint(c) {
-    if (mode === "build" && tool) { tool.c = c; scene.setTool(tool.t, tool.r, c); drawPanel(); return; }
+    if (mode === "build" && tool) { tool.c = c; scene.setTool(tool.t, tool.r, c, tool.m); drawPanel(); return; }
     if (selected) {
       const p = st.list.find((x) => x.id === selected);
       if (!p) return;
-      pushUndo(); p.c = c; scene.update(p); scene.highlight(p.id); commit(); drawSel();
+      pushUndo();
+      // qiya tom: butun qavat tomi bir xil rangda
+      const same = window.SofiArch3D.BY_ID[p.t].autoRoof ? st.list.filter((x) => x.t === p.t && x.l === p.l) : [p];
+      same.forEach((x) => { x.c = c; scene.update(x); });
+      scene.highlight(p.id); commit(); drawSel();
+    }
+  }
+  function setMat(m) {
+    lastMat = m;
+    if (mode === "build" && tool) { tool.m = m; scene.setTool(tool.t, tool.r, tool.c, m); drawPanel(); return; }
+    if (selected) {
+      const p = st.list.find((x) => x.id === selected);
+      if (!p || !window.SofiArch3D.BY_ID[p.t].mats) return;
+      pushUndo(); p.m = m; scene.update(p); scene.highlight(p.id); commit(); drawSel();
     }
   }
   function hint(text, ms) {
@@ -358,7 +445,7 @@
     const box = $("#arLevels", root);
     if (!box) return;
     if (viewing || !st || mode === "walk") { box.innerHTML = ""; return; }
-    box.innerHTML = `<span>Qavat</span>` + [2, 1, 0].map((l) => `<button type="button" class="${l === level ? "on" : ""}" data-l="${l}">${l + 1}</button>`).join("");
+    box.innerHTML = `<span>Qavat</span>` + [3, 2, 1, 0].map((l) => `<button type="button" class="${l === level ? "on" : ""}" data-l="${l}">${l + 1}</button>`).join("");
     $$("[data-l]", box).forEach((x) => (x.onclick = () => { level = +x.dataset.l; scene.setLevel(level); sfx.tap(); drawLevels(); hint(`${level + 1}-qavat${level ? " — pol va devorlar pastki devorlar ustiga qo‘yiladi" : ""}`, 1600); }));
   }
   function drawPanel() {
@@ -370,12 +457,17 @@
     const it = tool && A.BY_ID[tool.t];
     box.innerHTML = `
       <div class="ar-cats">${A.CATEGORIES.map((c) => `<button type="button" class="${c.id === cat ? "on" : ""}" data-cat="${c.id}">${c.icon} ${esc(c.name)}</button>`).join("")}
-        ${it && it.paint !== undefined ? `<div class="ar-pal">${A.PALETTE.map((p, i) => `<button type="button" class="${(tool.c < 0 ? it.paint : tool.c) === i ? "on" : ""}" data-c="${i}" style="background:#${p.toString(16).padStart(6, "0")}" aria-label="Rang ${i + 1}"></button>`).join("")}</div>` : ""}
+        ${it && it.mats ? matRow(tool.m) : ""}
+        ${it && it.paint !== undefined && (!it.mats || (tool.m || "suvoq") === "suvoq") ? `<div class="ar-pal">${A.PALETTE.map((p, i) => `<button type="button" class="${(tool.c < 0 ? it.paint : tool.c) === i ? "on" : ""}" data-c="${i}" style="background:#${p.toString(16).padStart(6, "0")}" aria-label="Rang ${i + 1}"></button>`).join("")}</div>` : ""}
       </div>
-      <div class="ar-items">${A.CATALOG.filter((c) => c.cat === cat).map((c) => `<button type="button" class="ar-item ${tool && tool.t === c.id ? "on" : ""}" data-it="${c.id}"><span>${c.icon}</span><b>${esc(c.name)}</b></button>`).join("")}</div>`;
+      <div class="ar-items">${A.CATALOG.filter((c) => c.cat === cat && !c.hidden).map((c) => `<button type="button" class="ar-item ${tool && tool.t === c.id ? "on" : ""}" data-it="${c.id}"><span>${c.icon}</span><b>${esc(c.name)}</b></button>`).join("")}</div>`;
     $$("[data-cat]", box).forEach((x) => (x.onclick = () => { cat = x.dataset.cat; drawPanel(); }));
     $$("[data-it]", box).forEach((x) => (x.onclick = () => { sfx.tap(); setTool(tool && tool.t === x.dataset.it ? null : x.dataset.it); }));
     $$("[data-c]", box).forEach((x) => (x.onclick = () => paint(+x.dataset.c)));
+    $$("[data-mat]", box).forEach((x) => (x.onclick = () => setMat(x.dataset.mat)));
+  }
+  function matRow(cur) {
+    return `<div class="ar-mats">${window.SofiArch3D.WALL_MATS.map((m) => `<button type="button" class="${(cur || "suvoq") === m.id ? "on" : ""}" data-mat="${m.id}" title="${esc(m.name)}"><i style="background:${m.sw}"></i>${esc(m.name.replace(" (bo‘yaladi)", ""))}</button>`).join("")}</div>`;
   }
   function drawSel() {
     const box = $("#arSel", root);
@@ -385,17 +477,19 @@
     const A = window.SofiArch3D, it = A.BY_ID[p.t];
     box.hidden = false;
     box.innerHTML = `<div class="ar-sel-h"><span>${it.icon}</span><b>${esc(it.name)}</b><small>${p.l + 1}-qavat</small></div>
-      ${it.paint !== undefined ? `<div class="ar-pal">${A.PALETTE.map((c, i) => `<button type="button" class="${(p.c < 0 ? it.paint : p.c) === i ? "on" : ""}" data-c="${i}" style="background:#${c.toString(16).padStart(6, "0")}"></button>`).join("")}</div>` : ""}
+      ${it.mats ? matRow(p.m) : ""}
+      ${it.paint !== undefined && (!it.mats || (p.m || "suvoq") === "suvoq") ? `<div class="ar-pal">${A.PALETTE.map((c, i) => `<button type="button" class="${(p.c < 0 ? it.paint : p.c) === i ? "on" : ""}" data-c="${i}" style="background:#${c.toString(16).padStart(6, "0")}"></button>`).join("")}</div>` : ""}
       <div class="ar-row"><button type="button" class="ar-btn" data-s="rot">🔄 Burish</button><button type="button" class="ar-btn" data-s="move">✋ Ko‘chirish</button><button type="button" class="ar-btn" data-s="copy">➕ Yana</button><button type="button" class="ar-btn danger" data-s="del">🗑️</button></div>`;
     $$("[data-c]", box).forEach((x) => (x.onclick = () => paint(+x.dataset.c)));
+    $$("[data-mat]", box).forEach((x) => (x.onclick = () => setMat(x.dataset.mat)));
     $$("[data-s]", box).forEach((x) => (x.onclick = () => {
       const a = x.dataset.s;
       if (a === "rot") rotate();
       else if (a === "del") delSelected();
       else {
         if (a === "move") { erase(p.id); movingFrom = p.id; }
-        tool = { t: p.t, r: p.r, c: p.c };
-        setMode("build"); scene.setTool(tool.t, tool.r, tool.c); cat = it.cat; drawPanel();
+        tool = { t: p.t, r: p.r, c: p.c, m: p.m };
+        setMode("build"); scene.setTool(tool.t, tool.r, tool.c, tool.m); cat = it.cat; drawPanel();
         hint(a === "move" ? "Yangi joyni bosing" : "Yana qo‘yish uchun joyni bosing", 1800);
       }
     }));
@@ -440,15 +534,16 @@
           <div><b>3</b><span>Devorlar katak chiziqlariga qo‘yiladi — xona yasash oson!</span></div>
           <div><b>4</b><span>🚶 “Ichida yurish” bilan uyingiz ichida sayr qiling. Do‘stlaringiz mehmonga keladi!</span></div>
         </div>
-        <div class="ar-row c"><button type="button" class="ar-btn gold" data-w1="empty">✨ Bo‘sh maydondan boshlash</button><button type="button" class="ar-btn" data-w1="tpl">🏠 Namuna uy bilan boshlash</button></div></div>`);
-      $$("[data-w1]", root).forEach((b) => (b.onclick = () => { closeSheet(); if (b.dataset.w1 === "tpl") loadTemplate(); else { setMode("build"); hint("Pastdan jihoz tanlang 👇", 2200); } }));
+        <div class="ar-tpls">${Object.entries(TEMPLATES).map(([k, t]) => `<button type="button" class="ar-tpl" data-w1="${k}"><span>${t.icon}</span><b>${esc(t.name)}</b><small>${esc(t.note)}</small></button>`).join("")}</div>
+        <div class="ar-row c"><button type="button" class="ar-btn gold" data-w1="empty">✨ Bo‘sh maydondan boshlash</button></div></div>`);
+      $$("[data-w1]", root).forEach((b) => (b.onclick = () => { closeSheet(); if (b.dataset.w1 !== "empty") loadTemplate(b.dataset.w1); else { setMode("build"); hint("Pastdan jihoz tanlang 👇", 2200); } }));
       return;
     }
     if (name === "more") {
       openSheet(name, `<h2>☰ Uyim</h2>
         <label class="ar-lab">Uy nomi<input id="arTitle" maxlength="40" value="${esc((st && st.title) || "")}" placeholder="Masalan: Bog‘li hovli"></label>
         <div class="ar-grid2">
-          <button type="button" class="ar-btn" data-m="tpl">🏠 Namuna uyni qo‘shish</button>
+          ${Object.entries(TEMPLATES).map(([k, t]) => `<button type="button" class="ar-btn" data-m="tpl:${k}">${t.icon} ${esc(t.name)}</button>`).join("")}
           <button type="button" class="ar-btn" data-m="focus">🎯 Uyni markazga</button>
           <button type="button" class="ar-btn" data-m="visit">🏡 Mehmonga borish</button>
           <button type="button" class="ar-btn" data-m="rating">🏆 Reyting</button>
@@ -459,7 +554,7 @@
       ti.onchange = () => { st.title = ti.value.replace(/[<>]/g, "").trim(); commit(); api.toast("Nom saqlandi", "good"); };
       $$("[data-m]", root).forEach((b) => (b.onclick = () => {
         const m = b.dataset.m;
-        if (m === "tpl") { closeSheet(); loadTemplate(); }
+        if (m.startsWith("tpl:")) { closeSheet(); loadTemplate(m.slice(4)); }
         else if (m === "focus") { closeSheet(); scene.focusAll(); }
         else if (m === "clear") { if (confirm("Hamma jihozlar o‘chirilsinmi? (“Bekor” bilan qaytarish mumkin)")) { pushUndo(); st.list = []; scene.setPieces([]); commit(); closeSheet(); drawAll(); } }
         else panel(m);
@@ -484,15 +579,18 @@
       $$("[data-v]", root).forEach((b) => (b.onclick = () => (b.dataset.v === me && st ? (closeSheet(), backHome()) : visit(b.dataset.v))));
     }
   }
-  function loadTemplate() {
+  function loadTemplate(key) {
+    const T0 = TEMPLATES[key] || TEMPLATES.gisht;
+    if (st.list.length && !confirm(`“${T0.name}” qo‘yish uchun maydon tozalansinmi? (“Bekor” bilan qaytarish mumkin)`)) return;
     pushUndo();
+    st.list = []; scene.setPieces([]);
     let added = 0;
-    templateHouse().forEach((r) => {
+    T0.make().forEach((r) => {
       const rec = { ...r, id: "p" + (seq + 1) };
       if (st.list.length < MAX_PIECES && scene.canPlace(rec)) { seq++; st.list.push(rec); scene.add(rec); added++; }
     });
     commit(); setMode("build"); scene.focusAll(); sfx.put();
-    api.toast(added ? `🏠 Namuna uy qo‘yildi (${added} ta jihoz). Endi uni o‘zgartiring!` : "Namuna uchun joy band.", added ? "good" : "bad");
+    api.toast(`${T0.icon} “${T0.name}” qo‘yildi (${added} ta jihoz). Endi uni o‘zgartiring!`, "good");
   }
   async function visit(name) {
     const s = await loadBuild(name, false);
