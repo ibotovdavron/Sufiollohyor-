@@ -100,8 +100,8 @@
       bump = tex(canvas(128, 128, (x, w, h) => { x.fillStyle = "#888"; x.fillRect(0, 0, w, h); noise(x, w, h, 4000, 0.5); }), null, false);
     } else if (name === "grass") {
       color = tex(canvas(256, 256, (x, w, h) => {
-        x.fillStyle = "#5b8f37"; x.fillRect(0, 0, w, h);
-        for (let i = 0; i < 4200; i++) { const g = 100 + Math.random() * 80 | 0; x.strokeStyle = `rgba(${45 + Math.random() * 40 | 0},${g},${28 + Math.random() * 30 | 0},.6)`; x.lineWidth = 1; const px = Math.random() * w, py = Math.random() * h; x.beginPath(); x.moveTo(px, py); x.lineTo(px + rand(-2, 2), py - rand(2, 6)); x.stroke(); }
+        x.fillStyle = "#4a7a2c"; x.fillRect(0, 0, w, h);
+        for (let i = 0; i < 4200; i++) { const g = 85 + Math.random() * 70 | 0; x.strokeStyle = `rgba(${45 + Math.random() * 40 | 0},${g},${28 + Math.random() * 30 | 0},.6)`; x.lineWidth = 1; const px = Math.random() * w, py = Math.random() * h; x.beginPath(); x.moveTo(px, py); x.lineTo(px + rand(-2, 2), py - rand(2, 6)); x.stroke(); }
       }), [40, 40]);
     } else if (name === "suzani") {
       color = tex(canvas(256, 256, (x, w, h) => {
@@ -554,7 +554,7 @@
     scene.add(sun); scene.add(sun.target);
 
     // Yer
-    const ground = new T.Mesh(new T.PlaneGeometry(400, 400), new T.MeshStandardMaterial({ map: getTex("grass").color, roughness: 1 }));
+    const ground = new T.Mesh(new T.PlaneGeometry(400, 400), new T.MeshStandardMaterial({ map: getTex("grass").color, roughness: 1, envMapIntensity: 0.4 }));
     ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
     const plotM = new T.Mesh(new T.PlaneGeometry(30, 30), new T.MeshStandardMaterial({ color: 0x6fa046, roughness: 1, transparent: true, opacity: 0.25 }));
     plotM.rotation.x = -Math.PI / 2; plotM.position.y = 0.005; scene.add(plotM);
@@ -934,7 +934,7 @@
         sun.intensity = 0.25; sun.color.set(0x9db4ff); hemi.intensity = 0.12; renderer.toneMappingExposure = 1.15;
       } else {
         scene.background = skyTex("#4a8fd6", "#a5cff0", "#e6f2f8"); scene.environment = ENV.day; scene.fog = new T.Fog(0xcfe3ef, 80, 300);
-        sun.intensity = 2.2; sun.color.set(0xfff0d8); hemi.intensity = 0.55; renderer.toneMappingExposure = 1.05;
+        sun.intensity = 1.9; sun.color.set(0xfff0d8); hemi.intensity = 0.45; renderer.toneMappingExposure = 0.92;
       }
       Object.values(MATS).forEach((m) => { if (m.userData.glow) m.emissiveIntensity = night ? 2.4 : 0.4; if (m.userData.glassNight !== undefined) m.emissiveIntensity = night ? 0.25 : 0; });
       clouds.forEach((c) => c.material.color.set(night ? 0x26304d : 0xffffff));
