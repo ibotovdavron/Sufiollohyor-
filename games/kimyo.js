@@ -15,32 +15,91 @@
   const loadLibs = () => libs || (libs = (async () => {
     if (!window.SofiChem) await loadScript("games/kimyo-data.js?v=1");
     if (!window.THREE) await loadScript("lib/three.min.js?v=149");
-    if (!window.SofiLab3D) await loadScript("games/kimyo3d.js?v=2");
+    if (!window.SofiLab3D) await loadScript("games/kimyo3d.js?v=3");
   })().catch((e) => { libs = null; throw e; }));
 
-  // ---------- Ovozlar (Web Audio) ----------
-  let actx = null;
-  const ac = () => { if (!actx) { const A = window.AudioContext || window.webkitAudioContext; if (A) actx = new A(); } if (actx && actx.state === "suspended") actx.resume(); return actx; };
-  function noise(dur, f0, f1, vol = 0.15, type = "bandpass") {
-    const c = ac(); if (!c) return;
-    const n = c.createBufferSource(), b = c.createBuffer(1, c.sampleRate * dur, c.sampleRate), d = b.getChannelData(0);
-    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-    n.buffer = b; const f = c.createBiquadFilter(); f.type = type; f.frequency.setValueAtTime(f0, c.currentTime); f.frequency.linearRampToValueAtTime(f1, c.currentTime + dur); f.Q.value = 0.8;
-    const g = c.createGain(); g.gain.setValueAtTime(vol, c.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
-    n.connect(f); f.connect(g); g.connect(c.destination); n.start(); n.stop(c.currentTime + dur);
+  // ---------- Ovozlar (Web Audio — fayl yuklanmaydi) ----------
+  let actx = null, master = null, muted = false;
+  try { muted = localStorage.getItem("sofi_kimyo_snd") === "0"; } catch (e) { /* bo'sh */ }
+  const ac = () => {
+    if (!actx) {
+      const A = window.AudioContext || window.webkitAudioContext;
+      if (A) { actx = new A(); master = actx.createGain(); master.gain.value = muted ? 0 : 1; const comp = actx.createDynamicsCompressor(); master.connect(comp); comp.connect(actx.destination); }
+    }
+    if (actx && actx.state === "suspended") actx.resume();
+    return actx;
+  };
+  const out = () => master || (ac() && master);
+  let NB = null;
+  const noiseBuf = () => { const c = ac(); if (!NB && c) { NB = c.createBuffer(1, c.sampleRate * 2, c.sampleRate); const d = NB.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } return NB; };
+  function noise(dur, f0, f1, vol = 0.15, type = "bandpass", q = 0.8) {
+    const c = ac(); if (!c || muted) return;
+    const n = c.createBufferSource(); n.buffer = noiseBuf(); n.loop = true;
+    const f = c.createBiquadFilter(); f.type = type; f.Q.value = q; f.frequency.setValueAtTime(f0, c.currentTime); f.frequency.linearRampToValueAtTime(f1, c.currentTime + dur);
+    const g = c.createGain(); g.gain.setValueAtTime(0.0001, c.currentTime); g.gain.linearRampToValueAtTime(vol, c.currentTime + Math.min(0.05, dur / 4)); g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
+    n.connect(f); f.connect(g); g.connect(out()); n.start(c.currentTime, Math.random()); n.stop(c.currentTime + dur + 0.05);
+  }
+  function tone(f0, f1, dur, vol = 0.05, type = "sine", delay = 0) {
+    const c = ac(); if (!c || muted) return;
+    const t = c.currentTime + delay, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(out()); o.start(t); o.stop(t + dur + 0.02);
+  }
+  // Doimiy ovozlar (gorelka shivirlashi, ventilyator)
+  const loops = {};
+  function loopOn(id, type, freq, vol, q = 0.7) {
+    const c = ac(); if (!c || loops[id]) return;
+    const n = c.createBufferSource(); n.buffer = noiseBuf(); n.loop = true;
+    const f = c.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+    const g = c.createGain(); g.gain.setValueAtTime(0.0001, c.currentTime); g.gain.linearRampToValueAtTime(vol, c.currentTime + 0.6);
+    n.connect(f); f.connect(g); g.connect(out()); n.start();
+    loops[id] = { n, g };
+  }
+  function loopOff(id) {
+    const L = loops[id]; if (!L || !actx) return;
+    L.g.gain.cancelScheduledValues(actx.currentTime); L.g.gain.setValueAtTime(L.g.gain.value, actx.currentTime); L.g.gain.linearRampToValueAtTime(0.0001, actx.currentTime + 0.5);
+    setTimeout(() => { try { L.n.stop(); } catch (e) { /* bo'sh */ } }, 600);
+    delete loops[id];
+  }
+  // Qaynash: tasodifiy “bulq” ovozlari
+  let bubbleTimer = 0;
+  function bubbling(rate, dur) {
+    clearInterval(bubbleTimer);
+    const end = Date.now() + dur * 1000;
+    bubbleTimer = setInterval(() => {
+      if (Date.now() > end || !root) { clearInterval(bubbleTimer); return; }
+      const n = 1 + Math.round(Math.random() * rate * 2);
+      for (let i = 0; i < n; i++) { const f = 300 + Math.random() * 900; tone(f, f * (1.6 + Math.random()), 0.05 + Math.random() * 0.05, 0.025 + Math.random() * 0.02, "sine", Math.random() * 0.12); }
+    }, 130);
+    noise(dur, 2500, 4500, 0.025 * rate, "highpass");
+  }
+  function crackle(dur, vol = 0.12) {
+    const end = Date.now() + dur * 1000;
+    const iv = setInterval(() => { if (Date.now() > end) { clearInterval(iv); return; } if (Math.random() < 0.7) noise(0.03 + Math.random() * 0.04, 1500 + Math.random() * 3000, 800, vol * Math.random(), "bandpass", 1.5); }, 45);
   }
   const snd = {
-    pour: () => noise(1.4, 900, 2400, 0.06),
-    powder: () => noise(0.6, 4000, 6000, 0.04, "highpass"),
-    clink: () => { api.beep(2400, 0.06, "triangle", 0.05); setTimeout(() => api.beep(3100, 0.05, "triangle", 0.03), 50); },
-    drop: () => api.beep(1400, 0.05, "sine", 0.04),
-    fizz: () => noise(3, 3000, 5000, 0.05, "highpass"),
-    pop: () => { noise(0.25, 300, 120, 0.4, "lowpass"); api.beep(180, 0.15, "sine", 0.08); },
-    boom: () => noise(1.2, 200, 60, 0.5, "lowpass"),
-    flame: () => noise(1.6, 400, 300, 0.05, "lowpass"),
-    ok: () => [660, 880, 1175].forEach((f, i) => setTimeout(() => api.beep(f, 0.12, "triangle", 0.05), i * 90)),
-    star: () => [523, 659, 784, 1047, 1319].forEach((f, i) => setTimeout(() => api.beep(f, 0.16, "triangle", 0.05), i * 100))
+    pour: () => { noise(1.5, 700, 1600, 0.07, "bandpass", 1.2); for (let i = 0; i < 8; i++) tone(500 + i * 60, 900 + i * 80, 0.08, 0.012, "sine", 0.2 + i * 0.13); },
+    powder: () => noise(0.7, 5000, 7000, 0.035, "highpass"),
+    clink: () => { tone(2600, 2500, 0.25, 0.05, "triangle"); tone(3900, 3800, 0.18, 0.025, "sine", 0.01); },
+    splash: () => { noise(0.35, 1800, 600, 0.12, "bandpass", 1); tone(800, 300, 0.12, 0.03); },
+    drop: () => tone(1500, 2200, 0.06, 0.04),
+    fizz: (rate = 1, dur = 4) => bubbling(rate, dur),
+    pop: () => { noise(0.18, 600, 120, 0.5, "lowpass"); tone(220, 60, 0.18, 0.12, "sine"); },
+    boom: () => { noise(1.0, 300, 60, 0.55, "lowpass"); tone(90, 40, 0.6, 0.15); },
+    whoosh: () => noise(2.2, 300, 2500, 0.09, "bandpass", 0.6),
+    sizzle: (dur = 5) => { noise(dur, 6000, 4000, 0.08, "highpass"); crackle(dur, 0.1); },
+    burn: (dur = 4) => { noise(dur, 900, 500, 0.1, "lowpass"); crackle(dur, 0.16); },
+    steam: () => noise(2.5, 5000, 3000, 0.05, "highpass"),
+    flame: () => noise(0.8, 300, 900, 0.08, "lowpass"),
+    ok: () => [660, 880, 1175].forEach((f, i) => tone(f, f, 0.14, 0.05, "triangle", i * 0.09)),
+    star: () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, f, 0.2, 0.05, "triangle", i * 0.1))
   };
+  function setMuted(v) {
+    muted = v;
+    try { localStorage.setItem("sofi_kimyo_snd", v ? "0" : "1"); } catch (e) { /* bo'sh */ }
+    if (master) master.gain.setTargetAtTime(v ? 0 : 1, actx.currentTime, 0.05);
+  }
 
   // ---------- Saqlash ----------
   const who = () => (G && G.session && G.session.name) || "mehmon";
@@ -164,23 +223,29 @@
     const fx = rx.fx || {};
     const go = () => {
       if (!scene) return;
-      if (fx.bubbles) { scene.bubbles(fx.bubbles, fx.slow ? 14 : 8); snd.fizz(); }
+      if (fx.bubbles) { scene.bubbles(fx.bubbles, fx.slow ? 14 : 8); snd.fizz(fx.bubbles, fx.slow ? 10 : 6); }
       if (fx.gas) S.gas = { type: fx.gas, until: Date.now() + 25000 };
-      if (fx.foam) scene.foam(fx.foam);
+      if (fx.foam) { scene.foam(fx.foam); snd.whoosh(); }
       if (fx.heat) scene.setTemp(Math.min(100, scene.getTemp() + fx.heat));
       if (fx.cool) scene.setTemp(scene.getTemp() - fx.cool);
-      if (fx.ppt) { S.pptAmt += 1; S.pptCol = fx.ppt; scene.precipitate(fx.ppt, 1); }
+      if (fx.ppt) {
+        // cho'kma: avval butun eritma loyqalanadi, so'ng zarrachalar asta tubga cho'kadi
+        S.pptCol = fx.ppt; scene.precipitate(fx.ppt, 1.6); S.cloud = 0.7; S.cloudCol = fx.ppt;
+        const t0 = Date.now();
+        const iv = setInterval(() => { const k = Math.min(1, (Date.now() - t0) / 9000); S.cloud = 0.7 - 0.5 * k; if (k >= 1) { clearInterval(iv); S.pptAmt += 1; } refresh(); }, 250);
+        snd.steam();
+      }
       if (fx.cloudy) { S.cloud = 0.75; S.cloudCol = fx.cloudy; }
       if (fx.coat) scene.coatMetal(fx.coat, fx.slow ? 9 : 5);
       if (fx.metalShrink) scene.shrinkMetal(10);
       if (fx.crystals) scene.crystals(fx.crystals);
-      if (fx.sodium) { scene.sodium(fx.sodium, 6); snd.fizz(); }
-      if (fx.flash) { scene.flash(fx.flash, fx.bright ? 4 : 1.6); if (fx.bright) snd.flame(); else snd.pop(); }
-      if (fx.steam) scene.steam(6);
+      if (fx.sodium) { scene.sodium(fx.sodium, 6); snd.sizzle(6); }
+      if (fx.flash) { scene.flash(fx.flash, fx.bright ? 4 : 1.6); if (fx.bright) snd.burn(4); else snd.pop(); }
+      if (fx.steam) { scene.steam(6); snd.steam(); }
       if (fx.smoke) scene.smoke(fx.smoke, 5);
-      if (fx.glow) scene.glow(fx.glow, 5);
+      if (fx.glow) { scene.glow(fx.glow, 5); snd.burn(4); }
       if (fx.mirror) scene.mirror();
-      if (fx.snake) { scene.snake(); snd.fizz(); }
+      if (fx.snake) { scene.snake(); snd.sizzle(7); }
       if (fx.evaporate) { const from = S.level; let t = 0; const iv = setInterval(() => { t += 0.1; S.level = Math.max(0, from * (1 - t / 6)); refresh(); if (t >= 6) { clearInterval(iv); S.cont.set("suv", 0); S.pptAmt += 1; S.pptCol = 0xffffff; scene.precipitate(0xffffff, 1); refresh(); } }, 100); }
       if (fx.color || fx.decolor) S.colorOverride = null;
       if (fx.curd) { S.cloud = 0.3; S.cloudCol = 0xfdf6d8; }
@@ -222,6 +287,7 @@
     } else if (r.type === "solid") snd.powder();
     else if (r.type === "indicator") snd.drop();
     else snd.clink();
+    if (r.type === "metal") setTimeout(() => (anyLiquid() ? snd.splash() : snd.clink()), 1000);
     const color = r.type === "indicator" ? (IND[r.ind] ? IND[r.ind](7) || 0xf4f4f4 : 0xf4f4f4) : r.color;
     if (r.type === "metal") await scene.pour("metal", null, { shape: r.shape, metalColor: r.color });
     else await scene.pour(r.type, color, { toLevel: to, opaque: r.opaque });
@@ -236,6 +302,7 @@
     if (!scene || S.busy) return;
     if (t === "heat") {
       S.heat = !S.heat; scene.heat(S.heat);
+      if (S.heat) loopOn("burner", "lowpass", 520, 0.06); else loopOff("burner");
       if (S.heat) { snd.flame(); if (guided) stepGuide("@heat"); setTimeout(() => { if (S.heat) evaluate(true); }, 2600); setTimeout(() => { if (S.heat) evaluate(true); }, 6000); }
       drawTools(); return;
     }
@@ -272,7 +339,7 @@
     $$("[data-fl]", root).forEach((b) => (b.onclick = async () => {
       closeSheet();
       const id = b.dataset.fl, F = C.FLAME[id];
-      S.busy = true; snd.flame();
+      S.busy = true; snd.flame(); loopOn("ftest", "lowpass", 600, 0.07); setTimeout(() => loopOff("ftest"), 5200);
       await scene.flameTest(F.color);
       S.busy = false; scene.view(roomView ? "room" : "close");
       showCard({ name: `Alanga sinovi: ${F.name}`, eq: `${C.ALL[id].f} → alanga rangi`, text: F.text + " Elektronlar qizib yuqori energetik holatga o‘tadi va qaytishda ma’lum rangdagi nur chiqaradi.", life: "Salyutlardagi ranglar aynan shu tuzlar tufayli! Astronomlar yulduzlar tarkibini ham shu nurlar orqali aniqlaydi.", safe: "Alangadan uzoqroq turing, sochni yig‘ing." }, "flame");
@@ -287,7 +354,7 @@
     sheet(`<h2>🧪 Idish tanlash</h2><p class="kl-muted">Idish almashtirilganda eski idish yuviladi.</p><div class="kl-grid">${V.map((v) => `<button type="button" class="kl-chipbtn ${v === S.vessel ? "on" : ""}" data-v="${v}"><span>${IC[v]}</span><b>${esc(N[v])}</b></button>`).join("")}</div>`);
     $$("[data-v]", root).forEach((b) => (b.onclick = () => { closeSheet(); setVessel(b.dataset.v); }));
   }
-  function setVessel(v) { S.vessel = v; scene.setVessel(v); tool("empty"); scene.view(roomView ? "room" : "close"); drawTools(); }
+  function setVessel(v) { snd.clink(); S.vessel = v; scene.setVessel(v); tool("empty"); scene.view(roomView ? "room" : "close"); drawTools(); }
 
   // =========================================================
   // INTERFEYS
@@ -304,6 +371,7 @@
           <button type="button" class="kl-top" data-open="exp">📋 <b>Tajribalar</b></button>
           <button type="button" class="kl-top" data-open="table">🔬 <b>Jadval</b></button>
           <button type="button" class="kl-top" data-open="journal" id="klJ">📒 <b>0</b></button>
+          <button type="button" class="kl-top" id="klSnd" title="Ovoz">🔊</button>
         </div>
       </header>
       <div class="kl-world" id="klWorld">
@@ -319,10 +387,15 @@
     document.body.classList.add("g-playing", "kl-open");
     requestAnimationFrame(() => root && root.classList.add("show"));
     $(".kl-exit", root).onclick = close;
+    const sb = $("#klSnd", root), drawSnd = () => { sb.textContent = muted ? "🔇" : "🔊"; };
+    sb.onclick = () => { setMuted(!muted); drawSnd(); if (!muted) loopOn("fan", "lowpass", 180, 0.025); };
+    drawSnd();
+    loopOn("fan", "lowpass", 180, 0.025); // mo'rili shkaf ventilyatori — ohista shovqin
     $(".kl-sheet-x", root).onclick = closeSheet;
     $$("[data-open]", root).forEach((b) => (b.onclick = () => openPanel(b.dataset.open)));
   }
   function close() {
+    Object.keys(loops).forEach(loopOff); clearInterval(bubbleTimer);
     if (atom) { atom.destroy(); atom = null; }
     if (scene) { try { scene.destroy(); } catch (e) { /* bo'sh */ } }
     scene = null; guided = null;
@@ -523,5 +596,5 @@
     ac();
     open(b.dataset.kl === "lab" ? null : b.dataset.kl);
   });
-  window.SofiKimyo = { open, _S: S };
+  window.SofiKimyo = { open, _S: S, _scene: () => scene };
 })();

@@ -311,13 +311,13 @@
     // Termometr
     const thermo = new T.Group();
     {
-      const g = new T.Mesh(new T.CylinderGeometry(0.0035, 0.0035, 0.24, 10), glassMat()); g.position.y = 0.13; thermo.add(g);
+      const g = new T.Mesh(new T.CylinderGeometry(0.0032, 0.0032, 0.17, 10), glassMat()); g.position.y = 0.095; thermo.add(g);
       const bulb = new T.Mesh(new T.SphereGeometry(0.005, 12, 8), new T.MeshStandardMaterial({ color: 0xd8262b, roughness: 0.2 })); bulb.position.y = 0.012; thermo.add(bulb);
       const col = new T.Mesh(new T.CylinderGeometry(0.0013, 0.0013, 1, 6), new T.MeshStandardMaterial({ color: 0xd8262b, emissive: 0x400000 })); col.name = "col"; thermo.add(col);
       thermo.rotation.z = -0.18;
     }
     let tempNow = 22, tempGoal = 22;
-    function setThermo(t) { const c = thermo.getObjectByName("col"); const L = 0.02 + Math.min(1, Math.max(0, (t + 10) / 110)) * 0.2; c.scale.y = L; c.position.y = 0.012 + L / 2; }
+    function setThermo(t) { const c = thermo.getObjectByName("col"); const L = 0.015 + Math.min(1, Math.max(0, (t + 10) / 110)) * 0.14; c.scale.y = L; c.position.y = 0.012 + L / 2; }
     function applyLiquid() {
       if (!vInfo) return;
       const h = Math.max(0, Math.min(0.97, LS.level)) * vInfo.h;
@@ -417,7 +417,7 @@
     this.precipitate = (color, amount = 1) => {
       pptP.m.material.color.set(color);
       const r = liquidR(), top = liquidTopY();
-      for (let i = 0; i < 120 * amount && pptP.items.length < 260; i++) { const a = rand(0, 6.28), rr = Math.sqrt(Math.random()) * r * 0.9; pptP.items.push({ x: Math.cos(a) * rr, y: top - rand(0, (top - vesselGroup.position.y) * 0.9), z: Math.sin(a) * rr, vy: -rand(0.004, 0.012), s: rand(0.0008, 0.0018), rot: rand(0, 6) }); }
+      for (let i = 0; i < 120 * amount && pptP.items.length < 260; i++) { const a = rand(0, 6.28), rr = Math.sqrt(Math.random()) * r * 0.9; pptP.items.push({ x: Math.cos(a) * rr, y: rand(vInfo.inner[0][1] + 0.003, Math.max(0.006, LS.level * vInfo.h - 0.002)), z: Math.sin(a) * rr, vy: -rand(0.002, 0.006), s: rand(0.0016, 0.0032), rot: rand(0, 6) }); }
     };
     this.mirror = () => {
       if (mirrorMesh) return;
@@ -672,6 +672,7 @@
       renderer.render(scene, camera);
     }
     this.getTemp = () => tempNow;
+    this._dbg = { scene, camera, T };
     this.vesselName = () => vInfo.name;
     buildVessel("stakan");
     this.view("close");
