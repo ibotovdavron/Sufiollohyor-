@@ -185,3 +185,11 @@ body.kl-open .ch-fab, body.kl-open .ch-panel, body.kl-open .bottom-nav { display
   .kl-item { width: 88px; }
   .kl-tool b { display: none; } .kl-tool { padding: 6px 9px; }
 }
+@media (max-width: 440px) {
+  .kl-bar { gap: 6px; padding-left: 8px; padding-right: 8px; }
+  .kl-brand { flex: none; }
+  .kl-brand em { display: none; }
+  .kl-exit { padding: 7px 9px; }
+  .kl-top { padding: 7px 8px; }
+  .kl-bar-r { gap: 4px; }
+}
