@@ -19,11 +19,12 @@ learning center administration.
 
 ## 4. Content rating (IARC so‘rovnomasi)
 - Category: **Reference, News, or Educational**
-- Violence / fear / sexual content / profanity / drugs / gambling: **No**
+- Violence: **Yes → Fantasy/cartoon violence** (Snayper jangi: robotlar lazer bilan “o‘chadi”, qon va real odamlar yo‘q)
+- Fear / sexual content / profanity / drugs / gambling: **No**
 - **Users can interact or exchange information?** — **Yes** (o‘yinlar ichidagi chat va onlayn o‘yinlar)
 - Shares user location: **No**
 - Digital purchases: **No**
-- Kutilgan natija: **3+ / Everyone** (chat sababli “Users Interact” belgisi qo‘shiladi)
+- Kutilgan natija: **7+ / Everyone 10+** (multfilmga xos yengil zo‘ravonlik; chat sababli “Users Interact” belgisi qo‘shiladi)
 
 ## 5. Target audience and content
 - Maqsadli yosh guruhlari: **9–12**, **13–15**, **16–17**, **18+** (o‘quvchilar, ota-onalar, ustozlar)
