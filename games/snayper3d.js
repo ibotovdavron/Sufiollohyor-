@@ -13,10 +13,10 @@
 
   const CFG = {
     WIN: 3, ROUND_MS: 150000, FREEZE_MS: 3500, BREAK_MS: 5500,
-    HP: 100, DMG: { head: 100, body: 70, legs: 45 },
+    HP: 100, DMG: { head: 100, body: 100, legs: 70 },
     MAG: 5, RESERVE: 25, BOLT: 1.15, RELOAD: 2.5,
     SPEED: 4.6, SPRINT: 6.4, CROUCH: 2.2, SCOPED: 2.2,
-    H: 1.78, HC: 1.25, EYE: 1.6, EYEC: 1.1, R: 0.32,
+    H: 1.55, HC: 1.1, EYE: 1.4, EYEC: 0.95, R: 0.3,
     FOV: 72, ZOOM: [72, 20, 9], NET_MS: 150,
   };
   const TEAMNAME = { r: "Qizil", b: "Ko‘k" };
@@ -223,7 +223,7 @@
       av.obj.visible = false;
       if (r.id !== myId) {
         const tag = nameTag(r.name, r.team, r.bot);
-        tag.position.y = 2.15; av.obj.add(tag); p.tag = tag;
+        tag.position.y = 1.85; av.obj.add(tag); p.tag = tag;
       }
       P.set(r.id, p);
       return p;
@@ -393,11 +393,11 @@
         if (!p.alive || p.id === shooter || (sp && p.team === sp.team)) continue;
         const q = rp(p), hs = p.crouch ? 0.72 : 1;
         const x = q.x, y = q.y, z = q.z;
-        let t = raySphere(oa, da, [x, y + 1.5 * hs, z], 0.27);
+        let t = raySphere(oa, da, [x, y + 1.25 * hs, z], 0.25);
         if (t > 0 && t < best) { best = t; hit = p.id; part = "head"; }
-        t = rayCyl(oa, da, x, z, y + 0.6 * hs, y + 1.3 * hs, 0.31);
+        t = rayCyl(oa, da, x, z, y + 0.5 * hs, y + 1.08 * hs, 0.28);
         if (t > 0 && t < best) { best = t; hit = p.id; part = "body"; }
-        t = rayCyl(oa, da, x, z, y, y + 0.6 * hs, 0.24);
+        t = rayCyl(oa, da, x, z, y, y + 0.5 * hs, 0.2);
         if (t > 0 && t < best) { best = t; hit = p.id; part = "legs"; }
       }
       return { dist: best, hit, part };
@@ -513,7 +513,7 @@
       L.holding = L.scoped && (L.keys.has("ShiftLeft") || L.keys.has("ShiftRight")) && L.breath > 0;
       L.breath = clamp(L.breath + (L.holding ? -dt / 4 : dt / 6), 0, 1);
       // Qurol holati
-      if (me.boltT > 0) me.boltT -= dt;
+      if (me.boltT > 0) { me.boltT -= dt; if (me.boltT <= 0 && L.rescope) { L.rescope = false; if (me.alive && me.reloadT <= 0 && me.ammo > 0) { L.scoped = true; Snd.zoom(); } } }
       if (me.reloadT > 0) { me.reloadT -= dt; if (me.reloadT <= 0) { const n = Math.min(CFG.MAG - me.ammo, me.reserve); me.ammo += n; me.reserve -= n; } }
       if (L.fireQ) { L.fireQ = false; if (live) tryFire(); }
       if (frozen) L.scoped = L.scoped && true;
@@ -539,13 +539,16 @@
       doFire(me, fwd(yaw, pitch));
       L.kick = 1;
       L.recoil = L.scoped ? 0.045 : 0.06;
+      if (L.scoped) { L.rescope = true; setTimeout(() => { if (L.scoped && me.boltT > 0) L.scoped = false; }, 140); }
+      setTimeout(() => ejectShell(), 430);
+      const mzW = muzzleWorld(me); setTimeout(() => puff(mzW, 0xd8d8d8), 30);
       me.boltT = CFG.BOLT;
       setTimeout(() => Snd.bolt(), 120);
       if (me.ammo === 0 && me.reserve > 0) setTimeout(() => startReload(), CFG.BOLT * 1000);
     }
     function startReload() {
       if (me.reloadT > 0 || me.ammo >= CFG.MAG || me.reserve <= 0 || !me.alive) return;
-      me.reloadT = CFG.RELOAD; L.scoped = false; Snd.reload();
+      me.reloadT = CFG.RELOAD; L.scoped = false; L.rescope = false; Snd.reload();
     }
     function swayOff() {
       if (!L.scoped) return { x: 0, y: 0 };
@@ -599,11 +602,11 @@
           const qp = rp(q), d = qp.distanceTo(p.pos);
           if (d > (b.path.length ? 40 : 130)) continue; // yo'lda ketayotganda faqat yaqin raqibga to'xtaydi
           const hs = q.crouch ? 0.72 : 1;
-          const head = qp.clone().add(new T.Vector3(0, 1.5 * hs, 0)), chest = qp.clone().add(new T.Vector3(0, 1.0 * hs, 0));
+          const head = qp.clone().add(new T.Vector3(0, 1.25 * hs, 0)), chest = qp.clone().add(new T.Vector3(0, 0.85 * hs, 0));
           const vis = visible(eye, chest) ? chest : visible(eye, head) ? head : null;
           if (vis && d < bd) { bd = d; best = { id: q.id, aim: vis === head ? "head" : "body" }; }
         }
-        if (best && (!b.target || b.target.id !== best.id)) { b.react = rr(0.8, 1.6) + bd / 90; b.err = rr(0.05, 0.09); }
+        if (best && (!b.target || b.target.id !== best.id)) { b.react = rr(0.9, 1.7) + bd / 85; b.err = rr(0.06, 0.1); }
         if (!best && b.target) { const q = P.get(b.target.id); if (q && q.alive) b.lost = { pos: rp(q).clone(), t: 3 }; }
         b.target = best;
         if (best) b.lookAt = null;
@@ -615,13 +618,13 @@
         if (!q || !q.alive) b.target = null;
         else {
           const hs = q.crouch ? 0.72 : 1;
-          const aimPt = rp(q).clone().add(new T.Vector3(0, (b.target.aim === "head" ? 1.5 : 1.0) * hs, 0));
+          const aimPt = rp(q).clone().add(new T.Vector3(0, (b.target.aim === "head" ? 1.25 : 0.85) * hs, 0));
           const d = aimPt.clone().sub(eye);
           const wantYaw = Math.atan2(-d.x, -d.z), wantPitch = Math.atan2(d.y, Math.hypot(d.x, d.z));
           let dy = ((wantYaw - p.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
           p.yaw += clamp(dy, -3.2 * dt, 3.2 * dt); p.pitch += clamp(wantPitch - p.pitch, -2 * dt, 2 * dt);
           b.react -= dt;
-          b.err = Math.max(0.01, b.err * Math.exp(-dt * 0.7));
+          b.err = Math.max(0.013, b.err * Math.exp(-dt * 0.65));
           p.crouch = b.crouch;
           if (b.react <= 0 && Math.abs(dy) < 0.05 && p.boltT <= 0 && p.reloadT <= 0) {
             if (p.ammo <= 0) { p.reloadT = CFG.RELOAD; }
@@ -879,6 +882,7 @@
     canvas.addEventListener("wheel", (e) => { if (L.scoped) { L.zoom = e.deltaY > 0 ? 1 : 2; Snd.zoom(); } e.preventDefault(); }, { passive: false });
     function toggleScope() {
       if (!me.alive || me.reloadT > 0) return;
+      L.rescope = false;
       L.scoped = !L.scoped; if (L.scoped && !L.zoom) L.zoom = 1; Snd.zoom();
     }
     function cycleSpect() {
@@ -1027,12 +1031,27 @@
       const fov = L.scoped && me.alive ? CFG.ZOOM[L.zoom] : baseFov;
       if (Math.abs(camera.fov - fov) > 0.05) { camera.fov += (fov - camera.fov) * Math.min(1, dt * 18); camera.updateProjectionMatrix(); }
     }
+    const shells = [];
+    const shellGeo = new T.CylinderGeometry(0.006, 0.006, 0.05, 8); shellGeo.rotateZ(Math.PI / 2);
+    const shellMat = new T.MeshStandardMaterial({ color: 0xc8a040, metalness: 0.9, roughness: 0.3 });
+    function ejectShell() {
+      if (L.scoped || !me.alive) return;
+      const sh = new T.Mesh(shellGeo, shellMat);
+      const v = vm.userData.eject.clone(); vm.localToWorld(v); sh.position.copy(v);
+      vmScene.add(sh);
+      shells.push({ o: sh, v: new T.Vector3(rr(0.9, 1.3), rr(0.8, 1.2), rr(0.1, 0.4)), t: 0 });
+    }
     function vmUpdate(dt, ts) {
+      for (let i = shells.length - 1; i >= 0; i--) {
+        const e = shells[i]; e.t += dt; e.v.y -= 5 * dt;
+        e.o.position.addScaledVector(e.v, dt); e.o.rotation.x += dt * 18; e.o.rotation.y += dt * 9;
+        if (e.t > 0.9) { vmScene.remove(e.o); shells.splice(i, 1); }
+      }
       const sp = Math.hypot(me.vel.x, me.vel.z);
       const bob = me.onGround ? sp * 0.004 : 0;
       L.kick = Math.max(0, L.kick - dt * 3.2);
       const k = L.kick;
-      let x = (vmCam.aspect < 1.25 ? 0.13 : 0.2) + Math.sin(ts * 8) * bob, y = -0.2 - Math.abs(Math.cos(ts * 8)) * bob, z = -0.4 + k * 0.09, rx = k * 0.18, rz = 0;
+      let x = (vmCam.aspect < 1.25 ? 0.13 : 0.21) + Math.sin(ts * 8) * bob, y = -0.25 - Math.abs(Math.cos(ts * 8)) * bob, z = -0.46 + k * 0.11, rx = k * 0.18, rz = 0;
       // Zatvor animatsiyasi
       const bolt = vm.userData.bolt;
       const bt = me.boltT > 0 ? 1 - me.boltT / CFG.BOLT : 1;
@@ -1099,7 +1118,7 @@
     ui.start.innerHTML = `<div class="sn-intro"><span class="big">🎯</span><h2>${TEAMNAME[me.team]} jamoa</h2>
       <p>${MOBILE ? "Chap barmoq — yurish, o‘ng barmoq — qarash. 🔭 — durbin, 🎯 — otish." : "Sichqoncha bilan qarang, o‘ng tugma — durbin, chap tugma — otish. Shift — nafasni ushlash."}</p>
       <p class="sm">Raqib jamoaning hamma robotini o‘chiring. ${CFG.WIN} raund yutgan jamoa g‘olib!</p>
-      <button class="sn-btn" data-go type="button">▶ Jangga kirish</button></div>`;
+      <div class="sn-row"><button class="sn-btn" data-go type="button">▶ Jangga kirish</button><button class="sn-btn ghost" data-b="exit" type="button">🚪 Chiqish</button></div></div>`;
     ui.start.querySelector("[data-go]").onclick = () => {
       Snd.init(); Snd.ambience(true);
       started = true; ui.start.hidden = true; lockIt();

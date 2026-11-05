@@ -90,7 +90,8 @@ body.sn-open { overflow: hidden; }
 
 /* ---------- HUD ---------- */
 .sn-hud { position: absolute; inset: 0; pointer-events: none; font-family: Inter, system-ui, sans-serif; color: #fff; text-shadow: 0 1px 4px rgba(0, 0, 0, .8); }
-.sn-hud button, .sn-hud .sn-menu, .sn-hud .sn-start, .sn-hud .sn-board, .sn-hud .sn-dead, .sn-hud .sn-touch { pointer-events: auto; }
+.sn-hud button, .sn-hud .sn-menu, .sn-hud .sn-start, .sn-hud .sn-board, .sn-hud .sn-dead { pointer-events: auto; }
+.sn-hud .sn-touch { pointer-events: none; } .sn-hud .sn-touch .sn-b { pointer-events: auto; } .sn-joy { pointer-events: none; }
 .sn-top { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; align-items: stretch; gap: 6px; }
 .sn-tm { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 12px; background: rgba(0, 0, 0, .45); backdrop-filter: blur(6px); }
 .sn-tm b { font-size: 26px; font-weight: 900; } .sn-tm span { font-size: 11px; font-weight: 900; letter-spacing: .1em; opacity: .85; }
@@ -165,7 +166,7 @@ body.sn-open { overflow: hidden; }
 .sn-over .sn-bcard { width: 100%; padding: 12px; margin-top: 10px; box-shadow: none; }
 .sn-wait { color: #94a3b8; align-self: center; }
 .sn-pause, .sn-tab { position: absolute; top: 12px; width: 42px; height: 42px; border-radius: 12px; border: 0; background: rgba(0, 0, 0, .45); color: #fff; font-size: 20px; cursor: pointer; }
-.sn-pause { left: 12px; } .sn-tab { left: 60px; }
+.sn-pause { left: 12px; z-index: 6; } .sn-tab { left: 60px; z-index: 6; } .sn-dead { z-index: 4; } .sn-b { z-index: 2; }
 
 /* Sensorli boshqaruv */
 .sn-touch { position: absolute; inset: 0; pointer-events: none; }
@@ -194,3 +195,11 @@ body.sn-open { overflow: hidden; }
   .sn-top { transform: translateX(-50%) scale(.82); transform-origin: top center; }
   .sn-hp div { width: 80px; } .sn-bottom { bottom: 6px; }
 }
+
+/* Durbin: kirish animatsiyasi va linza yaltirashi */
+.sn-scope:not([hidden]) { animation: snScopeIn .14s ease-out; }
+@keyframes snScopeIn { from { opacity: 0; transform: scale(1.25); } }
+.sn-lens::after { content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, transparent 62%, rgba(10, 30, 50, .35) 82%, rgba(0, 0, 0, .85) 99%), radial-gradient(circle at 30% 25%, rgba(180, 220, 255, .08), transparent 30%); }
+.sn-lens line.m { stroke: #000; stroke-width: .9; }
+.sn-intro .sn-row { margin-top: 6px; }

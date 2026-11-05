@@ -701,7 +701,7 @@
     m.envMapIntensity = 0.8;
     return (matCache[key] = m);
   }
-  function makeAvatar(team, height = 1.78) {
+  function makeAvatar(team, height = 1.5) {
     const root = T.SkeletonUtils.clone(ROBOT.scene);
     root.traverse((o) => {
       if (o.isMesh) {
@@ -749,54 +749,74 @@
     return (rifleMats[team] = {
       metal: new T.MeshStandardMaterial({ color: 0x23262a, metalness: 0.85, roughness: 0.32 }),
       dark: new T.MeshStandardMaterial({ color: 0x101113, metalness: 0.6, roughness: 0.45 }),
-      body: new T.MeshStandardMaterial({ color: team === "r" ? 0x5c2a22 : 0x24384f, metalness: 0.1, roughness: 0.62 }),
+      body: new T.MeshStandardMaterial({ color: 0x55603a, metalness: 0.08, roughness: 0.7 }),
       accent: new T.MeshStandardMaterial({ color: TEAM[team].col, metalness: 0.2, roughness: 0.4, emissive: TEAM[team].col, emissiveIntensity: 0.15 }),
       lens: new T.MeshStandardMaterial({ color: 0x0b2440, metalness: 1, roughness: 0.05, emissive: 0x0a3a6a, emissiveIntensity: 0.6 }),
     });
   }
-  /** Miltiq -z tomonga qaragan, uzunligi ~1.15 m. lite = robot qo'lidagi soddaroq nusxa. */
+  /** AWP uslubidagi snayper miltiq. -z tomonga qaragan, uzunligi ~1.25 m. lite = robot qo'lidagi soddaroq nusxa. */
   function makeRifle(team, lite) {
     const m = rifleMat(team);
     const g = new T.Group();
+    const seg = lite ? 8 : 20;
     const add = (geo, mat, x, y, z, rx = 0, ry = 0, rz = 0) => { const o = new T.Mesh(geo, mat); o.position.set(x, y, z); o.rotation.set(rx, ry, rz); o.castShadow = true; g.add(o); return o; };
-    const seg = lite ? 8 : 18;
-    // Qo'ndoq (stock) — yon profil chizig'idan
+    const cyl = (r0, r1, len, mat, y, z, sg = seg) => add(new T.CylinderGeometry(r0, r1, len, sg), mat, 0, y, z, Math.PI / 2);
+    // Qo'ndoq: yon profil (x — oldinga), bosh barmoq teshigi bilan
     const sh = new T.Shape();
-    sh.moveTo(0.05, 0.035); sh.lineTo(0.05, -0.03); sh.lineTo(-0.02, -0.05); sh.lineTo(-0.1, -0.12); sh.lineTo(-0.16, -0.12); sh.lineTo(-0.12, -0.05);
-    sh.lineTo(-0.2, -0.04); sh.lineTo(-0.38, -0.07); sh.lineTo(-0.42, -0.08); sh.lineTo(-0.43, 0.04); sh.lineTo(-0.36, 0.05); sh.lineTo(-0.2, 0.035);
-    const stock = new T.ExtrudeGeometry(sh, { depth: 0.05, bevelEnabled: !lite, bevelSize: 0.008, bevelThickness: 0.008, bevelSegments: 2 });
-    stock.translate(0, 0, -0.025); stock.rotateY(Math.PI / 2);
-    add(stock, m.body, 0, 0, 0.0);
-    add(new T.BoxGeometry(0.056, 0.03, 0.12), m.dark, 0, 0.0, 0.43); // yelka yostig'i
-    // Qabul qiluvchi qism va old qism
-    add(new T.BoxGeometry(0.06, 0.07, 0.34), m.metal, 0, 0.005, -0.17);
-    add(new T.BoxGeometry(0.055, 0.06, 0.32), m.body, 0, -0.005, -0.48);
-    add(new T.BoxGeometry(0.04, 0.012, 0.3), m.accent, 0, 0.031, -0.48);
-    // Stvol
-    add(new T.CylinderGeometry(0.011, 0.014, 0.62, seg), m.metal, 0, 0.012, -0.9, Math.PI / 2);
-    add(new T.CylinderGeometry(0.02, 0.02, 0.07, seg), m.dark, 0, 0.012, -1.22, Math.PI / 2); // tormoz
-    // Magazin
-    add(new T.BoxGeometry(0.045, 0.09, 0.08), m.dark, 0, -0.07, -0.16);
-    // Tepki va himoya
-    add(new T.TorusGeometry(0.03, 0.006, 6, 12, Math.PI), m.dark, 0, -0.04, -0.02, 0, Math.PI / 2, Math.PI);
-    // Durbin (optika)
-    add(new T.CylinderGeometry(0.022, 0.022, 0.26, seg), m.dark, 0, 0.085, -0.16, Math.PI / 2);
-    add(new T.CylinderGeometry(0.032, 0.024, 0.08, seg), m.dark, 0, 0.085, -0.33, Math.PI / 2);
-    add(new T.CylinderGeometry(0.026, 0.022, 0.06, seg), m.dark, 0, 0.085, -0.0, Math.PI / 2);
-    add(new T.CylinderGeometry(0.014, 0.014, 0.05, 8), m.metal, 0, 0.11, -0.16); // baraban
-    add(new T.CylinderGeometry(0.014, 0.014, 0.05, 8), m.metal, 0.03, 0.085, -0.16, 0, 0, Math.PI / 2);
-    add(new T.CircleGeometry(0.029, seg), m.lens, 0, 0.085, -0.371, Math.PI, 0, 0);
-    [[-0.22], [-0.09]].forEach(([z]) => add(new T.BoxGeometry(0.03, 0.04, 0.025), m.metal, 0, 0.05, z)); // halqalar
-    // Zatvor dastagi (animatsiya uchun alohida)
+    sh.moveTo(0.44, 0.022); sh.lineTo(0.45, -0.03); sh.quadraticCurveTo(0.3, -0.05, 0.06, -0.048);
+    sh.lineTo(0.03, -0.07); sh.quadraticCurveTo(0.0, -0.17, -0.06, -0.175); sh.quadraticCurveTo(-0.09, -0.16, -0.085, -0.1);
+    sh.lineTo(-0.2, -0.085); sh.quadraticCurveTo(-0.34, -0.1, -0.44, -0.13); sh.lineTo(-0.49, -0.135);
+    sh.lineTo(-0.5, 0.055); sh.lineTo(-0.36, 0.062); sh.quadraticCurveTo(-0.22, 0.06, -0.14, 0.03); sh.lineTo(-0.06, 0.022); sh.lineTo(0.44, 0.022);
+    const hole = new T.Path();
+    hole.moveTo(-0.11, -0.06); hole.quadraticCurveTo(-0.13, -0.02, -0.17, -0.025); hole.quadraticCurveTo(-0.19, -0.06, -0.16, -0.075); hole.quadraticCurveTo(-0.12, -0.08, -0.11, -0.06);
+    sh.holes.push(hole);
+    const stock = new T.ExtrudeGeometry(sh, { depth: 0.046, bevelEnabled: !lite, bevelSize: 0.009, bevelThickness: 0.009, bevelSegments: 3, curveSegments: lite ? 4 : 10 });
+    stock.translate(0, 0, -0.023); stock.rotateY(Math.PI / 2);
+    add(stock, m.body, 0, 0, 0);
+    add(new T.BoxGeometry(0.058, 0.19, 0.028), m.dark, 0, -0.04, 0.5); // rezina yelka yostig'i
+    add(new T.BoxGeometry(0.05, 0.03, 0.2), m.body, 0, 0.072, 0.32);  // yonoq tirgagi
+    add(new T.BoxGeometry(0.06, 0.01, 0.2), m.accent, 0, -0.005, 0.24); // jamoa rangidagi chiziq
+    add(new T.BoxGeometry(0.06, 0.01, 0.16), m.accent, 0, -0.01, -0.3);
+    // Qabul qiluvchi qism (metall)
+    add(new T.BoxGeometry(0.052, 0.06, 0.36), m.metal, 0, 0.05, -0.12);
+    add(new T.BoxGeometry(0.03, 0.012, 0.36), m.dark, 0, 0.085, -0.12); // planka
+    // Stvol: qalin, qirrali va uzun
+    cyl(0.017, 0.017, 0.12, m.metal, 0.05, -0.36);
+    cyl(0.013, 0.016, 0.74, m.metal, 0.05, -0.79);
+    if (!lite) for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI * 2; add(new T.BoxGeometry(0.004, 0.004, 0.5), m.dark, Math.cos(a) * 0.0145, 0.05 + Math.sin(a) * 0.0145, -0.78); }
+    // Og'iz tormozi
+    cyl(0.022, 0.022, 0.1, m.dark, 0.05, -1.21);
+    if (!lite) [-1.19, -1.23].forEach((z) => { add(new T.BoxGeometry(0.05, 0.012, 0.018), m.metal, 0, 0.05, z); });
+    // Magazin va tepki
+    add(new T.BoxGeometry(0.044, 0.085, 0.09), m.dark, 0, -0.05, -0.1);
+    add(new T.TorusGeometry(0.028, 0.006, 6, 14, Math.PI), m.dark, 0, -0.045, 0.015, 0, Math.PI / 2, Math.PI);
+    add(new T.BoxGeometry(0.006, 0.03, 0.006), m.metal, 0, -0.035, 0.012);
+    // Durbin
+    const SY = 0.135;
+    cyl(0.019, 0.019, 0.3, m.dark, SY, -0.13);
+    cyl(0.036, 0.021, 0.11, m.dark, SY, -0.335);   // obyektiv
+    cyl(0.036, 0.036, 0.03, m.dark, SY, -0.4);
+    cyl(0.021, 0.027, 0.07, m.dark, SY, 0.055);    // okulyar
+    cyl(0.028, 0.028, 0.04, m.dark, SY, 0.1);
+    add(new T.CylinderGeometry(0.016, 0.016, 0.04, 12), m.metal, 0, SY + 0.03, -0.14);            // tepa baraban
+    add(new T.CylinderGeometry(0.016, 0.016, 0.04, 12), m.metal, 0.03, SY, -0.14, 0, 0, Math.PI / 2); // yon baraban
+    add(new T.CircleGeometry(0.034, seg), m.lens, 0, SY, -0.416, Math.PI, 0, 0);
+    if (!lite) add(new T.CircleGeometry(0.025, seg), m.lens, 0, SY, 0.121);
+    [-0.22, -0.03].forEach((z) => { add(new T.BoxGeometry(0.046, 0.05, 0.022), m.metal, 0, SY - 0.03, z); }); // halqalar
+    // Zatvor dastagi: katta yumaloq dastak (animatsiya uchun alohida)
     const bolt = new T.Group();
-    const bh = new T.Mesh(new T.CylinderGeometry(0.006, 0.006, 0.07, 8), m.metal); bh.rotation.z = Math.PI / 2; bh.position.x = 0.035; bolt.add(bh);
-    const knob = new T.Mesh(new T.SphereGeometry(0.013, 10, 8), m.dark); knob.position.x = 0.072; bolt.add(knob);
-    bolt.position.set(0, 0.02, -0.07);
+    const bh = new T.Mesh(new T.CylinderGeometry(0.0065, 0.0065, 0.075, 8), m.metal); bh.rotation.z = Math.PI / 2; bh.position.x = 0.038; bolt.add(bh);
+    const knob = new T.Mesh(new T.SphereGeometry(0.017, 12, 10), m.dark); knob.position.x = 0.078; bolt.add(knob);
+    bolt.position.set(0, 0.05, 0.02);
     g.add(bolt);
     // Ikki oyoqcha (yig'ilgan)
-    if (!lite) { add(new T.CylinderGeometry(0.006, 0.006, 0.2, 6), m.dark, 0.015, -0.04, -0.68, Math.PI / 2 - 0.1); add(new T.CylinderGeometry(0.006, 0.006, 0.2, 6), m.dark, -0.015, -0.04, -0.68, Math.PI / 2 - 0.1); }
+    if (!lite) {
+      add(new T.BoxGeometry(0.03, 0.02, 0.04), m.dark, 0, -0.045, -0.42);
+      [0.014, -0.014].forEach((x) => add(new T.CylinderGeometry(0.006, 0.006, 0.24, 6), m.dark, x, -0.05, -0.55, Math.PI / 2 - 0.06));
+    }
     g.userData.bolt = bolt;
-    g.userData.muzzle = new T.Vector3(0, 0.012, -1.26);
+    g.userData.muzzle = new T.Vector3(0, 0.05, -1.27);
+    g.userData.eject = new T.Vector3(0.03, 0.07, -0.06);
     return g;
   }
 
