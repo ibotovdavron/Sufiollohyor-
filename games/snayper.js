@@ -9,6 +9,16 @@
   const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const short = (n) => { const p = String(n || "").split(" "); return p[1] || p[0] || ""; };
   const MAXP = 10, TEAM_N = 5;
+  const TOUCH = window.matchMedia && matchMedia("(pointer: coarse)").matches;
+  /** Telefon tik tursa — o'yin oynasini 90° burib, doim yotiq ko'rsatamiz (PUBG kabi). */
+  function applyRot() {
+    if (!S.root) return;
+    const box = S.root.querySelector("[data-game]");
+    const want = TOUCH && !box.hidden && innerHeight > innerWidth;
+    if (box.classList.contains("rot") !== want) { box.classList.toggle("rot", want); window.dispatchEvent(new Event("resize")); }
+  }
+  window.addEventListener("resize", () => setTimeout(applyRot, 50));
+  window.addEventListener("orientationchange", () => setTimeout(applyRot, 250));
 
   const loadScript = (src) => new Promise((res, rej) => { const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = () => rej(new Error(src)); document.head.appendChild(s); });
   let libs = null;
@@ -17,7 +27,7 @@
     if (!window.THREE.GLTFLoader) await loadScript("lib/GLTFLoader.js?v=1");
     if (!window.THREE.SkeletonUtils) await loadScript("lib/SkeletonUtils.js?v=1");
     if (!window.SofiSniperWorld) await loadScript("games/snayper-world.js?v=2");
-    if (!window.SofiSniper3D) await loadScript("games/snayper3d.js?v=2");
+    if (!window.SofiSniper3D) await loadScript("games/snayper3d.js?v=3");
     await window.SofiSniper3D.load();
   })().catch((e) => { libs = null; throw e; }));
 
@@ -229,6 +239,12 @@
   async function startGame(list, solo) {
     const box = gameBox();
     box.hidden = false;
+    applyRot();
+    if (TOUCH) {
+      const el = document.documentElement, fs = el.requestFullscreen || el.webkitRequestFullscreen;
+      const lock = () => { try { screen.orientation && screen.orientation.lock && screen.orientation.lock("landscape").then(() => setTimeout(applyRot, 300)).catch(() => {}); } catch (e) {} };
+      try { const r = fs && fs.call(el); if (r && r.then) r.then(lock).catch(lock); else lock(); } catch (e) { lock(); }
+    }
     box.innerHTML = `<div class="sn-loading"><span>🎯</span><b>Jang maydoni yuklanmoqda...</b><i></i></div>`;
     try { await loadLibs(); } catch (e) { box.innerHTML = `<div class="sn-loading"><b>😕 Yuklab bo‘lmadi. Internetni tekshiring.</b><button class="sn-btn" data-a="back" type="button">← Orqaga</button></div>`; return; }
     const mine = list.find((r) => r.id === G.session.cid);
@@ -240,7 +256,7 @@
       roster: list,
       host: solo || isHost(),
       send: solo ? () => {} : (msg) => S.room && S.room.send(msg),
-      onExit: () => { S.engine = null; box.hidden = true; box.innerHTML = ""; if (solo) drawLobby(); else leaveRoom().then(drawLobby); },
+      onExit: () => { S.engine = null; box.hidden = true; box.innerHTML = ""; box.classList.remove("rot"); try { if (document.fullscreenElement) document.exitFullscreen(); screen.orientation && screen.orientation.unlock && screen.orientation.unlock(); } catch (e) {} if (solo) drawLobby(); else leaveRoom().then(drawLobby); },
     });
     if (!solo) trackLobby();
   }

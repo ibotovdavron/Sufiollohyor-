@@ -183,14 +183,14 @@ body.sn-open { overflow: hidden; }
 .sn-board, .sn-menu, .sn-start { z-index: 5; }
 .sn-hud.ov .sn-touch { display: none; }
 .sn-rotate { display: none; position: absolute; left: 50%; top: 84px; transform: translateX(-50%); z-index: 3; padding: 8px 14px; border-radius: 12px; background: rgba(0, 0, 0, .6); font-size: 13px; font-weight: 800; white-space: nowrap; animation: snBlink 2s ease-in-out infinite; }
-@media (orientation: portrait) and (pointer: coarse) {
-  .sn-rotate { display: block; top: 132px; }
-  .sn-pause, .sn-tab { top: 80px; }
-  .sn-b.fire { width: 76px; height: 76px; bottom: 110px; right: 18px; }
-  .sn-b.scope { right: 104px; bottom: 140px; } .sn-b.crouch { right: 104px; bottom: 70px; } .sn-b.jump { right: 26px; bottom: 200px; }
-  .sn-b.reload { right: 170px; bottom: 105px; } .sn-b.zoomb { right: 98px; bottom: 210px; }
-  .sn-joy { left: 18px; bottom: 80px; }
+/* Telefon tik bo'lsa ham o'yin yotiq (90° burilgan) */
+.sn-game.rot { inset: auto; top: 0; left: 0; width: 100vh; height: 100vw; width: 100dvh; height: 100dvw; transform-origin: top left; transform: rotate(90deg) translateY(-100%); }
+.sn-b.fire2 { left: 34px; bottom: 230px; width: 66px; height: 66px; font-size: 28px; border-color: rgba(248, 113, 113, .8); background: rgba(239, 68, 68, .3); }
+@media (max-height: 420px), (max-width: 420px) {
+  .sn-joy { width: 110px; height: 110px; } .sn-joy i { left: 30px; top: 30px; }
+  .sn-b.fire { width: 74px; height: 74px; bottom: 96px; right: 20px; } .sn-b.scope { right: 106px; bottom: 120px; } .sn-b.crouch { right: 106px; bottom: 50px; }
+  .sn-b.jump { right: 28px; bottom: 182px; } .sn-b.reload { right: 172px; bottom: 82px; } .sn-b.zoomb { right: 104px; bottom: 190px; }
+  .sn-b.fire2 { bottom: 190px; left: 28px; width: 58px; height: 58px; }
   .sn-top { transform: translateX(-50%) scale(.82); transform-origin: top center; }
-  .sn-bottom { bottom: 8px; } .sn-hp div { width: 70px; } .sn-ammo b { font-size: 24px; }
+  .sn-hp div { width: 80px; } .sn-bottom { bottom: 6px; }
 }
-.sn-hud.ov .sn-rotate { display: none; }

@@ -215,10 +215,9 @@
       <div class="sn-menu" data-menu hidden></div>
       <div class="sn-start" data-sst hidden></div>
       ${MOBILE ? `<div class="sn-touch"><div class="sn-joy" data-joy><i></i></div>
-        <button class="sn-b fire" data-b="fire">🎯</button><button class="sn-b scope" data-b="scope">🔭</button>
+        <button class="sn-b fire" data-b="fire">🎯</button><button class="sn-b fire2" data-b="fire">🎯</button><button class="sn-b scope" data-b="scope">🔭</button>
         <button class="sn-b jump" data-b="jump">⤒</button><button class="sn-b crouch" data-b="crouch">⇩</button>
         <button class="sn-b reload" data-b="reload">↻</button><button class="sn-b zoomb" data-b="zoom">±</button></div>` : ""}
-      ${MOBILE ? `<div class="sn-rotate">📱↻ Telefonni yotqizib o‘ynang — qulayroq</div>` : ""}
       <button class="sn-pause" data-b="menu" type="button">☰</button>
       <button class="sn-tab" data-b="board" type="button">📋</button>`;
     container.appendChild(hud);
@@ -810,22 +809,26 @@
       };
       hud.querySelectorAll(".sn-b").forEach((b) => b.addEventListener("touchstart", (e) => { e.preventDefault(); e.stopPropagation(); b.classList.add("on"); btn(b.dataset.b, true); }, { passive: false }));
       hud.querySelectorAll(".sn-b").forEach((b) => b.addEventListener("touchend", () => b.classList.remove("on")));
+      // Ekran 90° burilgan bo'lsa (telefon tik, o'yin yotiq) — barmoq koordinatalarini aylantiramiz
+      const pt = (t) => container.classList.contains("rot") ? { x: t.clientY, y: innerWidth - t.clientX } : { x: t.clientX, y: t.clientY };
       const ts = (e) => {
         Snd.init();
         for (const t of e.changedTouches) {
           if (t.target.closest && t.target.closest(".sn-b,.sn-menu,.sn-start,.sn-pause,.sn-tab,.sn-board")) continue;
-          if (t.clientX < innerWidth * 0.42 && L.joy.id === null) { L.joy.id = t.identifier; L.joy.ox = t.clientX; L.joy.oy = t.clientY; joy.style.left = t.clientX - 60 + "px"; joy.style.top = t.clientY - 60 + "px"; joy.classList.add("on"); }
-          else if (L.look.id === null) { L.look.id = t.identifier; L.look.x = t.clientX; L.look.y = t.clientY; }
+          const c = pt(t);
+          if (c.x < container.clientWidth * 0.42 && L.joy.id === null) { L.joy.id = t.identifier; L.joy.ox = c.x; L.joy.oy = c.y; joy.style.left = c.x - 60 + "px"; joy.style.top = c.y - 60 + "px"; joy.style.bottom = "auto"; joy.classList.add("on"); }
+          else if (L.look.id === null) { L.look.id = t.identifier; L.look.x = c.x; L.look.y = c.y; }
         }
       };
       const tm = (e) => {
         for (const t of e.changedTouches) {
-          if (t.identifier === L.joy.id) { const dx = t.clientX - L.joy.ox, dy = t.clientY - L.joy.oy, d = Math.min(50, Math.hypot(dx, dy)), a = Math.atan2(dy, dx); L.joy.x = Math.cos(a) * d / 50; L.joy.y = Math.sin(a) * d / 50; knob.style.transform = `translate(${L.joy.x * 40}px,${L.joy.y * 40}px)`; }
-          else if (t.identifier === L.look.id) { L.mx += (t.clientX - L.look.x) * 1.6; L.my += (t.clientY - L.look.y) * 1.6; L.look.x = t.clientX; L.look.y = t.clientY; }
+          const c = pt(t);
+          if (t.identifier === L.joy.id) { const dx = c.x - L.joy.ox, dy = c.y - L.joy.oy, d = Math.min(50, Math.hypot(dx, dy)), a = Math.atan2(dy, dx); L.joy.x = Math.cos(a) * d / 50; L.joy.y = Math.sin(a) * d / 50; knob.style.transform = `translate(${L.joy.x * 40}px,${L.joy.y * 40}px)`; }
+          else if (t.identifier === L.look.id) { L.mx += (c.x - L.look.x) * 1.6; L.my += (c.y - L.look.y) * 1.6; L.look.x = c.x; L.look.y = c.y; }
         }
         e.preventDefault();
       };
-      const te = (e) => { for (const t of e.changedTouches) { if (t.identifier === L.joy.id) { L.joy.id = null; L.joy.x = 0; L.joy.y = 0; knob.style.transform = ""; joy.classList.remove("on"); } if (t.identifier === L.look.id) L.look.id = null; } };
+      const te = (e) => { for (const t of e.changedTouches) { if (t.identifier === L.joy.id) { L.joy.id = null; L.joy.x = 0; L.joy.y = 0; knob.style.transform = ""; joy.classList.remove("on"); joy.style.left = ""; joy.style.top = ""; joy.style.bottom = ""; } if (t.identifier === L.look.id) L.look.id = null; } };
       container.addEventListener("touchstart", ts, { passive: true });
       container.addEventListener("touchmove", tm, { passive: false });
       container.addEventListener("touchend", te); container.addEventListener("touchcancel", te);
