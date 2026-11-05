@@ -1,0 +1,195 @@
+/* Amaliy darslar — jonli bezaklar va animatsiyalar */
+
+/* ---------- Bosh qism ---------- */
+.am-hero-x { min-height: clamp(380px, 56vh, 520px); display: grid; align-items: center; isolation: isolate;
+  background:
+    radial-gradient(circle at 85% 20%, rgba(56, 189, 248, 0.22), transparent 42%),
+    radial-gradient(circle at 10% 90%, rgba(0, 245, 155, 0.18), transparent 45%),
+    linear-gradient(135deg, #072217, #020c08); }
+.am-sky { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+.am-orb { position: absolute; z-index: -2; border-radius: 50%; filter: blur(40px); opacity: 0.55; animation: amOrb 14s ease-in-out infinite alternate; }
+.am-orb.o1 { width: 260px; height: 260px; right: -60px; top: -80px; background: #0ea5e9; }
+.am-orb.o2 { width: 220px; height: 220px; left: -70px; bottom: -90px; background: #00f59b; animation-delay: -5s; }
+.am-orb.o3 { width: 160px; height: 160px; left: 45%; top: 60%; background: #a855f7; opacity: 0.3; animation-delay: -9s; }
+@keyframes amOrb { 50% { transform: translate(30px, -25px) scale(1.15); } 100% { transform: translate(-20px, 20px) scale(0.92); } }
+.am-hero-in { position: relative; max-width: 760px; }
+.am-hero-x h1 { font-size: clamp(2.2rem, 7vw, 4rem); text-shadow: 0 6px 30px rgba(0, 0, 0, 0.5); }
+.am-type { background: linear-gradient(90deg, #00f59b, #38bdf8, #a78bfa, #00f59b); background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: amGrad 6s linear infinite; }
+.am-caret { display: inline-block; margin-left: 2px; color: #00f59b; font-weight: 300; animation: amBlink 1s steps(1) infinite; }
+@keyframes amGrad { to { background-position: 300% 0; } }
+@keyframes amBlink { 50% { opacity: 0; } }
+.am-glow-pill { box-shadow: 0 0 0 0 rgba(0, 245, 155, 0.5); animation: amPulse 2.6s ease-out infinite; }
+@keyframes amPulse { 0% { box-shadow: 0 0 0 0 rgba(0, 245, 155, 0.45); } 100% { box-shadow: 0 0 0 16px rgba(0, 245, 155, 0); } }
+.am-hero-x p { font-size: clamp(1rem, 2.6vw, 1.15rem); line-height: 1.65; }
+
+.am-cta { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0 6px; }
+.am-btn { display: inline-flex; align-items: center; gap: 6px; padding: 13px 20px; border-radius: 16px; font-weight: 900; transition: transform 0.2s, box-shadow 0.2s, background 0.2s; }
+.am-btn.primary { position: relative; overflow: hidden; background: linear-gradient(140deg, #00f59b, #07984b); color: #02130c; box-shadow: 0 10px 30px rgba(0, 245, 155, 0.3); }
+.am-btn.primary::after { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.55) 50%, transparent 70%); transform: translateX(-120%); animation: amSweep 3.2s ease-in-out infinite; }
+@keyframes amSweep { 60%, 100% { transform: translateX(120%); } }
+.am-btn.ghost { border: 1px solid var(--line); background: rgba(0, 0, 0, 0.3); color: var(--mint); backdrop-filter: blur(6px); max-width: 100%; }
+.am-btn.ghost b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--white); }
+.am-btn:hover { transform: translateY(-3px); }
+.am-btn.sm { padding: 10px 14px; font-size: 0.92rem; flex: none; }
+
+.am-stats { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.am-stats div { min-width: 110px; padding: 10px 14px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.32); backdrop-filter: blur(6px); animation: gRise 0.6s both; }
+.am-stats div:nth-child(2) { animation-delay: 0.12s; } .am-stats div:nth-child(3) { animation-delay: 0.24s; } .am-stats div:nth-child(4) { animation-delay: 0.36s; }
+.am-stats b { display: block; font-size: clamp(1.4rem, 4vw, 1.9rem); font-weight: 900; color: var(--green); font-variant-numeric: tabular-nums; }
+.am-stats small { color: var(--muted); font-size: 0.8rem; }
+.am-stats .mine { border-color: rgba(253, 224, 71, 0.5); } .am-stats .mine b { color: #fde047; }
+
+/* ---------- Qanday o'rganasiz ---------- */
+.am-how { display: flex; align-items: stretch; gap: 0; margin: 18px 0; padding: 16px; border: 1px solid var(--line); border-radius: 24px; background: linear-gradient(145deg, #052016, #020c08); }
+.am-how-step { flex: 1; display: grid; justify-items: center; text-align: center; gap: 4px; padding: 6px; }
+.am-how-step .ic { display: grid; place-items: center; width: 58px; height: 58px; border-radius: 18px; font-size: 28px; background: rgba(0, 245, 155, 0.1); border: 1px solid var(--line); animation: amBob 3s ease-in-out infinite; animation-delay: var(--d); }
+.am-how-step b { font-size: 0.95rem; } .am-how-step small { color: var(--muted); font-size: 0.78rem; }
+.am-how-line { flex: 0 0 34px; align-self: center; height: 3px; margin-top: -30px; border-radius: 3px; background: linear-gradient(90deg, #00f59b 0 50%, rgba(255, 255, 255, 0.1) 50%); background-size: 200% 100%; background-position: 100% 0; }
+.am-how.in .am-how-line { animation: amLine 1.2s ease-out forwards; }
+.am-how.in .am-how-line:nth-of-type(2) { animation-delay: 0.3s; } .am-how.in .am-how-line:nth-of-type(3) { animation-delay: 0.6s; }
+@keyframes amLine { to { background-position: 0 0; } }
+@keyframes amBob { 50% { transform: translateY(-6px); } }
+
+/* ---------- Kun mavzusi ---------- */
+.am-today { position: relative; overflow: hidden; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px; margin: 18px 0 8px; padding: 22px 20px 18px; border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--c) 60%, transparent);
+  background: radial-gradient(circle at 0% 50%, color-mix(in srgb, var(--c) 28%, transparent), transparent 55%), linear-gradient(135deg, #071c22, #03100b); transition: transform 0.25s, box-shadow 0.25s; }
+.am-today:hover { transform: translateY(-4px); box-shadow: 0 18px 44px color-mix(in srgb, var(--c) 28%, transparent); }
+.am-today-badge { position: absolute; top: 0; left: 20px; padding: 4px 12px; border-radius: 0 0 12px 12px; background: linear-gradient(90deg, #fde047, #f59e0b); color: #1a1205; font-size: 0.75rem; font-weight: 900; }
+.am-today-ic { font-size: 50px; animation: amBob 2.6s ease-in-out infinite; filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5)); }
+.am-today-t { display: grid; gap: 3px; min-width: 0; }
+.am-today-t small { color: var(--c); font-weight: 800; font-size: 0.8rem; }
+.am-today-t b { font-size: 1.2rem; line-height: 1.25; }
+.am-today-t em { font-style: normal; color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
+.am-today-go { padding: 10px 14px; border-radius: 14px; background: var(--c); color: #04110b; font-weight: 900; white-space: nowrap; }
+
+/* ---------- Kartalar: 3D egilish, nur ---------- */
+.am-grid { perspective: 1000px; }
+.am-card { transform-style: preserve-3d; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
+.am-card.tilting { transition: border-color 0.25s, box-shadow 0.25s; }
+.am-card:hover { transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-6px); }
+.am-shine { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.3s;
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--c) 45%, transparent), transparent 55%); }
+.am-card:hover .am-shine { opacity: 1; }
+.am-card::before { content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; pointer-events: none; opacity: 0; transition: opacity 0.3s;
+  background: conic-gradient(from var(--ang, 0deg), transparent 0 70%, var(--c), transparent);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; animation: amSpin 3s linear infinite; }
+.am-card:hover::before { opacity: 1; }
+@property --ang { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+@keyframes amSpin { to { --ang: 360deg; } }
+.am-card .am-ic { display: inline-block; animation: amFloat 4s ease-in-out infinite; animation-delay: var(--f, 0s); filter: drop-shadow(0 8px 16px color-mix(in srgb, var(--c) 45%, transparent)); }
+@keyframes amFloat { 50% { translate: 0 -7px; } }
+.am-card > * { position: relative; }
+.am-card-top { display: flex; align-items: center; justify-content: space-between; }
+
+/* Jarayon chizig'i va halqa */
+.am-pbar { display: block; height: 7px; margin-top: 6px; border-radius: 6px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.am-pbar i { display: block; height: 100%; width: var(--w); border-radius: 6px; background: linear-gradient(90deg, var(--c, #00f59b), #fde047); animation: aGrowX 1s ease-out 0.3s both; transform-origin: left; }
+.am-ring { position: relative; width: 48px; height: 48px; flex: none; }
+.am-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.am-ring circle { fill: none; stroke-width: 4; stroke: rgba(255, 255, 255, 0.1); }
+.am-ring circle.v { stroke: var(--c); stroke-linecap: round; stroke-dashoffset: var(--off); animation: amRing 1.2s ease-out both; }
+@keyframes amRing { from { stroke-dashoffset: 100.5; } }
+.am-ring i { position: absolute; inset: 0; display: grid; place-items: center; font-style: normal; font-size: 0.68rem; font-weight: 900; color: var(--white); }
+
+/* ---------- Mavzular ro'yxati ---------- */
+.am-subhead { display: flex; align-items: center; gap: 14px; margin: 12px 0 4px; padding: 16px 18px; border-radius: 22px; border: 1px solid color-mix(in srgb, var(--c) 50%, transparent);
+  background: radial-gradient(circle at 0% 50%, color-mix(in srgb, var(--c) 22%, transparent), transparent 60%), linear-gradient(135deg, #062019, #03100b); animation: phIn 0.6s both; }
+.am-subhead > div { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.am-subhead b { font-size: 1.1rem; } .am-subhead small { color: var(--muted); }
+.am-subhead-ic { font-size: 42px; animation: amBob 3s ease-in-out infinite; }
+.am-topic { position: relative; overflow: hidden; }
+.am-topic::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 35%, color-mix(in srgb, var(--c) 22%, transparent) 50%, transparent 65%); transform: translateX(-110%); transition: transform 0.6s; pointer-events: none; }
+.am-topic:hover::after { transform: translateX(110%); }
+.am-topic:hover .ic { animation: amWiggle 0.5s; }
+@keyframes amWiggle { 30% { transform: rotate(-14deg) scale(1.2); } 60% { transform: rotate(10deg) scale(1.2); } }
+.am-topic.done { border-color: color-mix(in srgb, var(--c) 45%, transparent); }
+.am-topic.done .n { background: var(--c); color: #04110b; }
+
+/* ---------- Dars sahifasi ---------- */
+.am-readbar { position: fixed; z-index: 1200; top: 0; left: 0; right: 0; height: 4px; pointer-events: none; }
+.am-readbar i { display: block; height: 100%; transform: scaleX(0); transform-origin: left; background: linear-gradient(90deg, #00f59b, #38bdf8, #a78bfa); box-shadow: 0 0 12px #00f59b; }
+.am-lhead { position: relative; overflow: hidden; }
+.am-lhead > :not(.am-lhead-art) { position: relative; }
+.am-lhead-art i { position: absolute; font-style: normal; pointer-events: none; }
+.am-lhead-art i:nth-child(1) { right: clamp(10px, 4vw, 40px); top: 50%; font-size: clamp(60px, 12vw, 110px); opacity: 0.22; transform: translateY(-50%) rotate(-10deg); animation: amFloatBig 6s ease-in-out infinite; }
+.am-lhead-art i:nth-child(n+2) { color: var(--c); animation: amTwinkle 2.4s ease-in-out infinite; }
+.am-lhead-art i:nth-child(2) { right: 30%; top: 16%; font-size: 18px; }
+.am-lhead-art i:nth-child(3) { right: 12%; bottom: 14%; font-size: 14px; animation-delay: 0.8s; }
+.am-lhead-art i:nth-child(4) { right: 42%; bottom: 22%; font-size: 12px; animation-delay: 1.6s; }
+@keyframes amFloatBig { 50% { transform: translateY(-58%) rotate(6deg) scale(1.06); } }
+@keyframes amTwinkle { 0%, 100% { opacity: 0.15; transform: scale(0.7); } 50% { opacity: 1; transform: scale(1.2); } }
+.am-meta { display: inline-block; margin-top: 10px; padding: 5px 10px; border-radius: 10px; background: rgba(0, 0, 0, 0.3); color: var(--muted); font-size: 0.8rem; font-weight: 700; }
+.am-donebadge { color: var(--green); }
+
+.am-stepper { position: sticky; top: 6px; z-index: 50; display: flex; align-items: center; gap: 4px; margin: 0 0 6px; padding: 8px 10px; border-radius: 18px; border: 1px solid var(--line); background: rgba(2, 14, 10, 0.86); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); overflow-x: auto; scrollbar-width: none; }
+.am-stepper::-webkit-scrollbar { display: none; }
+.am-stepper a { flex: none; display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 12px; color: var(--muted); font-size: 0.85rem; transition: background 0.25s, color 0.25s, transform 0.25s; }
+.am-stepper a span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: rgba(255, 255, 255, 0.06); font-size: 14px; transition: transform 0.3s; }
+.am-stepper a.past { color: var(--mint); } .am-stepper a.past span { background: color-mix(in srgb, var(--c) 35%, transparent); }
+.am-stepper a.on { background: color-mix(in srgb, var(--c) 20%, transparent); color: var(--white); }
+.am-stepper a.on span { background: var(--c); transform: scale(1.12); }
+.am-stepper > i { flex: 1 0 12px; height: 2px; border-radius: 2px; background: rgba(255, 255, 255, 0.1); }
+
+/* Bloklar ko'rinishga kirganda paydo bo'ladi */
+.am-block.rv, .am-how.rv, .am-today.rv { animation: none; opacity: 0; transform: translateY(36px) scale(0.985); transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.9, 0.3, 1); }
+.rv.in { opacity: 1 !important; transform: none !important; }
+.am-today.rv.in:hover { transform: translateY(-4px) !important; }
+.am-block h2 { display: flex; align-items: center; gap: 10px; }
+.h-ic { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 14px; font-size: 20px; background: color-mix(in srgb, var(--c) 18%, transparent); border: 1px solid color-mix(in srgb, var(--c) 40%, transparent); }
+.am-block.in .h-ic { animation: amIcIn 0.7s cubic-bezier(0.2, 1.6, 0.4, 1) 0.2s both; }
+@keyframes amIcIn { from { transform: scale(0) rotate(-90deg); } }
+.am-block.in .h-ic.spin { animation: amIcIn 0.7s cubic-bezier(0.2, 1.6, 0.4, 1) 0.2s both, amBob 2.4s ease-in-out 1s infinite; }
+.am-block.life { position: relative; overflow: hidden; }
+.am-block.life::before { content: ""; position: absolute; width: 200px; height: 200px; right: -60px; top: -60px; border-radius: 50%; background: radial-gradient(circle, rgba(56, 189, 248, 0.25), transparent 70%); animation: amOrb 10s ease-in-out infinite alternate; pointer-events: none; }
+.am-rule { position: relative; overflow: hidden; }
+.am-block.in .am-rule::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.12) 50%, transparent 70%); animation: amSweepOnce 1.6s ease-out 0.6s both; pointer-events: none; }
+@keyframes amSweepOnce { from { transform: translateX(-110%); } to { transform: translateX(110%); } }
+.am-hint { display: inline-block; animation: amNudge 2.2s ease-in-out infinite; }
+@keyframes amNudge { 0%, 100% { transform: none; } 50% { transform: translateX(5px); } }
+.demo-block .demo { transition: box-shadow 0.3s, border-color 0.3s; }
+.demo-block .demo:hover { border-color: color-mix(in srgb, var(--c) 45%, transparent); box-shadow: 0 0 24px color-mix(in srgb, var(--c) 16%, transparent); }
+
+/* Test */
+.am-qprog { margin-left: auto; width: 90px; height: 7px; border-radius: 6px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.am-qprog i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #00f59b, #fde047); transition: width 0.5s; }
+.am-q { transition: border-color 0.3s, background 0.3s; }
+.am-q.q-ok { border-color: rgba(34, 197, 94, 0.5); background: rgba(34, 197, 94, 0.05); }
+.am-q.q-no { border-color: rgba(239, 68, 68, 0.4); }
+.am-opts button.right { animation: amOk 0.5s cubic-bezier(0.2, 1.6, 0.4, 1); }
+@keyframes amOk { 40% { transform: scale(1.06); } }
+
+/* Yakun kartasi */
+.am-finish { display: flex; align-items: center; gap: 14px; margin: 18px 0 6px; padding: 18px; border-radius: 22px; border: 1px solid rgba(253, 224, 71, 0.5);
+  background: radial-gradient(circle at 0% 50%, rgba(253, 224, 71, 0.2), transparent 55%), linear-gradient(135deg, #1b1a06, #03100b); animation: aPop 0.6s both; }
+.am-finish[hidden] { display: none; }
+.am-finish > div { flex: 1; display: grid; gap: 2px; }
+.am-finish b { font-size: 1.2rem; color: #fde047; } .am-finish small { color: var(--muted); }
+.am-finish-ic { font-size: 44px; animation: amBob 1.6s ease-in-out infinite; }
+.am-confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 2000; pointer-events: none; }
+
+@media (max-width: 760px) {
+  .am-how { flex-wrap: wrap; gap: 10px; }
+  .am-how-step { flex: 1 1 40%; }
+  .am-how-line { display: none; }
+  .am-today { grid-template-columns: auto 1fr; padding-top: 30px; }
+  .am-today-go { grid-column: 1 / -1; text-align: center; }
+  .am-today-ic { font-size: 40px; }
+  .am-stats div { min-width: 0; flex: 1 1 40%; }
+  .am-subhead { flex-wrap: wrap; }
+  .am-subhead .am-btn { width: 100%; justify-content: center; }
+  .am-finish { flex-wrap: wrap; }
+  .am-finish .am-btn { width: 100%; justify-content: center; }
+  .am-stepper a b { display: none; }
+  .am-stepper a.on b { display: inline; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .am-orb, .am-type, .am-caret, .am-glow-pill, .am-btn.primary::after, .am-how-step .ic, .am-today-ic, .am-card .am-ic, .am-card::before,
+  .am-subhead-ic, .am-lhead-art i, .am-hint, .am-finish-ic, .am-block.life::before, .h-ic { animation: none !important; }
+  .rv { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .am-how-line { background-position: 0 0; }
+}
+
+.am-finish.retry { border-color: rgba(56, 189, 248, 0.5); background: radial-gradient(circle at 0% 50%, rgba(56, 189, 248, 0.2), transparent 55%), linear-gradient(135deg, #061a24, #03100b); }
+.am-finish.retry b { color: #7dd3fc; }
