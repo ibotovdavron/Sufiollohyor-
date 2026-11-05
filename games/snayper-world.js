@@ -294,9 +294,14 @@
       wall(W, "x", Z(5.0), ...L(-7.15, 7.15), RF, RF + ph, th, []);
       wall(W, "x", Z(-5.0), ...L(-7.15, 7.15), RF, RF + ph, th, []);
       [-7, 7].forEach((lx) => wall(W, "z", X(lx), ...LZ(-4.85, 4.85), RF, RF + ph, th, []));
-      boxMM(ACC, ...L(-7.25, 7.25).slice(0, 1), RF + ph, LZ(-5.25, 5.25)[0], L(-7.25, 7.25)[1], RF + ph + 0.1, LZ(-5.25, 5.25)[1], false);
-      // qavatlar orasidagi rangli kamar (tashqarida)
-      boxMM(ACC, L(-7.2, 7.2)[0], 2.95, LZ(-5.2, 5.2)[0], L(-7.2, 7.2)[1], 3.2, LZ(-5.2, 5.2)[1], false);
+      // Rangli hoshiya: faqat devor chekkalari bo'ylab (halqa)
+      const ring = (y0, y1, out, w) => {
+        const [xa, xb] = L(-7 - out, 7 + out), [za, zb] = LZ(-5 - out, 5 + out);
+        boxMM(ACC, xa, y0, za, xb, y1, za + w, false); boxMM(ACC, xa, y0, zb - w, xb, y1, zb, false);
+        boxMM(ACC, xa, y0, za + w, xa + w, y1, zb - w, false); boxMM(ACC, xb - w, y0, za + w, xb, y1, zb - w, false);
+      };
+      ring(RF + ph, RF + ph + 0.1, 0.25, 0.5);
+      ring(2.95, 3.2, 0.2, 0.22);
       // Zinapoyalar
       stairs(X(-1.5), X(-6.7), ...LZ(-4.7, -3.35), 0, F2);
       stairs(X(1.5), X(6.7), ...LZ(-4.7, -3.35), F2, RF);

@@ -17,7 +17,7 @@
     MAG: 5, RESERVE: 25, BOLT: 1.15, RELOAD: 2.5,
     SPEED: 4.6, SPRINT: 6.4, CROUCH: 2.2, SCOPED: 2.2,
     H: 1.78, HC: 1.25, EYE: 1.6, EYEC: 1.1, R: 0.32,
-    FOV: 72, ZOOM: [72, 20, 9], NET_MS: 100,
+    FOV: 72, ZOOM: [72, 20, 9], NET_MS: 150,
   };
   const TEAMNAME = { r: "Qizil", b: "Ko‘k" };
   const BOTNAMES = ["Temirbek", "Chaqmoq", "Burgut", "Lochin", "Qoplon", "Shamol", "Bo‘ron", "Yashin", "Tulpor", "Sherdil", "Olmos", "Po‘lat"];
@@ -181,6 +181,7 @@
     }
     (opts.roster || []).forEach(addPlayer);
     const me = P.get(myId) || addPlayer(me0);
+    { const s0 = world.spawns[me.team][0]; me.pos.set(s0.x, 0, s0.z); me.yaw = s0.yaw; }
 
     /* ---------- Holat ---------- */
     const G = { round: 0, sc: { r: 0, b: 0 }, phase: "wait", freezeUntil: 0, endAt: 0, nextAt: 0, over: false };
@@ -217,6 +218,7 @@
         <button class="sn-b fire" data-b="fire">🎯</button><button class="sn-b scope" data-b="scope">🔭</button>
         <button class="sn-b jump" data-b="jump">⤒</button><button class="sn-b crouch" data-b="crouch">⇩</button>
         <button class="sn-b reload" data-b="reload">↻</button><button class="sn-b zoomb" data-b="zoom">±</button></div>` : ""}
+      ${MOBILE ? `<div class="sn-rotate">📱↻ Telefonni yotqizib o‘ynang — qulayroq</div>` : ""}
       <button class="sn-pause" data-b="menu" type="button">☰</button>
       <button class="sn-tab" data-b="board" type="button">📋</button>`;
     container.appendChild(hud);
@@ -576,7 +578,7 @@
     /* ---------- Avatar (ko'rinish) ---------- */
     function remoteSample(p, tNow) {
       const buf = p.buf; if (!buf.length) return;
-      const rt = tNow - 140;
+      const rt = tNow - 230;
       while (buf.length > 2 && buf[1].t <= rt) buf.shift();
       const a = buf[0], b = buf[1] || buf[0];
       const k = b.t === a.t ? 1 : clamp((rt - a.t) / (b.t - a.t), 0, 1.2);
@@ -685,7 +687,9 @@
     function onMsg(m) {
       if (!m || !m.t) return;
       if (m.t === "s") { const p = P.get(m.id); if (p && p.id !== myId) { p.buf.push({ t: now(), p: m.p }); if (p.buf.length > 8) p.buf.shift(); } }
-      else if (m.t === "bs") { if (isHost) return; m.l.forEach((a) => { const p = P.get(a[0]); if (p) { p.buf.push({ t: now(), p: a.slice(1) }); if (p.buf.length > 8) p.buf.shift(); } }); }
+      else if (m.t === "bs") {
+        if (m.p && m.id !== myId) { const hp_ = P.get(m.id); if (hp_) { hp_.buf.push({ t: now(), p: m.p }); if (hp_.buf.length > 8) hp_.buf.shift(); } }
+        if (isHost) return; m.l.forEach((a) => { const p = P.get(a[0]); if (p) { p.buf.push({ t: now(), p: a.slice(1) }); if (p.buf.length > 8) p.buf.shift(); } }); }
       else if (m.t === "fire") { showFire(m, false); if (m.h && owns(m.h.id)) damage(m.h.id, m.h.part, m.id); }
       else if (m.t === "hp") onHp(m);
       else if (m.t === "round") onRound(m);
@@ -713,14 +717,14 @@
     function netTick(t) {
       if (t - netT < CFG.NET_MS) return;
       netT = t;
-      if (me.alive || G.phase === "live" || G.phase === "freeze") {
-        const r2 = (v) => Math.round(v * 100) / 100;
-        send({ t: "s", id: myId, p: [r2(me.pos.x), r2(me.pos.y), r2(me.pos.z), r2(me.yaw), r2(me.pitch), me.f] });
-      }
+      const r2 = (v) => Math.round(v * 100) / 100;
+      const mine = [r2(me.pos.x), r2(me.pos.y), r2(me.pos.z), r2(me.yaw), r2(me.pitch), me.f];
       if (isHost) {
-        const l = [...P.values()].filter((p) => p.bot).map((p) => [p.id, Math.round(p.pos.x * 100) / 100, Math.round(p.pos.y * 100) / 100, Math.round(p.pos.z * 100) / 100, Math.round(p.yaw * 100) / 100, Math.round(p.pitch * 100) / 100, p.f]);
-        if (l.length) send({ t: "bs", l });
+        const l = [...P.values()].filter((p) => p.bot).map((p) => [p.id, r2(p.pos.x), r2(p.pos.y), r2(p.pos.z), r2(p.yaw), r2(p.pitch), p.f]);
+        send({ t: "bs", id: myId, p: me.alive ? mine : null, l });
+        return;
       }
+      if (me.alive) send({ t: "s", id: myId, p: mine });
     }
 
     /* ---------- Boshqaruv ---------- */
@@ -832,18 +836,27 @@
       const w = container.clientWidth || innerWidth, h = container.clientHeight || innerHeight;
       renderer.setSize(w, h);
       camera.aspect = w / h; camera.updateProjectionMatrix();
-      vmCam.aspect = w / h; vmCam.updateProjectionMatrix();
+      vmCam.aspect = w / h; vmCam.fov = w / h < 1.25 ? 78 : 55; vmCam.updateProjectionMatrix();
     }
     window.addEventListener("resize", resize);
     resize();
 
     /* ---------- Asosiy sikl ---------- */
     let last = now(), raf = 0, alive = true, birdT = 8, hudT = 0;
+    const perf = { n: 0, acc: 0, pr: renderer.getPixelRatio(), checks: 0 };
+    function adaptQuality(dt) {
+      perf.n++; perf.acc += dt;
+      if (perf.acc < 3) return;
+      const fps = perf.n / perf.acc; perf.n = 0; perf.acc = 0; perf.checks++;
+      if (fps < 28 && perf.pr > 0.6) { perf.pr = Math.max(0.6, perf.pr * 0.75); renderer.setPixelRatio(perf.pr); resize(); if (renderer.shadowMap.enabled && perf.pr < 0.9) { renderer.shadowMap.enabled = false; scene.traverse((o) => { if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => (m.needsUpdate = true)); }); } }
+      else if (fps > 55 && perf.checks > 3 && perf.pr < Math.min(window.devicePixelRatio || 1, MOBILE ? 1.5 : 2) - 0.1) { perf.pr = Math.min(perf.pr * 1.15, MOBILE ? 1.5 : 2); renderer.setPixelRatio(perf.pr); resize(); }
+    }
     const camPos = new T.Vector3();
     function frame() {
       if (!alive) return;
       raf = requestAnimationFrame(frame);
-      const t = now(), dt = Math.min(0.05, (t - last) / 1000); last = t;
+      const t = now(), rawDt = (t - last) / 1000, dt = Math.min(0.05, rawDt); last = t;
+      if (started && !paused && !document.hidden) adaptQuality(Math.min(rawDt, 0.5));
       const ts = t / 1000;
       if (!paused || !MOBILE) localUpdate(paused ? 0 : dt, ts);
       for (const p of P.values()) {
@@ -853,6 +866,7 @@
       }
       for (const p of P.values()) avatarUpdate(p, dt);
       if (isHost) hostTick();
+      else if (G.phase === "freeze" && t > G.freezeUntil + 1500) G.phase = "live";
       if (G.phase === "freeze" && t < G.freezeUntil) {
         const n = Math.ceil((G.freezeUntil - t) / 1000);
         if (n !== frame.n) { frame.n = n; if (n <= 3) { Snd.tick(); banner(`<b class="cd">${n}</b>`, 900); } }
@@ -893,7 +907,8 @@
         camera.position.lerp(camPos, Math.min(1, dt * 6));
         camera.rotation.order = "YXZ"; camera.rotation.set(-0.28, target.yaw, 0);
       }
-      const fov = L.scoped && me.alive ? CFG.ZOOM[L.zoom] : CFG.FOV;
+      const baseFov = camera.aspect < 1.25 ? Math.min(100, 2 * Math.atan(Math.tan((CFG.FOV * Math.PI) / 360) * 1.25 / camera.aspect) * 180 / Math.PI) : CFG.FOV;
+      const fov = L.scoped && me.alive ? CFG.ZOOM[L.zoom] : baseFov;
       if (Math.abs(camera.fov - fov) > 0.05) { camera.fov += (fov - camera.fov) * Math.min(1, dt * 18); camera.updateProjectionMatrix(); }
     }
     function vmUpdate(dt, ts) {
@@ -901,7 +916,7 @@
       const bob = me.onGround ? sp * 0.004 : 0;
       L.kick = Math.max(0, L.kick - dt * 3.2);
       const k = L.kick;
-      let x = 0.2 + Math.sin(ts * 8) * bob, y = -0.2 - Math.abs(Math.cos(ts * 8)) * bob, z = -0.4 + k * 0.09, rx = k * 0.18, rz = 0;
+      let x = (vmCam.aspect < 1.25 ? 0.13 : 0.2) + Math.sin(ts * 8) * bob, y = -0.2 - Math.abs(Math.cos(ts * 8)) * bob, z = -0.4 + k * 0.09, rx = k * 0.18, rz = 0;
       // Zatvor animatsiyasi
       const bolt = vm.userData.bolt;
       const bt = me.boltT > 0 ? 1 - me.boltT / CFG.BOLT : 1;
@@ -937,6 +952,7 @@
       ui.zoom.textContent = L.zoom === 2 ? "8×" : "4×";
       ui.breath.style.width = L.breath * 100 + "%";
       hud.classList.toggle("dead", !me.alive);
+      hud.classList.toggle("ov", !ui.start.hidden || !ui.menu.hidden || !ui.board.hidden);
     }
 
     function destroy(user) {
@@ -949,6 +965,13 @@
       document.removeEventListener("pointerlockchange", onLock);
       if (document.pointerLockElement) document.exitPointerLock();
       Snd.ambience(false);
+      const seen = new Set();
+      [scene, vmScene].forEach((sc) => sc.traverse((o) => {
+        if (o.geometry && !seen.has(o.geometry)) { seen.add(o.geometry); o.geometry.dispose(); }
+        const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
+        ms.forEach((m) => { if (seen.has(m)) return; seen.add(m); ["map", "envMap"].forEach((k) => { if (m[k] && !seen.has(m[k]) && k === "map") { seen.add(m[k]); m[k].dispose(); } }); m.dispose(); });
+      }));
+      if (scene.environment) scene.environment.dispose();
       renderer.dispose();
       renderer.forceContextLoss && renderer.forceContextLoss();
       container.innerHTML = "";
@@ -964,7 +987,13 @@
     ui.start.querySelector("[data-go]").onclick = () => {
       Snd.init(); Snd.ambience(true);
       started = true; ui.start.hidden = true; lockIt();
-      if (MOBILE && container.requestFullscreen) container.requestFullscreen().catch(() => {});
+      if (MOBILE) {
+        const el = document.documentElement;
+        const fs = el.requestFullscreen || el.webkitRequestFullscreen;
+        const lock = () => { try { screen.orientation && screen.orientation.lock && screen.orientation.lock("landscape").catch(() => {}); } catch (e) {} };
+        if (fs) { try { const r = fs.call(el); if (r && r.then) r.then(lock).catch(() => {}); else lock(); } catch (e) { lock(); } } else lock();
+      }
+      ui.board.hidden = true;
     };
 
     frame();
@@ -973,7 +1002,7 @@
 
     return {
       onMsg,
-      debug: { P, G, L, me, camera, world, scene, renderer, toggleScope, tryFire: () => tryFire() },
+      debug: { P, G, L, me, camera, world, scene, renderer, toggleScope, tryFire: () => tryFire(), damage, CFG },
       destroy: () => destroy(false),
       get state() { return G; },
       setHost(v) {

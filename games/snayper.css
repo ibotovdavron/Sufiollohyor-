@@ -177,3 +177,20 @@ body.sn-open { overflow: hidden; }
 .sn-b.scope { right: 120px; bottom: 150px; } .sn-b.jump { right: 34px; bottom: 220px; } .sn-b.crouch { right: 120px; bottom: 80px; }
 .sn-b.reload { right: 190px; bottom: 120px; width: 48px; height: 48px; font-size: 20px; } .sn-b.zoomb { right: 112px; bottom: 222px; width: 46px; height: 46px; font-size: 18px; }
 @media (pointer: coarse) { .sn-bottom { bottom: 8px; } .sn-hp div { width: 90px; } .sn-feed { top: 64px; font-size: 12px; } }
+
+/* Telefon: oynalar boshqaruv tugmalaridan yuqorida, oyna ochiq bo'lsa tugmalar yashirinadi */
+.sn-touch { z-index: 1; }
+.sn-board, .sn-menu, .sn-start { z-index: 5; }
+.sn-hud.ov .sn-touch { display: none; }
+.sn-rotate { display: none; position: absolute; left: 50%; top: 84px; transform: translateX(-50%); z-index: 3; padding: 8px 14px; border-radius: 12px; background: rgba(0, 0, 0, .6); font-size: 13px; font-weight: 800; white-space: nowrap; animation: snBlink 2s ease-in-out infinite; }
+@media (orientation: portrait) and (pointer: coarse) {
+  .sn-rotate { display: block; top: 132px; }
+  .sn-pause, .sn-tab { top: 80px; }
+  .sn-b.fire { width: 76px; height: 76px; bottom: 110px; right: 18px; }
+  .sn-b.scope { right: 104px; bottom: 140px; } .sn-b.crouch { right: 104px; bottom: 70px; } .sn-b.jump { right: 26px; bottom: 200px; }
+  .sn-b.reload { right: 170px; bottom: 105px; } .sn-b.zoomb { right: 98px; bottom: 210px; }
+  .sn-joy { left: 18px; bottom: 80px; }
+  .sn-top { transform: translateX(-50%) scale(.82); transform-origin: top center; }
+  .sn-bottom { bottom: 8px; } .sn-hp div { width: 70px; } .sn-ammo b { font-size: 24px; }
+}
+.sn-hud.ov .sn-rotate { display: none; }
