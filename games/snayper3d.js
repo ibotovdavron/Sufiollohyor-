@@ -778,8 +778,9 @@
       ui.start.innerHTML = `<div class="sn-over ${mine ? "win" : "lose"}"><span class="big">${mine ? "🏆" : "🤖"}</span>
         <h2>${mine ? "G‘alaba!" : "Mag‘lubiyat"}</h2><p>${TEAMNAME[m.win] || ""} jamoa ${G.sc.r} : ${G.sc.b} hisobida yutdi</p>
         ${best ? `<p class="mvp">⭐ Eng yaxshi snayper: <b>${esc(best.name)}</b> · ${best.kills} ta</p>` : ""}
-        ${ui.board.innerHTML}
-        <div class="sn-row">${isHost ? `<button class="sn-btn" data-b="again">🔁 Yana o‘ynash</button>` : `<span class="sn-wait">Xona egasi yangi o‘yinni boshlashini kuting...</span>`}<button class="sn-btn ghost" data-b="exit">🚪 Chiqish</button></div></div>`;
+        <div class="sn-row">${isHost ? `<button class="sn-btn" data-b="again">🔁 Yana o‘ynash</button>` : `<span class="sn-wait">Xona egasi yangi o‘yinni boshlashini kuting...</span>`}<button class="sn-btn ghost" data-b="exit">🚪 Chiqish</button></div>
+        ${ui.board.innerHTML}</div>`;
+      ui.board.hidden = true; ui.menu.hidden = true; paused = false;
       if (document.pointerLockElement) document.exitPointerLock();
     }
     function newMatch() {
@@ -937,6 +938,7 @@
         }
       };
       const tm = (e) => {
+        if (e.target.closest && e.target.closest(".sn-start,.sn-menu,.sn-board")) return; // oyna ichida surish (scroll)
         for (const t of e.changedTouches) {
           const c = pt(t);
           if (t.identifier === L.joy.id) { const dx = c.x - L.joy.ox, dy = c.y - L.joy.oy, d = Math.min(50, Math.hypot(dx, dy)), a = Math.atan2(dy, dx); L.joy.x = Math.cos(a) * d / 50; L.joy.y = Math.sin(a) * d / 50; knob.style.transform = `translate(${L.joy.x * 40}px,${L.joy.y * 40}px)`; }

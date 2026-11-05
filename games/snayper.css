@@ -81,7 +81,8 @@ body.sn-open { overflow: hidden; }
 .sn-chk { display: flex; gap: 8px; align-items: center; color: #cbd5e1; }
 @media (max-width: 640px) { .sn-teams { grid-template-columns: 1fr; } .sn-vs { text-align: center; } }
 
-.sn-game { position: fixed; inset: 0; z-index: 5; background: #000; touch-action: none; user-select: none; -webkit-user-select: none; }
+.sn-game { position: fixed; inset: 0; z-index: 5; background: #000; user-select: none; -webkit-user-select: none; }
+.sn-canvas, .sn-hud { touch-action: none; } .sn-hud .sn-start, .sn-hud .sn-menu, .sn-hud .sn-board { touch-action: pan-y; }
 .sn-canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; display: block; }
 .sn-loading { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 14px; background: radial-gradient(circle, #1e293b, #000); }
 .sn-loading span { font-size: 64px; animation: snBob 1.2s ease-in-out infinite; }
@@ -203,3 +204,10 @@ body.sn-open { overflow: hidden; }
   background: radial-gradient(circle at 50% 50%, transparent 62%, rgba(10, 30, 50, .35) 82%, rgba(0, 0, 0, .85) 99%), radial-gradient(circle at 30% 25%, rgba(180, 220, 255, .08), transparent 30%); }
 .sn-lens line.m { stroke: #000; stroke-width: .9; }
 .sn-intro .sn-row { margin-top: 6px; }
+
+/* Oynalar ekranga sig'sin va barmoq bilan surilsin (o'yin oxiri, menyu, hisob) */
+.sn-board, .sn-menu, .sn-start { overflow: auto; place-items: safe center; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+.sn-bcard, .sn-mcard, .sn-intro, .sn-over { max-height: none; touch-action: pan-y; margin: auto; }
+.sn-over { padding: 16px; } .sn-over .big { font-size: 44px; } .sn-over h2 { font-size: 26px; margin: 2px 0; } .sn-over p { margin: 4px 0; }
+.sn-over .sn-row { position: sticky; top: 0; z-index: 2; margin: 8px 0; padding: 6px 0; background: linear-gradient(#111827, #111827ee); }
+@media (max-height: 460px) { .sn-bt table { font-size: 12px; } .sn-bt th, .sn-bt td { padding: 3px 2px; } .sn-intro .big { font-size: 40px; } .sn-intro h2 { font-size: 24px; } }
