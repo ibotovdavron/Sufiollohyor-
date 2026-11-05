@@ -1139,7 +1139,7 @@
 
     return {
       onMsg,
-      debug: { P, G, L, me, camera, world, scene, renderer, toggleScope, tryFire: () => tryFire(), damage, CFG },
+      debug: { P, G, L, me, camera, world, scene, renderer, toggleScope, tryFire: () => tryFire(), damage, CFG, vm, hud, tracer, flashAt, burst },
       destroy: () => destroy(false),
       get state() { return G; },
       setHost(v) {

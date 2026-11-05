@@ -211,3 +211,37 @@ body.sn-open { overflow: hidden; }
 .sn-over { padding: 16px; } .sn-over .big { font-size: 44px; } .sn-over h2 { font-size: 26px; margin: 2px 0; } .sn-over p { margin: 4px 0; }
 .sn-over .sn-row { position: sticky; top: 0; z-index: 2; margin: 8px 0; padding: 6px 0; background: linear-gradient(#111827, #111827ee); }
 @media (max-height: 460px) { .sn-bt table { font-size: 12px; } .sn-bt th, .sn-bt td { padding: 3px 2px; } .sn-intro .big { font-size: 40px; } .sn-intro h2 { font-size: 24px; } }
+
+/* Karta: haqiqiy o'yin kadri */
+.sn-card-g { grid-template-columns: 1fr 1.05fr; }
+.sn-card-r { padding: 18px 18px 18px 0; min-height: 260px; }
+.sn-shot { position: relative; width: 100%; aspect-ratio: 1600 / 820; border-radius: 22px; overflow: hidden; isolation: isolate;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .12), 0 0 40px rgba(239, 68, 68, .18), 0 0 60px rgba(59, 130, 246, .18);
+  transform: perspective(900px) rotateY(-6deg); transition: transform .5s; }
+.sn-card-g:hover .sn-shot { transform: perspective(900px) rotateY(0deg) scale(1.02); }
+.sn-shot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: snKen 14s ease-in-out infinite alternate; }
+@keyframes snKen { from { transform: scale(1.02); } to { transform: scale(1.1) translate(-1.5%, 1%); } }
+.sn-shot::after { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, rgba(239, 68, 68, .28), transparent 30%, transparent 70%, rgba(59, 130, 246, .3)), linear-gradient(0deg, rgba(0, 0, 0, .5), transparent 35%); }
+.sn-shot .vs { position: absolute; z-index: 3; left: 50%; bottom: 12%; transform: translateX(-50%); font: 900 clamp(26px, 4vw, 44px)/1 Inter, system-ui, sans-serif; color: #fde68a; letter-spacing: .04em;
+  text-shadow: 0 0 18px rgba(253, 224, 71, .8), 0 3px 0 #b45309, 0 6px 16px rgba(0, 0, 0, .7); animation: snVs 1.6s ease-in-out infinite; }
+@keyframes snVs { 50% { transform: translateX(-50%) scale(1.12); } }
+.sn-shot .tm { position: absolute; z-index: 3; bottom: 9%; padding: 5px 10px; border-radius: 10px; font: 900 12px/1 Inter, system-ui, sans-serif; letter-spacing: .1em; color: #fff; backdrop-filter: blur(4px); }
+.sn-shot .tm.r { left: 5%; background: rgba(220, 38, 38, .7); } .sn-shot .tm.b { right: 5%; background: rgba(37, 99, 235, .7); }
+.sn-shot .sc { position: absolute; z-index: 2; width: 22%; aspect-ratio: 1; left: 58%; top: 30%; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .85); box-shadow: 0 0 0 999px rgba(0, 0, 0, .0), inset 0 0 18px rgba(0, 0, 0, .5); animation: snAim2 6s ease-in-out infinite; }
+.sn-shot .sc::before, .sn-shot .sc::after { content: ""; position: absolute; background: rgba(255, 255, 255, .9); }
+.sn-shot .sc::before { left: 50%; top: 8%; bottom: 8%; width: 1.5px; } .sn-shot .sc::after { top: 50%; left: 8%; right: 8%; height: 1.5px; }
+@keyframes snAim2 { 0%, 100% { left: 58%; top: 30%; } 45% { left: 20%; top: 33%; } 55% { left: 21%; top: 32%; } }
+.sn-shot .glare { position: absolute; z-index: 2; inset: 0; background: linear-gradient(110deg, transparent 40%, rgba(255, 255, 255, .22) 50%, transparent 60%); transform: translateX(-120%); animation: snGlare 5s ease-in-out infinite; }
+@keyframes snGlare { 70%, 100% { transform: translateX(120%); } }
+.sn-shot .beam { position: absolute; z-index: 2; left: 33%; right: 36%; top: 54%; height: 3px; border-radius: 3px; background: linear-gradient(90deg, #fca5a5, #fff, #93c5fd); box-shadow: 0 0 14px #fff, 0 0 26px #f87171; opacity: 0; animation: snShotBeam 6s ease-in-out infinite; }
+@keyframes snShotBeam { 0%, 47% { opacity: 0; transform: scaleX(0); transform-origin: left; } 50% { opacity: 1; transform: scaleX(1); transform-origin: left; } 60%, 100% { opacity: 0; } }
+@media (max-width: 760px) { .sn-card-r { padding: 0 14px 16px; min-height: 0; } .sn-shot { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .sn-shot img, .sn-shot .vs, .sn-shot .sc, .sn-shot .glare, .sn-shot .beam { animation: none; } }
+
+/* O'yin yuklanayotgan ekran */
+.sn-loading { background: linear-gradient(0deg, rgba(0, 0, 0, .85), rgba(0, 0, 0, .35)), url("img/snayper-banner-sm.jpg") center / cover no-repeat, #000; }
+@media (max-width: 760px) {
+  .sn-card-g { grid-template-columns: 1fr; }
+  .sn-card-r { order: -1; padding: 40px 14px 0; }
+  .sn-card-body { padding: 10px 18px 22px; }
+}
