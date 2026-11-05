@@ -26,6 +26,8 @@
 
   // Yulduz qoidalari: bitta o'yindan kuniga ko'pi bilan 2 ta yulduz.
   const DAILY_CAP = 2;
+  // O'yinlardan yulduz berish vaqtincha o'chirilgan (rahbariyat qarori). Qayta yoqish uchun: true
+  const GAME_STARS = false;
   const INVITE_TTL = 30000;
 
   const GAMES = {};
@@ -512,8 +514,9 @@
         if (finished) return;
         finished = true;
         let star = null;
-        if (session.role === "teacher") { result.earnStar = false; result.starHint = "Ustozlar yulduz olmaydi — yulduzlar o‘quvchilar uchun."; }
-        if (session.role === "guest") { result.earnStar = false; result.starHint = "Mehmonlar yulduz olmaydi. Yulduz yig‘ish uchun markazimizga o‘qishga keling! 😉"; }
+        if (!GAME_STARS) { result.earnStar = false; result.starHint = ""; }
+        if (GAME_STARS && session.role === "teacher") { result.earnStar = false; result.starHint = "Ustozlar yulduz olmaydi — yulduzlar o‘quvchilar uchun."; }
+        if (GAME_STARS && session.role === "guest") { result.earnStar = false; result.starHint = "Mehmonlar yulduz olmaydi. Yulduz yig‘ish uchun markazimizga o‘qishga keling! 😉"; }
         if (result.earnStar) star = await awardStar(game.id);
         showResult(game, result, star, friend);
       }
@@ -688,7 +691,7 @@
       const teacher = session.role === "teacher";
       const guest = session.role === "guest";
       chip.innerHTML = `<div class="g-chip on ${teacher ? "teacher" : ""} ${guest ? "guest" : ""}"><span class="av">${teacher ? "👨‍🏫" : guest ? "👤" : esc(session.name[0])}</span>
-        <span><b>${esc(session.name)}</b><small>${teacher ? "Ustoz · nazoratchi" : guest ? "Mehmon · yulduzsiz" : `${esc(session.cls)} · bugun ⭐ ${total}`}</small></span>
+        <span><b>${esc(session.name)}</b><small>${teacher ? "Ustoz · nazoratchi" : guest ? "Mehmon" : GAME_STARS ? `${esc(session.cls)} · bugun ⭐ ${total}` : esc(session.cls)}</small></span>
         <button class="g-link" data-change>almashtirish</button></div>`;
     }
   }
