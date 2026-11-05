@@ -175,6 +175,8 @@
     requestAnimationFrame(step);
   }
 
+  window.AMALIY_FX = { confetti };
+
   /* ================= Ko'rinishlar ================= */
   function lastTopic() {
     let hsh = "";
@@ -253,6 +255,7 @@
     typeWords(root.querySelector(".am-type"), ["ko‘rib", "ushlab", "o‘ynab", "tajriba qilib", "his qilib"]);
     root.querySelector('a[href="#start"]').addEventListener("click", (e) => { e.preventDefault(); root.querySelector("#start").scrollIntoView({ behavior: REDUCED ? "auto" : "smooth" }); });
     tilt(root); reveal(root);
+    if (window.AMALIY_CT) window.AMALIY_CT.homeBanner(root);
   }
 
   function viewSubjects(cls) {
@@ -368,6 +371,7 @@
           <div><b>Mavzu o‘rganildi!</b><small>${esc(sub.name)}: <span class="am-finish-n"></span></small></div>
           <a class="am-btn primary sm" href="${nextHref}">${next ? "Keyingi mavzu →" : "Barcha mavzular →"}</a>
         </div>
+        <div class="am-teach"></div>
         <nav class="am-pager">
           ${prev ? `<a href="#${cls.id}/${sub.id}/${prev.id}">← ${esc(prev.title)}</a>` : "<span></span>"}
           ${next ? `<a class="next" href="#${cls.id}/${sub.id}/${next.id}">${esc(next.title)} →</a>` : `<a class="next" href="#${cls.id}/${sub.id}">Barcha mavzular →</a>`}
@@ -431,6 +435,7 @@
     }
 
     reveal(root);
+    if (window.AMALIY_CT) window.AMALIY_CT.lessonTools(root.querySelector(".am-teach"), cls, sub, t);
 
     /* O'qish chizig'i, bosqichlar va test bo'lmasa — oxirigacha o'qilganda belgilash */
     const rb = root.querySelector(".am-readbar i");
@@ -454,6 +459,11 @@
 
   function route() {
     const [c, sId, tId] = decodeURIComponent(location.hash.slice(1)).split("/");
+    if (window.AMALIY_CT && (c === "test" || c === "tests")) {
+      if (c === "test") window.AMALIY_CT.viewTest(root, sId); else window.AMALIY_CT.viewTests(root);
+      window.scrollTo(0, 0);
+      return;
+    }
     const cls = DB.classes.find((x) => x.id === c);
     const sub = cls && cls.subjects.find((x) => x.id === sId);
     const t = sub && sub.topics.find((x) => x.id === tId);
