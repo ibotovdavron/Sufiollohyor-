@@ -4,3 +4,9 @@ Ferma o‘yinidagi 3D modellar
               https://creativecommons.org/publicdomain/zero/1.0/
               Ikki marta silliqlangan (Loop subdivision) va ixcham binar shaklga aylantirilgan.
 - sheep.bin — “Farm Animals Pack” (Quaternius), litsenziya: CC0 1.0. Silliqlangan, junga bo‘rtiqlar qo‘shilgan.
+
+Snayper jangi o‘yinidagi modellar
+- robot.glb — “RobotExpressive”, muallif: Tomás Laulhé (Quaternius), litsenziya: CC0 1.0 (jamoat mulki).
+              Don McCurdy tomonidan glTF ga o‘girilgan (three.js misollaridan). Jamoa ranglari o‘yinda beriladi.
+- Snayper miltiq, uylar, panalar, daraxtlar — o‘yin kodida (games/snayper-world.js) chizilgan, tashqi fayl yo‘q.
+- lib/GLTFLoader.js, lib/SkeletonUtils.js — three.js r149 (MIT litsenziya), global THREE uchun moslangan.

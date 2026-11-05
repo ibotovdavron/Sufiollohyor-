@@ -4,7 +4,7 @@
   "use strict";
   const T = window.SofiTests;
   if (!T) return;
-  const SEL = "[data-start],[data-mm-start],[data-zakovat],[data-cs],[data-sh],[data-fm],[data-ar],[data-kl]";
+  const SEL = "[data-start],[data-mm-start],[data-zakovat],[data-cs],[data-sh],[data-fm],[data-ar],[data-kl],[data-sn]";
   const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const TTL = 60000;
   let cache = { key: null, at: 0, list: [] };
@@ -82,7 +82,7 @@
     if (bypass) return;
     const b = e.target.closest(SEL);
     if (!b) return;
-    const v = b.dataset.cs || b.dataset.sh || b.dataset.fm || b.dataset.ar || b.dataset.kl;
+    const v = b.dataset.cs || b.dataset.sh || b.dataset.fm || b.dataset.ar || b.dataset.kl || b.dataset.sn;
     if (v === "rating") return;
     let w = who();
     if (w && exempt(w)) return;
