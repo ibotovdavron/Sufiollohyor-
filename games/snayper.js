@@ -26,8 +26,8 @@
     if (!window.THREE) await loadScript("lib/three.min.js?v=149");
     if (!window.THREE.GLTFLoader) await loadScript("lib/GLTFLoader.js?v=1");
     if (!window.THREE.SkeletonUtils) await loadScript("lib/SkeletonUtils.js?v=1");
-    if (!window.SofiSniperWorld) await loadScript("games/snayper-world.js?v=2");
-    if (!window.SofiSniper3D) await loadScript("games/snayper3d.js?v=3");
+    if (!window.SofiSniperWorld) await loadScript("games/snayper-world.js?v=3");
+    if (!window.SofiSniper3D) await loadScript("games/snayper3d.js?v=4");
     await window.SofiSniper3D.load();
   })().catch((e) => { libs = null; throw e; }));
 

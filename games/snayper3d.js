@@ -24,66 +24,130 @@
 
   /* =================== Tovushlar (Web Audio) =================== */
   const Snd = (() => {
-    let ac = null, master = null, noiseBuf = null, on = true, wind = null;
+    let ac = null, master = null, verb = null, noiseBuf = null, on = true, wind = null;
     const init = () => {
       if (ac) { if (ac.state === "suspended") ac.resume(); return; }
       try {
         ac = new (window.AudioContext || window.webkitAudioContext)();
-        master = ac.createGain(); master.gain.value = 0.8; master.connect(ac.destination);
+        const comp = ac.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 6; comp.connect(ac.destination);
+        master = ac.createGain(); master.gain.value = 0.9; master.connect(comp);
         noiseBuf = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate);
         const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+        // Ochiq maydon aks-sadosi (sun'iy impuls javobi)
+        const len = ac.sampleRate * 2.2, ir = ac.createBuffer(2, len, ac.sampleRate);
+        for (let c = 0; c < 2; c++) { const ch = ir.getChannelData(c); for (let i = 0; i < len; i++) { const t = i / ac.sampleRate; ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2) * (t < 0.08 ? t / 0.08 : 1) * (1 + 0.6 * Math.sin(t * 9 + c)); } }
+        const conv = ac.createConvolver(); conv.buffer = ir;
+        const vg = ac.createGain(); vg.gain.value = 0.45; conv.connect(vg); vg.connect(master);
+        verb = conv;
       } catch (e) { ac = null; }
     };
-    const noise = (t, dur, f0, f1, vol, type = "lowpass", q = 0.7, dest) => {
+    const out = (pan = 0, wet = 0) => {
+      const g = ac.createGain();
+      let n = g;
+      if (ac.createStereoPanner) { const p = ac.createStereoPanner(); p.pan.value = clamp(pan, -1, 1); g.connect(p); n = p; }
+      n.connect(master);
+      if (wet > 0 && verb) { const w = ac.createGain(); w.gain.value = wet; g.connect(w); w.connect(verb); }
+      return g;
+    };
+    const noise = (t, dur, f0, f1, vol, type, q, dest, attack = 0.002) => {
       const s = ac.createBufferSource(); s.buffer = noiseBuf;
-      const f = ac.createBiquadFilter(); f.type = type; f.Q.value = q;
+      const f = ac.createBiquadFilter(); f.type = type || "lowpass"; f.Q.value = q || 0.7;
       f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t + dur);
-      const g = ac.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + attack); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       s.connect(f); f.connect(g); g.connect(dest || master); s.start(t, Math.random()); s.stop(t + dur + 0.05);
     };
-    const tone = (t, dur, f0, f1, vol, type = "sine", dest) => {
-      const o = ac.createOscillator(); o.type = type;
+    const tone = (t, dur, f0, f1, vol, type, dest, attack = 0.004) => {
+      const o = ac.createOscillator(); o.type = type || "sine";
       o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
-      const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + attack); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       o.connect(g); g.connect(dest || master); o.start(t); o.stop(t + dur + 0.05);
+    };
+    /** Metall "chiq" — bir nechta rezonans chastota. */
+    const metal = (t, vol, base, dest) => {
+      [1, 2.76, 5.4, 8.9].forEach((k, i) => tone(t, 0.05 + 0.06 / (i + 1), base * k, base * k * 0.98, vol / (i + 1.4), "sine", dest, 0.001));
+      noise(t, 0.03, 7000, 3000, vol * 0.8, "highpass", 0.8, dest, 0.0008);
     };
     const ok = () => on && ac && ac.state === "running";
     return {
       init, get on() { return on; },
-      set(v) { on = v; if (master) master.gain.value = v ? 0.8 : 0; },
-      shot(dist = 0) {
+      set(v) { on = v; if (master) master.gain.value = v ? 0.9 : 0; },
+      /** dist — metr, pan — -1 (chap) .. 1 (o'ng) */
+      shot(dist = 0, pan = 0) {
         if (!ok()) return;
-        const delay = dist / 340, k = dist > 0 ? clamp(1 - dist / 140, 0.08, 1) : 1;
-        const t = ac.currentTime + delay;
-        noise(t, 0.5, dist > 0 ? 1800 : 6000, 200, 0.9 * k, "lowpass", 0.5);
-        tone(t, 0.25, 110, 38, 0.8 * k, "sine");
-        tone(t, 0.18, 1600, 260, 0.07 * k, "square"); // lazer jarangi
-        if (dist > 20) noise(t + 0.12, 0.9, 900, 120, 0.18 * k, "lowpass"); // aks-sado
+        const far = dist > 0;
+        const k = far ? clamp(1.15 - dist / 120, 0.12, 1) : 1;
+        const t = ac.currentTime + (far ? dist / 343 : 0);
+        const o = out(far ? pan * 0.8 : 0, far ? 0.9 : 0.55);
+        if (!far) {
+          noise(t, 0.045, 9000, 2500, 1.2, "highpass", 0.6, o, 0.0005);   // keskin "chirs"
+          noise(t, 0.32, 3200, 160, 1.5, "lowpass", 0.9, o, 0.001);       // asosiy portlash
+          tone(t, 0.32, 95, 34, 1.3, "sine", o, 0.001);                   // ko'krakka uriladigan "dum"
+          noise(t + 0.03, 1.4, 900, 90, 0.35, "lowpass", 0.6, o, 0.05);   // dumaloq aks-sado
+        } else {
+          noise(t, 0.05, 4500, 1800, 0.7 * k, "bandpass", 0.8, o, 0.001); // uzoqdan "chirs"
+          noise(t, 0.5, 1400 * k + 300, 120, 1.1 * k, "lowpass", 0.8, o, 0.002);
+          tone(t, 0.4, 70, 32, 0.6 * k, "sine", o, 0.002);
+          noise(t + 0.25 + dist / 600, 1.6, 600, 80, 0.4 * k, "lowpass", 0.5, o, 0.12); // tog'dan qaytgan aks
+        }
       },
-      bolt() { if (!ok()) return; const t = ac.currentTime; [0.22, 0.42, 0.68, 0.86].forEach((d, i) => noise(t + d, 0.05, i % 2 ? 2600 : 4200, 1400, 0.22, "bandpass", 3)); },
-      reload() { if (!ok()) return; const t = ac.currentTime; [0.3, 0.9, 1.6, 2.1].forEach((d) => noise(t + d, 0.06, 3200, 1200, 0.25, "bandpass", 2.5)); },
-      empty() { if (!ok()) return; noise(ac.currentTime, 0.04, 3500, 2000, 0.2, "bandpass", 4); },
-      hit(head) { if (!ok()) return; const t = ac.currentTime; tone(t, 0.08, head ? 2400 : 1700, head ? 2300 : 1600, 0.25, "triangle"); if (head) tone(t + 0.07, 0.25, 3100, 3000, 0.18, "sine"); },
-      hurt() { if (!ok()) return; const t = ac.currentTime; tone(t, 0.25, 180, 60, 0.5, "sawtooth"); noise(t, 0.3, 3000, 400, 0.25, "bandpass", 1); },
-      down(dist = 0) { if (!ok()) return; const k = clamp(1 - dist / 90, 0.1, 1), t = ac.currentTime; tone(t, 0.9, 700, 40, 0.25 * k, "sawtooth"); noise(t, 0.6, 5000, 800, 0.15 * k, "highpass", 1); },
-      step(k = 1) { if (!ok()) return; noise(ac.currentTime, 0.09, 420, 140, 0.12 * k, "lowpass", 1); },
-      horn() { if (!ok()) return; const t = ac.currentTime; tone(t, 0.35, 440, 440, 0.22, "sawtooth"); tone(t + 0.38, 0.6, 660, 660, 0.22, "sawtooth"); },
-      win() { if (!ok()) return; const t = ac.currentTime; [523, 659, 784, 1046].forEach((f, i) => tone(t + i * 0.12, 0.35, f, f, 0.2, "triangle")); },
-      lose() { if (!ok()) return; const t = ac.currentTime; [392, 330, 262].forEach((f, i) => tone(t + i * 0.18, 0.4, f, f * 0.98, 0.2, "triangle")); },
-      tick() { if (!ok()) return; tone(ac.currentTime, 0.06, 1000, 1000, 0.12, "square"); },
-      zoom() { if (!ok()) return; noise(ac.currentTime, 0.07, 5000, 2500, 0.08, "bandpass", 2); },
+      /** O'q yaqindan uchib o'tdi */
+      whiz(pan = 0) { if (!ok()) return; const t = ac.currentTime, o = out(pan, 0.1); noise(t, 0.16, 5000, 900, 0.35, "bandpass", 4, o, 0.03); },
+      bolt() {
+        if (!ok()) return;
+        const t = ac.currentTime, o = out(0.25, 0.15);
+        metal(t + 0.2, 0.32, 1900, o);                                      // dastak ko'tarildi
+        noise(t + 0.3, 0.14, 2600, 900, 0.3, "bandpass", 2, o, 0.01);      // orqaga sirpanish
+        metal(t + 0.45, 0.22, 2600, o); tone(t + 0.47, 0.25, 1500, 900, 0.06, "sine", o); // gilza tushdi
+        noise(t + 0.62, 0.12, 2400, 1000, 0.3, "bandpass", 2, o, 0.01);    // oldinga
+        metal(t + 0.78, 0.4, 1500, o);                                      // dastak yopildi
+      },
+      reload() {
+        if (!ok()) return;
+        const t = ac.currentTime, o = out(0.2, 0.15);
+        metal(t + 0.25, 0.3, 1700, o); noise(t + 0.35, 0.2, 1500, 500, 0.25, "bandpass", 1.5, o, 0.02);
+        metal(t + 1.1, 0.25, 2100, o); noise(t + 1.25, 0.15, 1800, 700, 0.25, "bandpass", 2, o, 0.01);
+        metal(t + 1.7, 0.45, 1300, o); metal(t + 2.1, 0.35, 1800, o);
+      },
+      empty() { if (!ok()) return; metal(ac.currentTime, 0.25, 2400, out(0.2)); },
+      hit(head) { if (!ok()) return; const t = ac.currentTime, o = out(0, 0.2); metal(t + 0.03, head ? 0.5 : 0.35, head ? 1200 : 620, o); if (head) tone(t + 0.05, 0.5, 2600, 2550, 0.12, "triangle", o); },
+      hurt() { if (!ok()) return; const t = ac.currentTime, o = out(0, 0.2); metal(t, 0.6, 330, o); noise(t, 0.35, 2500, 300, 0.35, "bandpass", 1.2, o, 0.005); tone(t, 0.3, 140, 60, 0.4, "sine", o); },
+      down(dist = 0, pan = 0) {
+        if (!ok()) return; const k = clamp(1 - dist / 90, 0.1, 1), t = ac.currentTime, o = out(pan, 0.4);
+        tone(t, 1.0, 520, 45, 0.22 * k, "sawtooth", o, 0.01); noise(t, 0.4, 6000, 900, 0.18 * k, "highpass", 1, o, 0.003);
+        metal(t + 0.55, 0.3 * k, 260, o); noise(t + 0.55, 0.35, 900, 120, 0.4 * k, "lowpass", 0.8, o, 0.005);
+      },
+      /** surface: "grass" | "wood" | "stone" */
+      step(k = 1, surface = "grass") {
+        if (!ok()) return;
+        const t = ac.currentTime, o = out(rr(-0.15, 0.15));
+        if (surface === "wood") { tone(t, 0.08, 160, 90, 0.18 * k, "sine", o); noise(t, 0.06, 1200, 300, 0.16 * k, "lowpass", 1, o); }
+        else if (surface === "stone") { noise(t, 0.05, 3000, 900, 0.14 * k, "bandpass", 1.2, o); tone(t, 0.05, 220, 120, 0.08 * k, "sine", o); }
+        else { noise(t, 0.13, 5200, 1800, 0.11 * k, "highpass", 0.7, o, 0.01); noise(t, 0.08, 500, 150, 0.1 * k, "lowpass", 0.8, o); }
+      },
+      horn() { if (!ok()) return; const t = ac.currentTime, o = out(0, 0.6); tone(t, 0.4, 440, 440, 0.18, "sawtooth", o); tone(t + 0.42, 0.7, 660, 660, 0.18, "sawtooth", o); },
+      win() { if (!ok()) return; const t = ac.currentTime, o = out(0, 0.5); [523, 659, 784, 1046].forEach((f, i) => tone(t + i * 0.12, 0.4, f, f, 0.18, "triangle", o)); },
+      lose() { if (!ok()) return; const t = ac.currentTime, o = out(0, 0.5); [392, 330, 262].forEach((f, i) => tone(t + i * 0.18, 0.45, f, f * 0.98, 0.18, "triangle", o)); },
+      tick() { if (!ok()) return; metal(ac.currentTime, 0.2, 1500, out(0, 0.2)); },
+      zoom() { if (!ok()) return; const o = out(0.1); noise(ac.currentTime, 0.08, 3500, 1500, 0.12, "bandpass", 2.5, o, 0.01); metal(ac.currentTime + 0.06, 0.12, 2800, o); },
       ambience(start) {
         if (!ac) return;
-        if (!start) { if (wind) { try { wind.s.stop(); } catch (e) {} wind = null; } return; }
+        if (!start) { if (wind) { try { wind.forEach((n) => n.stop()); } catch (e) {} wind = null; } return; }
         if (wind) return;
-        const s = ac.createBufferSource(); s.buffer = noiseBuf; s.loop = true;
-        const f = ac.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 380;
-        const g = ac.createGain(); g.gain.value = 0.06;
-        const lfo = ac.createOscillator(); lfo.frequency.value = 0.12; const lg = ac.createGain(); lg.gain.value = 0.035; lfo.connect(lg); lg.connect(g.gain); lfo.start();
-        s.connect(f); f.connect(g); g.connect(master); s.start();
-        wind = { s };
+        const mk = (freq, vol, lfoF, lfoA) => {
+          const s = ac.createBufferSource(); s.buffer = noiseBuf; s.loop = true;
+          const f = ac.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = freq;
+          const g = ac.createGain(); g.gain.value = vol;
+          const lfo = ac.createOscillator(); lfo.frequency.value = lfoF; const lg = ac.createGain(); lg.gain.value = lfoA; lfo.connect(lg); lg.connect(g.gain); lfo.start();
+          s.connect(f); f.connect(g); g.connect(master); s.start();
+          return [s, lfo];
+        };
+        wind = [...mk(320, 0.05, 0.09, 0.04), ...mk(1400, 0.008, 0.21, 0.007)];
       },
-      bird() { if (!ok()) return; const t = ac.currentTime, b = rr(2400, 3600); for (let i = 0; i < 3; i++) tone(t + i * 0.13, 0.09, b, b * 1.3, 0.035, "sine"); },
+      bird() {
+        if (!ok()) return;
+        const t = ac.currentTime, o = out(rr(-0.8, 0.8), 0.5), b = rr(2600, 3800), n = 2 + (Math.random() * 4 | 0);
+        for (let i = 0; i < n; i++) { const st = t + i * rr(0.09, 0.16); tone(st, 0.08, b * rr(0.9, 1.1), b * rr(1.2, 1.5), 0.03, "sine", o); }
+      },
     };
   })();
 
@@ -369,9 +433,22 @@
       const p = P.get(m.id); if (!p) return;
       const a = new T.Vector3(...m.o), b = new T.Vector3(...m.e);
       tracer(a, b, p.team);
-      if (!mine) { flashAt(a); Snd.shot(a.distanceTo(camera.position)); }
+      if (!mine) {
+        flashAt(a);
+        Snd.shot(a.distanceTo(camera.position), panOf(a));
+        // o'q yonimizdan o'tdimi?
+        const ab = b.clone().sub(a), al = ab.length(); ab.normalize();
+        const cp = camera.position.clone().sub(a), tt = clamp(cp.dot(ab), 0, al);
+        if (m.id !== myId && cp.sub(ab.multiplyScalar(tt)).length() < 2.2 && tt > 3) setTimeout(() => Snd.whiz(panOf(b)), Math.min(400, (tt / 800) * 1000));
+      }
       if (m.h) { burst(b, 0x9fe8ff, 18, 5, 0.09, 0.5); burst(b, 0xffd27a, 8, 3, 0.06, 0.4); }
       else if (b.distanceTo(a) < 399) { burst(b, 0xffc070, 8, 3, 0.06, 0.35); puff(b); }
+    }
+    /** Tovush manbai chapdami yoki o'ngda (-1..1) */
+    function panOf(v) {
+      const d = v.clone().sub(camera.position); d.y = 0; if (d.lengthSq() < 0.01) return 0; d.normalize();
+      const right = new T.Vector3(Math.cos(me.yaw), 0, -Math.sin(me.yaw));
+      return clamp(d.dot(right), -1, 1);
     }
     const owns = (id) => { const p = P.get(id); return !!p && (p.id === myId || (p.bot && isHost)); };
 
@@ -385,13 +462,13 @@
       const p = P.get(m.id); if (!p) return;
       const was = p.alive;
       p.hp = m.hp;
-      if (p.brain) p.brain.hurt = true;
+      if (p.brain) { p.brain.hurt = true; const sh = P.get(m.by); if (sh) p.brain.lookAt = rp(sh).clone(); }
       if (m.id === myId) { hurtFlash(P.get(m.by) && rp(P.get(m.by))); Snd.hurt(); }
       if (was && m.hp <= 0) {
         p.alive = false; p.deaths++;
         const k = P.get(m.by); if (k) { k.kills++; if (m.part === "head") k.head++; }
         p.av.play("Death", 0.15);
-        Snd.down(rp(p).distanceTo(camera.position));
+        Snd.down(rp(p).distanceTo(camera.position), panOf(rp(p)));
         burst(rp(p).clone().add(new T.Vector3(0, 1.2, 0)), 0x9fe8ff, 30, 4, 0.1, 0.9);
         feed(m.by, m.id, m.part);
         if (m.id === myId) { L.scoped = false; L.spect = null; showDead(k); }
@@ -431,7 +508,7 @@
       L.jumpQ = false;
       const moving = Math.hypot(me.vel.x, me.vel.z) > 0.5;
       me.f = (me.crouch ? 1 : 0) | (moving ? 2 : 0) | (sprint ? 4 : 0) | (!me.onGround ? 8 : 0) | (L.scoped ? 16 : 0);
-      if (moving && me.onGround) { me.stepT -= dt * (sprint ? 1.5 : 1); if (me.stepT <= 0) { me.stepT = 0.42; Snd.step(me.crouch ? 0.4 : 1); } }
+      if (moving && me.onGround) { me.stepT -= dt * (sprint ? 1.5 : 1); if (me.stepT <= 0) { me.stepT = 0.42; Snd.step(me.crouch ? 0.4 : 1, surfaceAt(me.pos)); } }
       // Nafas (durbinda Shift)
       L.holding = L.scoped && (L.keys.has("ShiftLeft") || L.keys.has("ShiftRight")) && L.breath > 0;
       L.breath = clamp(L.breath + (L.holding ? -dt / 4 : dt / 6), 0, 1);
@@ -441,6 +518,11 @@
       if (L.fireQ) { L.fireQ = false; if (live) tryFire(); }
       if (frozen) L.scoped = L.scoped && true;
       L.sway += dt;
+    }
+    function surfaceAt(v) {
+      if (v.y > 6) return "stone";
+      if (Math.abs(v.x) < 7 && Math.abs(Math.abs(v.z) - 48) < 5) return "wood";
+      return "grass";
     }
     function tryFire() {
       if (me.boltT > 0 || me.reloadT > 0) return;
@@ -456,7 +538,7 @@
       setTimeout(() => { vmFlash.visible = false; camFlash.intensity = 0; }, 55);
       doFire(me, fwd(yaw, pitch));
       L.kick = 1;
-      me.pitch = clamp(me.pitch + (L.scoped ? 0.035 : 0.05), -1.45, 1.45);
+      L.recoil = L.scoped ? 0.045 : 0.06;
       me.boltT = CFG.BOLT;
       setTimeout(() => Snd.bolt(), 120);
       if (me.ammo === 0 && me.reserve > 0) setTimeout(() => startReload(), CFG.BOLT * 1000);
@@ -481,16 +563,20 @@
       const out = []; let c = to.id; while (c) { out.unshift(world.nodeById[c]); c = prev[c]; }
       return out;
     }
-    function pickNest(p) {
+    function pickNest(p, forward) {
       const list = world.nests[p.team];
       const house = list.filter((n) => /[wrg]\d$/.test(n.id)), field = list.filter((n) => !/[wrg]\d$/.test(n.id));
-      const pool = Math.random() < 0.6 ? house : field;
+      // Raund boshida ko'pchilik maydonga chiqadi; vaqt o'tgan sari yanada oldinga (markazga) intiladi
+      const elapsed = (now() - G.freezeUntil) / 1000;
+      const houseShare = forward ? 0.1 : elapsed > 45 ? 0.15 : 0.3;
+      let pool = Math.random() < houseShare ? house : field;
+      if (pool === field && (forward || elapsed > 30)) { const fw = field.filter((n) => Math.abs(n.z) < 26); if (fw.length) pool = fw; }
       const taken = new Set([...P.values()].filter((q) => q.brain && q !== p && q.brain.goal).map((q) => q.brain.goal.id));
       const free = pool.filter((n) => !taken.has(n.id));
       return (free.length ? free : pool)[(Math.random() * (free.length || pool.length)) | 0];
     }
     function newBrain(p) {
-      const b = { goal: null, path: [], hold: 0, target: null, react: 0, err: 0.06, think: 0, stuck: 0, last: p.pos.clone(), crouch: false, hurt: false, scanA: 0, scanT: 0 };
+      const b = { goal: null, path: [], hold: 0, target: null, react: 0, err: 0.06, think: 0, stuck: 0, stuckN: 0, last: p.pos.clone(), crouch: false, hurt: false, scanA: 0, scanT: 0, lookAt: null, lost: null, peekT: 0 };
       b.goal = pickNest(p); b.path = pathTo(nearestNode(p.team, p.pos), b.goal);
       return b;
     }
@@ -511,15 +597,17 @@
         for (const q of P.values()) {
           if (!q.alive || q.team === p.team) continue;
           const qp = rp(q), d = qp.distanceTo(p.pos);
-          if (d > 130) continue;
+          if (d > (b.path.length ? 40 : 130)) continue; // yo'lda ketayotganda faqat yaqin raqibga to'xtaydi
           const hs = q.crouch ? 0.72 : 1;
           const head = qp.clone().add(new T.Vector3(0, 1.5 * hs, 0)), chest = qp.clone().add(new T.Vector3(0, 1.0 * hs, 0));
           const vis = visible(eye, chest) ? chest : visible(eye, head) ? head : null;
           if (vis && d < bd) { bd = d; best = { id: q.id, aim: vis === head ? "head" : "body" }; }
         }
         if (best && (!b.target || b.target.id !== best.id)) { b.react = rr(0.8, 1.6) + bd / 90; b.err = rr(0.05, 0.09); }
+        if (!best && b.target) { const q = P.get(b.target.id); if (q && q.alive) b.lost = { pos: rp(q).clone(), t: 3 }; }
         b.target = best;
-        if (b.hurt) { b.hurt = false; if (!b.target || Math.random() < 0.5) { b.goal = pickNest(p); b.path = pathTo(nearestNode(p.team, p.pos), b.goal); b.hold = 0; } }
+        if (best) b.lookAt = null;
+        if (b.hurt) { b.hurt = false; if (!b.target || Math.random() < 0.6) { b.goal = pickNest(p); b.path = pathTo(nearestNode(p.team, p.pos), b.goal); b.hold = 0; } }
       }
       let wx = 0, wz = 0, speed = CFG.SPEED * 0.85;
       if (b.target) {
@@ -555,18 +643,31 @@
           if (dist < 0.55 && Math.abs(nx.y - p.pos.y) < 1.2) { b.path.shift(); }
           else { wx = dx / dist; wz = dz / dist; p.yaw += clamp(((Math.atan2(-dx, -dz) - p.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI, -6 * dt, 6 * dt); }
           p.crouch = false;
+          if (Math.hypot(dx, dz) > 5) speed = CFG.SPEED; // uzoq yo'lda yuguradi
           b.stuck += dt;
-          if (b.stuck > 1.2) { if (p.pos.distanceTo(b.last) < 0.5) { b.path = pathTo(nearestNode(p.team, p.pos), b.goal); physics(p, wx, wz, speed, true, 0); } b.last.copy(p.pos); b.stuck = 0; }
+          if (b.stuck > 1.0) {
+            if (p.pos.distanceTo(b.last) < 0.45) {
+              b.stuckN++;
+              if (b.stuckN === 1) physics(p, wx, wz, speed, true, 0);           // sakrab ko'radi
+              else if (b.stuckN === 2) b.path.shift();                          // bu nuqtani tashlab o'tadi
+              else { b.goal = pickNest(p, true); b.path = pathTo(nearestNode(p.team, p.pos), b.goal); b.stuckN = 0; } // boshqa joy tanlaydi
+            } else b.stuckN = 0;
+            b.last.copy(p.pos); b.stuck = 0;
+          }
         } else {
           // Uyada kutish va atrofni kuzatish
-          if (b.hold <= 0) { b.hold = rr(7, 16); b.crouch = Math.random() < 0.5; b.scanA = p.team === "r" ? Math.PI : 0; }
+          if (b.hold <= 0) { b.hold = rr(5, 11); b.crouch = Math.random() < 0.5; b.scanA = p.team === "r" ? Math.PI : 0; }
           b.hold -= dt;
+          // vaqti-vaqti bilan turib/cho'kkalab "mo'ralaydi"
+          b.peekT -= dt; if (b.peekT <= 0) { b.peekT = rr(1.5, 4); b.crouch = !b.crouch; }
           p.crouch = b.crouch;
           b.scanT += dt;
-          const want = b.scanA + Math.sin(b.scanT * 0.45) * 0.7;
+          let want = b.scanA + Math.sin(b.scanT * 0.45) * 0.8;
+          const threat = b.lookAt || (b.lost && b.lost.pos);
+          if (threat) { want = Math.atan2(-(threat.x - p.pos.x), -(threat.z - p.pos.z)); if (b.lost && (b.lost.t -= dt) <= 0) b.lost = null; }
           p.yaw += clamp(((want - p.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI, -1.5 * dt, 1.5 * dt);
           p.pitch += (0 - p.pitch) * Math.min(1, dt * 2);
-          if (b.hold <= 0) { b.goal = pickNest(p); b.path = pathTo(nearestNode(p.team, p.pos), b.goal); }
+          if (b.hold <= 0) { b.lookAt = null; b.goal = pickNest(p, Math.random() < 0.5); b.path = pathTo(nearestNode(p.team, p.pos), b.goal); }
         }
       }
       physics(p, wx, wz, speed, false, dt);
@@ -600,6 +701,10 @@
       if (p.tag) p.tag.visible = p.alive && (p.team === me.team || !me.alive);
       p.av.mixer.update(dt * (p.f & 2 && !(p.f & 4) ? 0.85 : 1));
       if (o.visible) p.av.syncGun();
+      if (p.alive && p.id !== myId && (p.f & 2) && !(p.f & 8) && !(p.f & 1)) {
+        p.stepT -= dt;
+        if (p.stepT <= 0) { p.stepT = 0.4; const dd = rp(p).distanceTo(camera.position); if (dd < 22) Snd.step(clamp(1 - dd / 22, 0, 1) * 0.8, surfaceAt(rp(p))); }
+      }
     }
 
     /* ---------- Raundlar (host) ---------- */
@@ -816,7 +921,14 @@
         for (const t of e.changedTouches) {
           if (t.target.closest && t.target.closest(".sn-b,.sn-menu,.sn-start,.sn-pause,.sn-tab,.sn-board")) continue;
           const c = pt(t);
-          if (c.x < container.clientWidth * 0.42 && L.joy.id === null) { L.joy.id = t.identifier; L.joy.ox = c.x; L.joy.oy = c.y; joy.style.left = c.x - 60 + "px"; joy.style.top = c.y - 60 + "px"; joy.style.bottom = "auto"; joy.classList.add("on"); }
+          if (c.x < container.clientWidth * 0.42 && L.joy.id === null) {
+            // joystik joyidan siljimaydi: markazi doim bir joyda
+            const r = joy.getBoundingClientRect(), cx = (r.left + r.right) / 2, cy = (r.top + r.bottom) / 2;
+            const cc = container.classList.contains("rot") ? { x: cy, y: innerWidth - cx } : { x: cx, y: cy };
+            L.joy.id = t.identifier; L.joy.ox = cc.x; L.joy.oy = cc.y; joy.classList.add("on");
+            const dx = c.x - cc.x, dy = c.y - cc.y, d = Math.min(50, Math.hypot(dx, dy)), a = Math.atan2(dy, dx);
+            if (Math.hypot(dx, dy) < 90) { L.joy.x = Math.cos(a) * d / 50; L.joy.y = Math.sin(a) * d / 50; knob.style.transform = `translate(${L.joy.x * 40}px,${L.joy.y * 40}px)`; }
+          }
           else if (L.look.id === null) { L.look.id = t.identifier; L.look.x = c.x; L.look.y = c.y; }
         }
       };
@@ -828,7 +940,7 @@
         }
         e.preventDefault();
       };
-      const te = (e) => { for (const t of e.changedTouches) { if (t.identifier === L.joy.id) { L.joy.id = null; L.joy.x = 0; L.joy.y = 0; knob.style.transform = ""; joy.classList.remove("on"); joy.style.left = ""; joy.style.top = ""; joy.style.bottom = ""; } if (t.identifier === L.look.id) L.look.id = null; } };
+      const te = (e) => { for (const t of e.changedTouches) { if (t.identifier === L.joy.id) { L.joy.id = null; L.joy.x = 0; L.joy.y = 0; knob.style.transform = ""; joy.classList.remove("on"); } if (t.identifier === L.look.id) L.look.id = null; } };
       container.addEventListener("touchstart", ts, { passive: true });
       container.addEventListener("touchmove", tm, { passive: false });
       container.addEventListener("touchend", te); container.addEventListener("touchcancel", te);
@@ -901,7 +1013,8 @@
         camera.position.lerp(camPos, me.alive ? 1 : 0.2);
         const sw = swayOff();
         camera.rotation.set(0, 0, 0); camera.rotation.order = "YXZ";
-        camera.rotation.y = me.yaw + sw.x; camera.rotation.x = me.pitch + sw.y;
+        L.recoil = (L.recoil || 0) * Math.exp(-dt * 7);
+        camera.rotation.y = me.yaw + sw.x; camera.rotation.x = clamp(me.pitch + sw.y + L.recoil, -1.5, 1.5);
         if (!me.alive) camera.rotation.x = -0.6;
       } else {
         const tp = rp(target);

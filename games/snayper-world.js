@@ -316,7 +316,7 @@
       box("crate", X(4.8), 0.5, Z(2.2), 1, 1, 1);
       box("crate", X(-5.5), F2 + 0.45, Z(2.5), 0.9, 0.9, 0.9);
       box("crate", X(5.2), F2 + 0.45, Z(1.2), 0.9, 0.9, 0.9);
-      boxMM("wood", L(-1.6, 1.6)[0], 0.75, LZ(-1.2, 0.2)[0], L(-1.6, 1.6)[1], 0.82, LZ(-1.2, 0.2)[1]);
+      boxMM("wood", L(2.3, 4.3)[0], 0.75, LZ(-2.6, -1.6)[0], L(2.3, 4.3)[1], 0.82, LZ(-2.6, -1.6)[1]); // stol (yo'lni to'smaydi)
       // Tom: qum qoplari
       box("sand", X(-2.5), RF + 0.3, Z(3.6), 2.4, 0.6, 0.7); box("sand", X(3), RF + 0.3, Z(3.6), 2.0, 0.6, 0.7);
       // Bayroq
@@ -328,7 +328,7 @@
       [[-4.5, -0.5], [-2, 0.5], [0, -1.5], [2, 0.5], [4.5, -0.5]].forEach(([lx, lz]) => spawns[team].push({ x: X(lx), y: 0, z: Z(lz), yaw: team === "r" ? Math.PI : 0 }));
       const N = (key, lx, y, lz, nest) => { const n = { id: team + key, team, x: X(lx), y, z: Z(lz), nest: !!nest, link: [] }; nodes.push(n); if (nest) nests[team].push(n); return n; };
       const lk = (a, b) => { a.link.push(b.id); b.link.push(a.id); };
-      const h0 = N("h0", 0, 0, 0), h1 = N("h1", 0, 0, 3.9), h2 = N("h2", 0, 0, 6.8);
+      const h0 = N("h0", 0, 0, 1.2), h1 = N("h1", 0, 0, 3.9), h2 = N("h2", 0, 0, 6.8);
       const h3 = N("h3", -0.9, 0, -4.0), h4 = N("h4", -6.2, F2, -4.0), h5 = N("h5", -6.0, F2, -2.2), h6 = N("h6", 0, F2, 0);
       const w1 = N("w1", -4.25, F2, 4.35, 1), w2 = N("w2", 0, F2, 4.35, 1), w3 = N("w3", 4.25, F2, 4.35, 1);
       const s0 = N("s0", 0.9, F2, -4.0), s1 = N("s1", 6.2, RF, -4.0), s2 = N("s2", 6.0, RF, -2.2), rc = N("rc", 0, RF, 0);
@@ -396,6 +396,7 @@
       box("concrete", -27 * k, 0.6, -8 * k, 0.5, 1.2, 3.2); box("concrete", 27 * k, 0.6, 8 * k, 0.5, 1.2, 3.2);
       box("crate", 0, 0.6, -22 * k, 1.2, 1.2, 1.2); box("crate", 1.3 * k, 0.5, -22.4 * k, 1, 1, 1);
       box("wood", -30 * k, 0.9, -38 * k, 3.6, 1.8, 0.15); // eski taxta devor
+      box("concrete", 0, 1.1, -38.3 * k, 3.2, 2.2, 0.5); // eshik oldidagi pana (eshikdan-eshikka otishmasin)
     });
 
     // Chegara (ko'rinmas devorlar)
@@ -406,15 +407,15 @@
     Object.entries(B).forEach(([k, b]) => scene.add(b.mesh(M[k])));
 
     /* ----- Maydon tugunlari (botlar uchun) ----- */
-    const fieldPts = [["f0", 0, -38.5], ["f1", -8, -35.3, 1], ["f2", 8, -35.3, 1], ["f3", -17.4, -25.6, 1], ["f4", 18.2, -25.6, 1], ["f5", -10, -15.3, 1], ["f6", 10, -15.3, 1], ["f7", -16, -1.1, 1], ["f8", 0, -1.1, 1], ["f9", 16, -1.1, 1], ["fa", 0, -23.6, 1]];
+    const fieldPts = [["fs", 3.2, -40.6], ["f0", 3.2, -36.4], ["f1", -8, -35.3, 1], ["f2", 8, -35.3, 1], ["f3", -17.4, -25.6, 1], ["f4", 18.2, -25.6, 1], ["f5", -10, -15.3, 1], ["f6", 10, -15.3, 1], ["f7", -16, -1.1, 1], ["f8", 0, -1.1, 1], ["f9", 16, -1.1, 1], ["fa", 0, -23.6, 1]];
     ["r", "b"].forEach((team) => {
       const k = team === "r" ? 1 : -1;
       const byKey = {};
       fieldPts.forEach(([key, x, z, nest]) => { const n = { id: team + key, team, x: x * k, y: 0, z: z * k, nest: !!nest, link: [] }; nodes.push(n); byKey[key] = n; if (nest) nests[team].push(n); });
       const lk = (a, b) => { byKey[a].link.push(team + b); byKey[b].link.push(team + a); };
-      [["f0", "f1"], ["f0", "f2"], ["f1", "f3"], ["f2", "f4"], ["f3", "f5"], ["f4", "f6"], ["f5", "f7"], ["f5", "f8"], ["f6", "f8"], ["f6", "f9"], ["f0", "fa"], ["fa", "f5"], ["fa", "f6"]].forEach(([a, b]) => lk(a, b));
+      [["fs", "f0"], ["f0", "f1"], ["f0", "f2"], ["f1", "f3"], ["f2", "f4"], ["f3", "f5"], ["f4", "f6"], ["f5", "f7"], ["f5", "f8"], ["f6", "f8"], ["f6", "f9"], ["f0", "fa"], ["fa", "f5"], ["fa", "f6"]].forEach(([a, b]) => lk(a, b));
       const door = team === "r" ? doorR : doorB;
-      door.link.push(team + "f0"); byKey.f0.link.push(door.id);
+      door.link.push(team + "fs"); byKey.fs.link.push(door.id);
     });
     const nodeById = Object.fromEntries(nodes.map((n) => [n.id, n]));
 
