@@ -1,64 +1,64 @@
 /* Profil sahifasi */
 .pf-loading { display: grid; place-items: center; gap: 10px; min-height: 40vh; color: var(--muted); }
 .pf-out { padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(248, 113, 113, .5); background: rgba(248, 113, 113, .1); color: #fecaca; font: inherit; font-weight: 800; cursor: pointer; }
-.pf-login { max-width: 520px; margin: 40px auto; text-align: center; display: grid; gap: 14px; justify-items: center; padding: 30px 22px; border-radius: 28px; background: linear-gradient(170deg, rgba(0, 245, 155, .1), rgba(255, 255, 255, .02)); border: 1px solid rgba(0, 245, 155, .3); animation: gRise .6s both; }
+.pf-login { max-width: 520px; margin: 40px auto; text-align: center; display: grid; gap: 14px; justify-items: center; padding: 30px 22px; border-radius: 28px; background: linear-gradient(170deg, hsl(calc(var(--th) + 3deg) calc(100% * var(--ts)) calc(var(--tl0) + var(--tlk) * 48% + var(--tab)) / 0.1), hsl(0 0% calc(var(--tl0) + var(--tlk) * 100%) / 0)); border: 1px solid hsl(calc(var(--th) + 3deg) calc(100% * var(--ts)) calc(var(--tl0) + var(--tlk) * 48% + var(--tab)) / 0.3); animation: gRise .6s both; }
 .pf-lock { font-size: 64px; animation: pfBob 3s ease-in-out infinite; }
 @keyframes pfBob { 50% { transform: translateY(-8px) rotate(-5deg); } }
 .pf-login h1 { margin: 0; font-family: "Playfair Display", Georgia, serif; font-size: clamp(30px, 7vw, 44px); }
-.pf-login h1 span { color: var(--green, #00f59b); }
+.pf-login h1 span { color: var(--green, hsl(calc(var(--th) + 3deg) calc(100% * var(--ts)) calc(var(--tl0) + var(--tlk) * 48% + var(--tab)))); }
 .pf-login p { margin: 0; color: var(--muted); line-height: 1.6; }
 .pf-login small { color: var(--muted); }
-.pf-btn { padding: 14px 26px; border: 0; border-radius: 16px; font: inherit; font-weight: 900; font-size: 17px; color: #02130c; background: linear-gradient(135deg, #00f59b, #0ea5e9); cursor: pointer; box-shadow: 0 12px 30px rgba(0, 245, 155, .3); }
-.pf-select { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: rgba(0, 0, 0, .3); color: #fff; font: inherit; font-size: 16px; }
-.pf-hero { position: relative; overflow: hidden; display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center; margin: 22px 0 14px; padding: clamp(20px, 4vw, 34px); border-radius: 30px; background: radial-gradient(circle at 10% 20%, color-mix(in srgb, var(--c) 35%, transparent), transparent 50%), linear-gradient(140deg, #0b2a1e, #071a12 60%, #0a1430); border: 1px solid color-mix(in srgb, var(--c) 50%, transparent); animation: gRise .6s both; }
-.pf-ava { position: relative; width: clamp(96px, 20vw, 140px); aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, color-mix(in srgb, var(--c) 60%, #fff), var(--c)); box-shadow: 0 0 0 6px color-mix(in srgb, var(--c) 25%, transparent), 0 20px 50px rgba(0, 0, 0, .5); }
-.pf-ava span { font-size: clamp(34px, 7vw, 52px); font-weight: 900; color: #04140c; }
+.pf-btn { padding: 14px 26px; border: 0; border-radius: 16px; font: inherit; font-weight: 900; font-size: 17px; color: hsl(calc(var(--th) + 0.3deg) calc(81% * var(--ts)) calc(var(--tl0) + var(--tlk) * 4.1%)); background: linear-gradient(135deg, hsl(calc(var(--th) + 3deg) calc(100% * var(--ts)) calc(var(--tl0) + var(--tlk) * 48% + var(--tab))), #0ea5e9); cursor: pointer; box-shadow: 0 12px 30px hsl(calc(var(--th) + 3deg) calc(100% * var(--ts)) calc(var(--tl0) + var(--tlk) * 48% + var(--tab)) / 0.3); }
+.pf-select { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: hsl(0 0% calc(var(--tl0) + var(--tlk) * 0%) / 0.3); color: hsl(0 0% calc(var(--tl0) + var(--tlk) * 100%)); font: inherit; font-size: 16px; }
+.pf-hero { position: relative; overflow: hidden; display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center; margin: 22px 0 14px; padding: clamp(20px, 4vw, 34px); border-radius: 30px; background: radial-gradient(circle at 10% 20%, color-mix(in srgb, var(--c) 35%, transparent), transparent 50%), linear-gradient(140deg, hsl(calc(var(--th) + 1.8deg) calc(58.5% * var(--ts)) calc(var(--tl0) + var(--tlk) * 10.4%)), hsl(calc(var(--th) + -0.3deg) calc(57.6% * var(--ts)) calc(var(--tl0) + var(--tlk) * 6.5%)) 60%, #0a1430); border: 1px solid color-mix(in srgb, var(--c) 50%, transparent); animation: gRise .6s both; }
+.pf-ava { position: relative; width: clamp(96px, 20vw, 140px); aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, color-mix(in srgb, var(--c) 60%, hsl(0 0% calc(var(--tl0) + var(--tlk) * 100%))), var(--c)); box-shadow: 0 0 0 6px color-mix(in srgb, var(--c) 25%, transparent), 0 20px 50px hsl(0 0% calc(var(--tl0) + var(--tlk) * 0%) / 0.5); }
+.pf-ava span { font-size: clamp(34px, 7vw, 52px); font-weight: 900; color: hsl(calc(var(--th) + -5deg) calc(66.7% * var(--ts)) calc(var(--tl0) + var(--tlk) * 4.7%)); }
 .pf-ava i { position: absolute; right: -4px; bottom: -4px; font-style: normal; font-size: 34px; animation: pfBob 3s ease-in-out infinite; }
-.pf-kicker { display: inline-block; padding: 5px 12px; border-radius: 999px; background: rgba(0, 0, 0, .3); color: #d1fae5; font-weight: 800; font-size: 13px; }
+.pf-kicker { display: inline-block; padding: 5px 12px; border-radius: 999px; background: hsl(0 0% calc(var(--tl0) + var(--tlk) * 0%) / 0.3); color: hsl(calc(var(--th) + -5.7deg) calc(80.4% * var(--ts)) calc(var(--tl0) + var(--tlk) * 90% + var(--tab))); font-weight: 800; font-size: 13px; }
 .pf-who h1 { margin: 8px 0 4px; font-size: clamp(24px, 5vw, 36px); }
 .pf-big { display: flex; align-items: baseline; gap: 8px; }
 .pf-big b { font-size: clamp(40px, 9vw, 64px); font-weight: 900; color: #fde68a; text-shadow: 0 0 30px rgba(253, 230, 138, .4); font-variant-numeric: tabular-nums; }
 .pf-big span { color: var(--muted); font-weight: 700; }
 .pf-ranks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; max-width: 460px; }
-.pf-ranks div { padding: 10px; border-radius: 14px; background: rgba(0, 0, 0, .3); text-align: center; display: grid; }
+.pf-ranks div { padding: 10px; border-radius: 14px; background: hsl(0 0% calc(var(--tl0) + var(--tlk) * 0%) / 0.3); text-align: center; display: grid; }
 .pf-ranks b { font-size: 24px; } .pf-ranks small { color: var(--muted); font-size: 11px; }
-.pf-next { margin-top: 10px; color: #d1fae5; font-size: 14px; }
+.pf-next { margin-top: 10px; color: hsl(calc(var(--th) + -5.7deg) calc(80.4% * var(--ts)) calc(var(--tl0) + var(--tlk) * 90% + var(--tab))); font-size: 14px; }
 .pf-warn { padding: 10px 14px; border-radius: 14px; background: rgba(251, 191, 36, .1); border: 1px solid rgba(251, 191, 36, .4); color: #fde68a; }
-.pf-warn a { color: #fff; text-decoration: underline; }
+.pf-warn a { color: hsl(0 0% calc(var(--tl0) + var(--tlk) * 100%)); text-decoration: underline; }
 .pf-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-bottom: 30px; }
-.pf-card { padding: 18px; border-radius: 22px; background: rgba(255, 255, 255, .04); border: 1px solid var(--line); animation: gRise .6s both; }
+.pf-card { padding: 18px; border-radius: 22px; background: hsl(0 0% calc(var(--tl0) + var(--tlk) * 100%) / 0); border: 1px solid var(--line); animation: gRise .6s both; }
 .pf-card.wide { grid-column: 1 / -1; }
 .pf-card h2 { margin: 0 0 12px; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
 .pf-card h2 small { color: var(--muted); font-size: 13px; }
-.pf-bar { display: flex; height: 16px; border-radius: 999px; overflow: hidden; background: rgba(255, 255, 255, .06); margin-bottom: 12px; }
+.pf-bar { display: flex; height: 16px; border-radius: 999px; overflow: hidden; background: hsl(0 0% calc(var(--tl0) + var(--tlk) * 100%) / 0.1); margin-bottom: 12px; }
 .pf-bar i { height: 100%; animation: pfGrow 1s ease-out both; }
 @keyframes pfGrow { from { width: 0 !important; } }
 .pf-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.pf-list li { display: flex; justify-content: space-between; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(0, 0, 0, .2); font-size: 14px; }
+.pf-list li { display: flex; justify-content: space-between; gap: 10px; padding: 8px 10px; border-radius: 12px; background: hsl(0 0% calc(var(--tl0) + var(--tlk) * 0%) / 0.2); font-size: 14px; }
 .pf-list li.muted { color: var(--muted); font-size: 12px; }
 .pf-cmp { display: grid; grid-template-columns: 120px 1fr 44px; gap: 8px; align-items: center; margin-bottom: 8px; font-size: 13px; }
-.pf-cmp div { height: 12px; border-radius: 999px; background: rgba(255, 255, 255, .06); overflow: hidden; }
+.pf-cmp div { height: 12px; border-radius: 999px; background: hsl(0 0% calc(var(--tl0) + var(--tlk) * 100%) / 0.1); overflow: hidden; }
 .pf-cmp i { display: block; height: 100%; border-radius: 999px; animation: pfGrow 1.1s ease-out both; }
 .pf-cmp b { text-align: right; }
 .pf-muted { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
-.pf-muted a { color: var(--green, #00f59b); }
-.pf-act { display: flex; align-items: flex-end; gap: 3px; height: 90px; padding: 6px; border-radius: 14px; background: rgba(0, 0, 0, .25); }
-.pf-act i { flex: 1; border-radius: 4px 4px 2px 2px; background: rgba(255, 255, 255, .1); animation: pfUp .8s ease-out both; }
+.pf-muted a { color: var(--green, hsl(calc(var(--th) + 3deg) calc(100% * var(--ts)) calc(var(--tl0) + var(--tlk) * 48% + var(--tab)))); }
+.pf-act { display: flex; align-items: flex-end; gap: 3px; height: 90px; padding: 6px; border-radius: 14px; background: hsl(0 0% calc(var(--tl0) + var(--tlk) * 0%) / 0.2); }
+.pf-act i { flex: 1; border-radius: 4px 4px 2px 2px; background: hsl(0 0% calc(var(--tl0) + var(--tlk) * 100%) / 0.1); animation: pfUp .8s ease-out both; }
 .pf-act i.on { background: linear-gradient(180deg, #fde68a, #f59e0b); }
 @keyframes pfUp { from { transform: scaleY(0); transform-origin: bottom; } }
 .pf-stats4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
 .pf-stats4 div { padding: 10px; border-radius: 14px; background: rgba(239, 68, 68, .1); border: 1px solid rgba(239, 68, 68, .3); text-align: center; display: grid; }
 .pf-stats4 b { font-size: 22px; color: #fde68a; } .pf-stats4 small { color: var(--muted); font-size: 11px; }
 .pf-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.pf-table th, .pf-table td { padding: 8px 6px; border-bottom: 1px solid rgba(255, 255, 255, .08); text-align: left; }
+.pf-table th, .pf-table td { padding: 8px 6px; border-bottom: 1px solid hsl(0 0% calc(var(--tl0) + var(--tlk) * 100%) / 0.1); text-align: left; }
 .pf-table th { color: var(--muted); font-weight: 700; }
 .pf-goal { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 16px; background: rgba(236, 72, 153, .1); border: 1px solid rgba(236, 72, 153, .35); }
 .pf-goal > span { font-size: 40px; } .pf-goal > div { flex: 1; display: grid; gap: 4px; } .pf-goal small { color: var(--muted); }
-.pf-prog { height: 10px; border-radius: 999px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+.pf-prog { height: 10px; border-radius: 999px; background: hsl(0 0% calc(var(--tl0) + var(--tlk) * 100%) / 0.1); overflow: hidden; }
 .pf-prog i { display: block; height: 100%; background: linear-gradient(90deg, #ec4899, #f5c84c); animation: pfGrow 1.2s ease-out both; }
-.pf-link { display: inline-block; margin-top: 10px; color: var(--green, #00f59b); font-weight: 800; }
+.pf-link { display: inline-block; margin-top: 10px; color: var(--green, hsl(calc(var(--th) + 3deg) calc(100% * var(--ts)) calc(var(--tl0) + var(--tlk) * 48% + var(--tab)))); font-weight: 800; }
 .pf-ach { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
-.pf-ach div { display: grid; justify-items: center; gap: 4px; padding: 8px 4px; border-radius: 14px; background: rgba(255, 255, 255, .03); border: 1px solid var(--line); text-align: center; opacity: .5; }
+.pf-ach div { display: grid; justify-items: center; gap: 4px; padding: 8px 4px; border-radius: 14px; background: hsl(0 0% calc(var(--tl0) + var(--tlk) * 100%) / 0); border: 1px solid var(--line); text-align: center; opacity: .5; }
 .pf-ach div.on { opacity: 1; background: rgba(245, 200, 76, .1); border-color: rgba(245, 200, 76, .4); }
 .pf-ach span { font-size: 26px; } .pf-ach small { font-size: 10px; color: var(--muted); line-height: 1.2; }
 @media (max-width: 760px) {
@@ -73,12 +73,12 @@
 .pf-give, .pf-page main > .pf-card { margin-bottom: 14px; }
 .pf-give h3 { margin: 14px 0 8px; font-size: 15px; color: var(--muted); }
 .pf-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
-.pf-tabs button, .pf-mini { padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255, 255, 255, .05); color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
-.pf-tabs button.on { background: var(--green, #00f59b); color: #02130c; border-color: transparent; }
+.pf-tabs button, .pf-mini { padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); background: hsl(0 0% calc(var(--tl0) + var(--tlk) * 100%) / 0.1); color: hsl(0 0% calc(var(--tl0) + var(--tlk) * 100%)); font: inherit; font-weight: 800; cursor: pointer; }
+.pf-tabs button.on { background: var(--green, hsl(calc(var(--th) + 3deg) calc(100% * var(--ts)) calc(var(--tl0) + var(--tlk) * 48% + var(--tab)))); color: hsl(calc(var(--th) + 0.3deg) calc(81% * var(--ts)) calc(var(--tl0) + var(--tlk) * 4.1%)); border-color: transparent; }
 .pf-tabs button.neg.on { background: #f87171; color: #2a0505; }
 .pf-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; max-height: 300px; overflow: auto; padding: 4px; }
-.pf-pick button { padding: 9px 10px; border-radius: 12px; border: 1px solid var(--line); background: rgba(0, 0, 0, .2); color: #fff; font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
-.pf-pick button.on { background: rgba(0, 245, 155, .18); border-color: var(--green, #00f59b); font-weight: 800; }
+.pf-pick button { padding: 9px 10px; border-radius: 12px; border: 1px solid var(--line); background: hsl(0 0% calc(var(--tl0) + var(--tlk) * 0%) / 0.2); color: hsl(0 0% calc(var(--tl0) + var(--tlk) * 100%)); font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.pf-pick button.on { background: hsl(calc(var(--th) + 3deg) calc(100% * var(--ts)) calc(var(--tl0) + var(--tlk) * 48% + var(--tab)) / 0.2); border-color: var(--green, hsl(calc(var(--th) + 3deg) calc(100% * var(--ts)) calc(var(--tl0) + var(--tlk) * 48% + var(--tab)))); font-weight: 800; }
 .pf-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
 .pf-give .pf-btn { margin-top: 12px; width: 100%; }
 .pf-give .pf-select { margin-top: 6px; }

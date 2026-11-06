@@ -591,3 +591,55 @@
   })();
 
 })();
+
+
+/* ===== Sayt rangi (mavzu): yashil, qora, oq, qizil, ko'k ===== */
+(() => {
+  const KEY = "sofi_theme";
+  const THEMES = [
+    ["", "Yashil", "linear-gradient(135deg,#00f59b,#04140c)", "#03140d"],
+    ["black", "Qora", "linear-gradient(135deg,#9a9a9a,#050505)", "#050505"],
+    ["white", "Oq", "linear-gradient(135deg,#ffffff,#d9e6df)", "#f4faf7"],
+    ["red", "Qizil", "linear-gradient(135deg,#ff3b4f,#1a0406)", "#160405"],
+    ["blue", "Ko‘k", "linear-gradient(135deg,#3b9bff,#040b1a)", "#040a16"],
+  ];
+  const get = () => { try { return localStorage.getItem(KEY) || ""; } catch (e) { return ""; } };
+  const apply = (t) => {
+    if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    const th = THEMES.find((x) => x[0] === t);
+    if (meta && th) meta.setAttribute("content", th[3]);
+  };
+  apply(get());
+  function openPicker(btn) {
+    const old = document.querySelector(".th-pop");
+    if (old) { old.remove(); return; }
+    const pop = document.createElement("div");
+    pop.className = "th-pop";
+    pop.setAttribute("role", "dialog");
+    pop.innerHTML = `<b>🎨 Sayt rangini tanlang</b><div class="th-row">${THEMES.map(([id, name, g]) => `<button class="th-sw ${get() === id ? "on" : ""}" data-th="${id}" type="button"><i style="background:${g}"></i>${name}</button>`).join("")}</div>`;
+    document.body.appendChild(pop);
+    const r = btn.getBoundingClientRect();
+    pop.style.top = Math.min(innerHeight - pop.offsetHeight - 10, r.bottom + 8) + "px";
+    pop.style.right = Math.max(8, innerWidth - r.right) + "px";
+    pop.addEventListener("click", (e) => {
+      const sw = e.target.closest("[data-th]"); if (!sw) return;
+      const t = sw.dataset.th;
+      try { if (t) localStorage.setItem(KEY, t); else localStorage.removeItem(KEY); } catch (er) {}
+      apply(t);
+      pop.querySelectorAll(".th-sw").forEach((x) => x.classList.toggle("on", x === sw));
+      setTimeout(() => pop.remove(), 250);
+    });
+    setTimeout(() => document.addEventListener("click", function off(e) { if (!pop.contains(e.target) && e.target !== btn) { pop.remove(); document.removeEventListener("click", off); } }), 0);
+  }
+  const mount = () => {
+    const host = document.querySelector(".topinner") || document.querySelector(".nav-in");
+    if (!host || host.querySelector(".th-btn")) return;
+    const b = document.createElement("button");
+    b.className = "th-btn"; b.type = "button"; b.title = "Sayt rangi"; b.setAttribute("aria-label", "Sayt rangini tanlash");
+    b.textContent = "🎨";
+    b.addEventListener("click", (e) => { e.stopPropagation(); openPicker(b); });
+    host.appendChild(b);
+  };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount); else mount();
+})();
