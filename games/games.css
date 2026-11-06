@@ -386,3 +386,8 @@ body.g-playing .ch-fab { bottom: 100px; right: 12px; width: 48px; height: 48px; 
 .g-guest-row input { flex: 1 1 160px; min-width: 0; padding: 11px 12px; border-radius: 12px; border: 1px solid var(--line); background: hsl(0 0% calc(var(--tl0) + var(--tlk) * 0%) / 0.3); color: var(--white); font: inherit; }
 .g-guest-row .btn { flex: 0 0 auto; margin: 0; background: linear-gradient(135deg, #7dd3fc, #38bdf8); color: #04131d; }
 .g-chip.guest .av { background: linear-gradient(135deg, #7dd3fc, #38bdf8); }
+
+/* O'yin ochiq turganda orqadagi sahifani yashiramiz: animatsiyalar xotira va batareyani yemasin */
+body.g-playing > main, body.g-playing > footer, body.g-playing > .bottom-nav,
+body.lb-open > main, body.lb-open > footer, body.lb-open > .bottom-nav, body.lb-open > header,
+body.sn-open > main, body.sn-open > footer, body.sn-open > .bottom-nav, body.sn-open > header { display: none !important; }
