@@ -99,3 +99,25 @@ body.lb-open { overflow: hidden; }
 .lb-joy { position: absolute; left: 26px; bottom: 30px; width: 120px; height: 120px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .25); background: rgba(255, 255, 255, .06); opacity: .6; pointer-events: none; }
 .lb-joy.on { opacity: 1; } .lb-joy i { position: absolute; left: 35px; top: 35px; width: 50px; height: 50px; border-radius: 50%; background: rgba(255, 255, 255, .35); }
 @media (max-width: 640px) { .lb-map { width: 120px; height: 120px; } .lb-top { left: 60px; max-width: calc(100% - 200px); } .lb-chip { padding: 4px 8px; font-size: 12px; } .lb-q { bottom: auto; top: 30%; } }
+
+/* Darvoza kayfiyatlari */
+.lb-q.m-scary { border-color: rgba(255, 50, 50, .75); background: linear-gradient(160deg, rgba(50, 5, 8, .94), rgba(15, 0, 4, .94)); box-shadow: 0 0 50px rgba(255, 30, 30, .35), 0 20px 50px rgba(0, 0, 0, .6); }
+.lb-q.m-scary .lb-q-body small { color: #ff8a8a; } .lb-q.m-scary .lb-q-rune { filter: drop-shadow(0 0 12px #ff2020); }
+.lb-q.m-scary input { border-color: rgba(255, 70, 70, .7); }
+.lb-q.m-nice { border-color: rgba(255, 211, 77, .8); background: linear-gradient(160deg, rgba(60, 40, 5, .92), rgba(30, 18, 40, .92)); box-shadow: 0 0 50px rgba(255, 211, 77, .35), 0 20px 50px rgba(0, 0, 0, .5); }
+.lb-q.m-nice .lb-q-body small { color: #ffe08a; } .lb-q.m-nice .lb-q-rune { filter: drop-shadow(0 0 12px #ffd34d); }
+.lb-q.m-task { border-color: rgba(125, 255, 154, .8); background: linear-gradient(160deg, rgba(10, 45, 30, .92), rgba(30, 15, 50, .92)); box-shadow: 0 0 50px rgba(125, 255, 154, .3), 0 20px 50px rgba(0, 0, 0, .5); }
+.lb-q.m-task .lb-q-body small { color: #b9ffcb; }
+.lb-q.m-task .lb-q-body em, .lb-q.m-nice .lb-q-body em { color: #fde68a; }
+
+/* Telefon tik bo'lsa o'yin yotiq (90° burilgan) — snayperdagi kabi */
+.lb-game.rot { inset: auto; top: 0; left: 0; width: 100vh; height: 100vw; width: 100dvh; height: 100dvw; transform-origin: top left; transform: rotate(90deg) translateY(-100%); }
+
+/* Yutuqlar */
+.lb-ach { padding: 14px 18px; border-radius: 18px; background: linear-gradient(160deg, rgba(255, 211, 77, .12), rgba(125, 255, 154, .06)); border: 1px solid rgba(255, 211, 77, .35); }
+.lb-ach b { display: block; margin-bottom: 10px; }
+.lb-ach-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.lb-ach-grid div { display: grid; justify-items: center; gap: 4px; padding: 10px 4px; border-radius: 14px; background: rgba(0, 0, 0, .3); text-align: center; font-size: 12px; color: #cdd0e6; }
+.lb-ach-grid div span { font-size: 30px; }
+.lb-ach-grid div.off { opacity: .35; filter: grayscale(1); }
+.lb-ach-grid div.on { box-shadow: 0 0 0 1px rgba(255, 211, 77, .6), 0 0 18px rgba(255, 211, 77, .25); color: #fff; }

@@ -91,3 +91,31 @@
 
   window.SofiMazeQ = { make, check, norm };
 })();
+
+/* Sirli bog' topshiriqlari: ketma-ketlik va topishmoqlar */
+(() => {
+  "use strict";
+  const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const RIDDLES = [
+    ["Tishi bor, og‘zi yo‘q. Bu nima?", ["taroq"]],
+    ["Qishin-yozin bir rangda — doim yashil. Bu nima?", ["archa", "qarag‘ay", "qaragay"]],
+    ["Ko‘zi yo‘q, ammo yig‘laydi. Bu nima?", ["bulut"]],
+    ["Oq dala, qora urug‘. Qo‘l bilan ekiladi, ko‘z bilan teriladi. Bu nima?", ["xat", "kitob", "yozuv"]],
+    ["Tili yo‘q, og‘zi yo‘q — hamma narsani aytib beradi. Bu nima?", ["kitob"]],
+    ["Bir qo‘ra qo‘y, bitta cho‘pon. Cho‘pon kim?", ["oy"]],
+    ["Qanoti bor — qush emas, osmonda uchadi, odam tashiydi. Bu nima?", ["samolyot", "samolet"]],
+    ["Uyini orqasida ko‘tarib yuradi, sekin-sekin yuradi. Bu kim?", ["toshbaqa", "shilliqqurt"]],
+    ["Oyog‘i yo‘q — yuradi, to‘xtamaydi, vaqtni aytadi. Bu nima?", ["soat"]],
+    ["Kunduzi yonadi, kechasi uxlaydi, hammani isitadi. Bu nima?", ["quyosh"]],
+  ];
+  function seq() {
+    const k = ri(0, 3);
+    if (k === 0) { const a = ri(1, 9), d = ri(2, 9); const s = [0, 1, 2, 3].map((i) => a + d * i); return { q: `Ketma-ketlikni davom ettiring: ${s.join(", ")}, ?`, a: [String(a + d * 4)] }; }
+    if (k === 1) { const a = ri(1, 3), r = ri(2, 3); const s = [0, 1, 2, 3].map((i) => a * r ** i); return { q: `Ketma-ketlikni davom ettiring: ${s.join(", ")}, ?`, a: [String(a * r ** 4)] }; }
+    if (k === 2) { const s = [1, 1, 2, 3, 5, 8]; return { q: `Ketma-ketlikni davom ettiring: ${s.join(", ")}, ?`, a: ["13"], hint: "Har bir son oldingi ikkitasining yig‘indisi." }; }
+    const n = ri(2, 5); const s = [n, n + 1, n + 2, n + 3].map((i) => i * i); return { q: `Ketma-ketlikni davom ettiring: ${s.join(", ")}, ?`, a: [String((n + 4) ** 2)], hint: "Bular kvadrat sonlar." };
+  }
+  const riddle = () => { const [q, a] = pick(RIDDLES); return { q, a }; };
+  Object.assign(window.SofiMazeQ, { seq, riddle });
+})();

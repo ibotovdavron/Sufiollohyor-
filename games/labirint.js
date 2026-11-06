@@ -9,15 +9,26 @@
   let libs = null;
   const loadLibs = () => libs || (libs = (async () => {
     if (!window.THREE) await loadScript("lib/three.min.js?v=149");
-    if (!window.SofiMazeQ) await loadScript("games/labirint-q.js?v=1");
-    if (!window.SofiMaze3D) await loadScript("games/labirint3d.js?v=1");
+    if (!window.SofiMazeQ) await loadScript("games/labirint-q.js?v=2");
+    if (!window.SofiMaze3D) await loadScript("games/labirint3d.js?v=2");
   })().catch((e) => { libs = null; throw e; }));
   const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
   const data = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } };
   const save = (d) => { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} };
   const who = () => G.session.name || "Mehmon";
-  const prog = () => { const d = data(); return d[who()] || { open: 1, best: {} }; };
+  const prog = () => { const d = data(); const p = d[who()] || { open: 1, best: {} }; if (!p.ach) p.ach = []; return p; };
+  const PRIZES = [["crystal", "💎", "Sehrli kristall"], ["crown", "👑", "Bilim toji"], ["cup", "🏆", "Oltin kubok"], ["star", "⭐", "Yulduz nishoni"], ["book", "📘", "Donolik kitobi"], ["key", "🗝️", "Oltin kalit"], ["orb", "🔮", "Sehrli shar"], ["medal", "🏅", "Zakovat medali"]];
+  const TOUCH = window.matchMedia && matchMedia("(pointer: coarse)").matches;
+  /** Telefon tik tursa — o'yin oynasini 90° burib, doim yotiq ko'rsatamiz (snayperdagi kabi). */
+  function applyRot() {
+    if (!root) return;
+    const g = root.querySelector("[data-game]");
+    const want = TOUCH && !g.hidden && innerHeight > innerWidth;
+    if (g.classList.contains("rot") !== want) { g.classList.toggle("rot", want); window.dispatchEvent(new Event("resize")); }
+  }
+  window.addEventListener("resize", () => setTimeout(applyRot, 50));
+  window.addEventListener("orientationchange", () => setTimeout(applyRot, 250));
   const setProg = (p) => { const d = data(); d[who()] = p; save(d); };
 
   let root = null, engine = null;
@@ -49,24 +60,29 @@
         return `<button class="lb-lv ${open ? "" : "lock"} ${b ? "done" : ""}" data-lv="${lv}" type="button" ${open ? "" : "disabled"}>
           <b>${open ? lv : "🔒"}</b><small>${["6×6", "8×8", "10×10", "12×12", "14×14"][i]}</small><em>${b ? `⭐ ${b.score}` : open ? "ochiq" : "yopiq"}</em></button>`;
       }).join("")}</div>
+      <div class="lb-ach"><b>🏆 Yutuqlarim · ${p.ach.length}/${PRIZES.length}</b><div class="lb-ach-grid">${PRIZES.map(([id, ic, nm]) => `<div class="${p.ach.includes(id) ? "on" : "off"}"><span>${ic}</span>${nm}</div>`).join("")}</div></div>
       <div class="lb-rules"><b>📜 Qanday o‘ynaladi</b><ul>
         <li>Siz tungi tosh labirintdasiz. Maqsad — binafsha <b>chiqish portali</b>ga yetish.</li>
         <li>Yo‘lda oldingizdan to‘satdan <b>sehrli darvoza</b> ko‘tariladi. Savolga javobni klaviaturada yozing — darvoza ochiladi.</li>
         <li>Xato javob 1 ❤️ oladi. 3 ta yurak tugasa, daraja qaytadan boshlanadi.</li>
         <li>Boshi berk yo‘laklarda 💰 <b>xazina sandiqlari</b> bor — qo‘shimcha ball!</li>
-        <li>🗺️ Xarita yuqorida: siz yurgan joylar ochiladi, chiqish doim ko‘rinadi.</li></ul></div>
+        <li>🗺️ Xarita yuqorida: siz yurgan joylar ochiladi, chiqish doim ko‘rinadi.</li>
+        <li>✦ Oltin <b>sirli portal</b> sizni “Sirli bog‘”ga olib boradi — u yerda topshiriq bajarib yutuqlarni yig‘asiz.</li>
+        <li>😱 Ba’zi darvozalar qo‘rqinchli, ✨ ba’zilari oltin va yoqimli — qo‘rqmang, bilim hammasidan kuchli!</li></ul></div>
     </div>`;
   }
   async function play(level) {
     const g = root.querySelector("[data-game]");
     g.hidden = false;
+    applyRot();
     g.innerHTML = `<div class="lb-loading"><span>🧩</span><b>Labirint qurilmoqda...</b><i></i></div>`;
     try { await loadLibs(); } catch (e) { g.innerHTML = `<div class="lb-loading"><b>😕 Yuklab bo‘lmadi. Internetni tekshiring.</b></div>`; setTimeout(() => (g.hidden = true), 2000); return; }
     g.innerHTML = "";
     const grade = parseInt(G.session.cls) || 6;
     engine = window.SofiMaze3D.create(g, {
-      level, grade,
-      onExit: () => { engine = null; g.hidden = true; g.innerHTML = ""; drawMenu(); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {} },
+      level, grade, owned: prog().ach,
+      onAchieve: (prize) => { const p = prog(); if (!p.ach.includes(prize.id)) p.ach.push(prize.id); setProg(p); },
+      onExit: () => { engine = null; g.hidden = true; g.innerHTML = ""; g.classList.remove("rot"); try { screen.orientation && screen.orientation.unlock && screen.orientation.unlock(); } catch (e) {} drawMenu(); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {} },
       onWin: (next) => { engine = null; g.innerHTML = ""; play(Math.min(5, next)); },
       onResult: (r) => {
         const p = prog(), prev = p.best[r.level];
