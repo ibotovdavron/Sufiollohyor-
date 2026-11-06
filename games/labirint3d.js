@@ -567,6 +567,9 @@
       olov: { url: "games/models/olov.bin?v=1", h: 1.75 },
       arvoh: { url: "games/models/arvoh.bin?v=1", h: 2.15 },
       maxluq: { url: "games/models/maxluq.bin?v=1", tex: "games/models/maxluq.jpg?v=1", h: 2.1 },
+      olov2: { url: "games/models/olov2.bin?v=1", tex: "games/models/olov2.jpg?v=1", h: 1.85 },
+      ruh: { url: "games/models/ruh.bin?v=1", tex: "games/models/ruh.jpg?v=1", h: 2.3 },
+      ayiq: { url: "games/models/ayiq.bin?v=1", tex: "games/models/ayiq.jpg?v=1", h: 2.0 },
     };
     const geoCache = {};
     async function loadGuardGeo(name) {
@@ -624,6 +627,22 @@
         };
         return m;
       }
+      if (name === "olov2" || name === "ruh" || name === "ayiq") {
+        const tx = new T.TextureLoader().load(GUARD[name].tex); tx.encoding = T.sRGBEncoding; tx.flipY = false;
+        const m = new T.MeshStandardMaterial({ map: tx, roughness: name === "ayiq" ? 0.35 : 0.7, metalness: name === "ayiq" ? 0.1 : 0, emissive: name === "olov2" ? 0xffffff : name === "ruh" ? 0x5ef2ff : 0x000000, emissiveMap: name === "ayiq" ? null : tx, emissiveIntensity: name === "olov2" ? 0.55 : 0.25, envMapIntensity: name === "ayiq" ? 1.2 : 0.5 });
+        m.onBeforeCompile = (sh) => {
+          sh.uniforms.uTime = uTime;
+          const H = GUARD[name].h;
+          let v = "";
+          if (name === "olov2") v = `float n = sin(uTime * 9.0 + position.y * 16.0 + position.x * 11.0) * sin(uTime * 6.3 + position.z * 14.0); transformed += normal * n * 0.018 * smoothstep(0.3, ${H.toFixed(2)}, position.y);`;
+          if (name === "ruh") v = `float w = smoothstep(0.25, 0.95, abs(position.x)); transformed.y += sin(uTime * 3.2) * 0.18 * w * abs(position.x); transformed.z -= (0.5 + 0.5 * sin(uTime * 3.2)) * 0.25 * w * abs(position.x); transformed.x += sin(uTime * 1.9 + position.y * 4.0) * 0.03 * (1.0 - position.y / ${H.toFixed(2)});`;
+          if (name === "ayiq") v = `float br = sin(uTime * 2.0) * 0.015 * smoothstep(0.6, 1.4, position.y); transformed.xz *= 1.0 + br;`;
+          sh.vertexShader = "uniform float uTime;\n" + sh.vertexShader.replace("#include <begin_vertex>", "#include <begin_vertex>\n" + v);
+          if (name === "olov2") sh.fragmentShader = "uniform float uTime;\n" + sh.fragmentShader.replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\n totalEmissiveRadiance *= 0.8 + 0.3 * sin(uTime * 12.0 + vUv.y * 30.0);");
+          if (name === "ruh") sh.fragmentShader = "uniform float uTime;\n" + sh.fragmentShader.replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\n totalEmissiveRadiance *= smoothstep(0.12, 0.4, totalEmissiveRadiance.g) * (1.6 + 0.8 * sin(uTime * 4.0));");
+        };
+        return m;
+      }
       const tex = new T.TextureLoader().load(GUARD.maxluq.tex); tex.encoding = T.sRGBEncoding; tex.flipY = false;
       return new T.MeshStandardMaterial({ map: tex, roughness: 0.85, emissive: 0x1a1206, emissiveIntensity: 0.4 });
     }
@@ -631,7 +650,8 @@
     async function makeGuard(g) {
       const FM = (location.search.match(/lbguard=(\w+)/) || [])[1];
       // qo'rqinchli → arvoh, yoqimli → yungli maxluq, oddiy → olov maxluqi
-      const name = FM ? FM : g.mood === "scary" ? "arvoh" : g.mood === "nice" ? "maxluq" : "olov";
+      // qo'rqinchli → qora patli ruh, yoqimli → yungli maxluq, oddiy → olov maxluqi yoki muz ayiq
+      const name = FM ? FM : g.mood === "scary" ? "ruh" : g.mood === "nice" ? "maxluq" : (g.x + g.y) % 2 ? "ayiq" : "olov2";
       if (!name) return;
       try {
         const geo = await loadGuardGeo(name);
@@ -639,6 +659,9 @@
         const mat = guardMaterial(name);
         const mesh = new T.Mesh(geo, mat); mesh.castShadow = true; mesh.rotation.y = GUARD[name].yaw || 0;
         const root = new T.Group(); root.add(mesh); root.visible = false;
+        if (name === "olov2") { const fl = new T.PointLight(0xff6a20, 0, 6, 2); fl.position.y = 1.2; root.add(fl); root.userData.light = fl; }
+        if (name === "ruh") { const gl = new T.PointLight(0x4af0ff, 0, 5, 2); gl.position.set(0, 1.9, 0.3); root.add(gl); root.userData.light = gl; }
+        if (name === "ayiq") { const gl = new T.PointLight(0x8fe0ff, 0, 5, 2); gl.position.set(0, 1.6, 0.5); root.add(gl); root.userData.light = gl; }
         if (name === "olov") { // atrofida olov uchqunlari va yorug'lik
           for (let i = 0; i < 5; i++) { const sp = new T.Sprite(new T.SpriteMaterial({ map: glowTex, color: 0xff7a20, blending: T.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.6 })); sp.position.set(rr(-0.35, 0.35), rr(0.4, 1.7), rr(-0.2, 0.2)); sp.scale.setScalar(rr(0.5, 0.9)); sp.userData.ph = Math.random() * 6; root.add(sp); }
           const fl = new T.PointLight(0xff6a20, 0, 6, 2); fl.position.y = 1.2; root.add(fl); root.userData.light = fl;
@@ -666,7 +689,7 @@
         // o'yinchiga qarab burilish
         const want = Math.atan2(me.x - r.position.x, me.z - r.position.z);
         let dy = ((want - gd.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI; gd.yaw += dy * Math.min(1, adt * 3); r.rotation.y = gd.yaw;
-        const hover = gd.name === "arvoh" ? 0.35 + Math.sin(t * 1.6 + gd.ph) * 0.12 : 0;
+        const hover = gd.name === "arvoh" || gd.name === "ruh" ? 0.35 + Math.sin(t * 1.6 + gd.ph) * 0.12 : 0;
         const breathe = 1 + Math.sin(t * (gd.name === "maxluq" ? 2.2 : 3) + gd.ph) * 0.025;
         gd.lunge = Math.max(0, gd.lunge - adt * 1.8);
         const lk = Math.sin(Math.min(1, gd.lunge) * Math.PI) * 0.9;
@@ -682,12 +705,12 @@
           if (L) L.intensity = 1.6 * k;
           if (k >= 1) { gd.state = "idle"; if (gd.gate.mood === "scary") gd.lunge = 1; }
         } else if (gd.state === "idle") {
-          const hop = gd.name !== "arvoh" && walking ? Math.abs(Math.sin(t * 7 + gd.ph)) * 0.09 : 0;
+          const hop = gd.name !== "arvoh" && gd.name !== "ruh" && walking ? Math.abs(Math.sin(t * 7 + gd.ph)) * 0.09 : 0;
           r.position.set(bx, hover + hop, bz);
-          if (gd.name !== "arvoh" && walking) r.rotation.x = Math.sin(t * 7 + gd.ph) * 0.05;
+          if (gd.name !== "arvoh" && gd.name !== "ruh" && walking) r.rotation.x = Math.sin(t * 7 + gd.ph) * 0.05;
           r.scale.set(breathe, 1 / breathe * (1 + (breathe - 1) * 0.5), breathe);
           r.rotation.z = Math.sin(t * 1.3 + gd.ph) * (gd.name === "arvoh" ? 0.08 : 0.03);
-          if (L) L.intensity = (gd.name === "olov" ? 1.8 : 1.2) * (0.8 + 0.2 * Math.sin(t * 11 + gd.ph));
+          if (L) L.intensity = (gd.name === "olov" || gd.name === "olov2" ? 1.8 : 1.2) * (0.8 + 0.2 * Math.sin(t * 11 + gd.ph));
         } else if (gd.state === "fade") {
           const k = Math.min(1, gd.t / 1.0);
           r.position.y = hover + k * 1.5; r.scale.setScalar(Math.max(0.01, 1 - k * 0.7));
@@ -879,7 +902,7 @@
       }
       if (v) {
         Snd.good(); flash("rgba(80,255,200,.35)");
-        if (a.kind === "gate") { a.target.state = "sinking"; a.target.t = 0; st.gatesOpen++; st.score += a.target.tries ? 60 : a.target.mood === "nice" ? 150 : a.target.mood === "scary" ? 120 : 100; Snd.sink(); hint(a.target.mood === "scary" ? "💪 Barakalla! Qorong‘i darvoza yengildi" : "✅ To‘g‘ri! Darvoza ochildi"); if (a.target.mood === "nice") burstAt(a.target.x * S, 1.5, a.target.y * S, 0xffd34d, 60); if (a.target.eyes) a.target.eyes.visible = false; if (a.target.guard && a.target.guard.state !== "gone") { a.target.guard.state = "fade"; a.target.guard.t = 0; burstAt(a.target.guard.root.position.x, 1.2, a.target.guard.root.position.z, a.target.guard.name === "olov" ? 0xff7a20 : 0x9fb4ff, 50); } }
+        if (a.kind === "gate") { a.target.state = "sinking"; a.target.t = 0; st.gatesOpen++; st.score += a.target.tries ? 60 : a.target.mood === "nice" ? 150 : a.target.mood === "scary" ? 120 : 100; Snd.sink(); hint(a.target.mood === "scary" ? "💪 Barakalla! Qorong‘i darvoza yengildi" : "✅ To‘g‘ri! Darvoza ochildi"); if (a.target.mood === "nice") burstAt(a.target.x * S, 1.5, a.target.y * S, 0xffd34d, 60); if (a.target.eyes) a.target.eyes.visible = false; if (a.target.guard && a.target.guard.state !== "gone") { a.target.guard.state = "fade"; a.target.guard.t = 0; burstAt(a.target.guard.root.position.x, 1.2, a.target.guard.root.position.z, a.target.guard.name.startsWith("olov") ? 0xff7a20 : a.target.guard.name === "ayiq" ? 0xbff4ff : 0x9fb4ff, 50); } }
         else { a.target.open = true; st.chestsOpen++; st.score += 50; Snd.coin(); hint("💰 +50 ⭐ Xazina topildi!"); burstGold(a.target); }
         closeAsk();
       } else {

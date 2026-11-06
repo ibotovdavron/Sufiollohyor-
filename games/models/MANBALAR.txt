@@ -23,3 +23,7 @@ Tovushlar (games/sounds) — Mixkit (mixkit.co), "Mixkit Sound Effects Free Lice
 Snayper jangi — personajlar va qurol (markaz direktori yuborgan modellar)
 - soldier.bin/.jpg (Soldier) — qizil jamoa, lawman.bin/.jpg (Lawman) — ko'k jamoa, launcher.bin/.jpg (Launcher) — qurol.
   Ixcham LBM1 shaklga o'girilgan, teksturalar 1024 px. Yurish (oyoq/qo'l tebranishi), yiqilish — o'yin kodida.
+
+Bilim labirinti — yangi qo'riqchilar (markaz direktori yuborgan, teksturali)
+- olov2.bin/.jpg (Fire Creature) — oddiy darvoza, ruh.bin/.jpg (Feathered Spirit) — qo'rqinchli darvoza,
+  ayiq.bin/.jpg (IceBearCreature) — oddiy darvoza. Harakat (qanot qoqish, olov lipillashi, nafas) shaderda.
