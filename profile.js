@@ -11,7 +11,7 @@
   const STUDENTS = (D.students || []).map((s) => ({ name: s.name, cls: s.group, base: Number(s.stars) || 0, result: s.result }));
   const GAME = { "sirli-quti": ["🎁", "Sirli quti"], "poyga": ["🏎️", "Bilimlar poygasi"], "bilmasvoy": ["🧢", "Bilmasvoyga o‘rgat"], "master": ["🏅", "Matematika Master (g‘olib)"] };
   const MASTER_T = { "takror-3-4": "3–4-sinfni takrorlash", "takror-5": "5-sinfni takrorlash", "boluvchi-karrali": "Bo‘luvchilar va karralilar", "ekub-ekuk": "EKUB va EKUK", "oddiy-kasrlar": "Oddiy kasrlar", "onli-davriy": "O‘nli va davriy kasrlar", "chiziqli-tenglamalar": "Chiziqli tenglamalar", "ketma-ketliklar": "Ketma-ketliklar", "toplamlar": "To‘plamlar", "ehtimollik": "Ehtimollik", "statistika": "Statistika", "burchaklar": "Burchaklar" };
-  const CLS_C = { "5-sinf": "#22c55e", "6-sinf": "#38bdf8", "6-A sinf": "#818cf8", "8-sinf": "#f59e0b" };
+  const CLS_C = { "5-sinf": "#22c55e", "6-sinf": "#38bdf8", "6-A sinf": "#818cf8", "7-sinf": "#ec4899", "8-sinf": "#f59e0b" };
 
   // ---------- Kirish ----------
   function topBar() {

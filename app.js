@@ -513,6 +513,8 @@
           const target = (t && t.pinHash) || D.teacherPinHash;
           return !!target && (await sha(pw)) === target;
         }
+        // Parolsiz o'quvchilar (masalan, 7-sinf) — istalgan kiritishda kiradi
+        if ((D.students || []).some((x) => x.name === person.name && x.nopw)) return true;
         const H = await loadHashes();
         const h = H[person.name];
         if (!h) return false;
@@ -561,6 +563,7 @@
             inp.oninput = () => el.querySelectorAll("[data-n]").forEach((b) => (b.hidden = !b.textContent.toLowerCase().includes(inp.value.toLowerCase())));
           };
           const pwStep = (person) => {
+            if (person.role !== "teacher" && (D.students || []).some((x) => x.name === person.name && x.nopw)) { Auth.save(person); done(person); return; }
             el.innerHTML = `<div class="sa-card" role="dialog" aria-modal="true"><button class="sa-x" data-x aria-label="Yopish">✕</button>
               <h2>🔐 Parol</h2><p>${person.role === "teacher" ? "Ustoz paroli" : "Sizga berilgan shaxsiy parol (7 belgi)"}</p>
               <form class="sa-pw"><b>${esc(person.name)}</b><input type="password" autocomplete="current-password" autocapitalize="off" spellcheck="false" placeholder="Parol" aria-label="Parol">
