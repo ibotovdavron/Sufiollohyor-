@@ -231,7 +231,24 @@
 
     // Devorlar
     const wallMap = canvasTex(512, stoneWall(false)), wallBump = canvasTex(512, stoneWall(true), 1, false);
-    const wallMat = new T.MeshStandardMaterial({ map: wallMap, bumpMap: wallBump, bumpScale: 0.06, roughness: 0.95 });
+    // Bo'rtiq yuza: kulrang balandlik xaritasidan normal xarita
+    const normalFrom = (srcCanvas, k = 2.2) => {
+      const w = srcCanvas.width, h = srcCanvas.height, src = srcCanvas.getContext("2d").getImageData(0, 0, w, h).data;
+      const c = document.createElement("canvas"); c.width = w; c.height = h; const g = c.getContext("2d"); const out = g.createImageData(w, h);
+      const H = (x, y) => src[(((y + h) % h) * w + ((x + w) % w)) * 4] / 255;
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const dx = (H(x + 1, y) - H(x - 1, y)) * k, dy = (H(x, y + 1) - H(x, y - 1)) * k, l = Math.hypot(dx, dy, 1), i = (y * w + x) * 4;
+        out.data[i] = (-dx / l * 0.5 + 0.5) * 255; out.data[i + 1] = (dy / l * 0.5 + 0.5) * 255; out.data[i + 2] = (1 / l * 0.5 + 0.5) * 255; out.data[i + 3] = 255;
+      }
+      g.putImageData(out, 0, 0);
+      const t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; t.anisotropy = 8; return t;
+    };
+    const wallNormal = normalFrom(wallBump.image, 3.0);
+    const wallMat = new T.MeshStandardMaterial({ map: wallMap, normalMap: wallNormal, normalScale: new T.Vector2(1.1, 1.1), roughness: 0.92, envMapIntensity: 0.35 });
+    { // osmondan yumshoq aks (nam pol va metall yaltirasin)
+      const pm = new T.PMREMGenerator(renderer); const es = new T.Scene(); es.add(new T.Mesh(new T.SphereGeometry(10, 32, 16), sky.material));
+      scene.environment = pm.fromScene(es, 0.04).texture; pm.dispose();
+    }
     const walls = [];
     for (let y = 0; y < maze.GH; y++) for (let x = 0; x < maze.GW; x++) if (G[y][x] === 1) walls.push([x, y]);
     const wGeo = new T.BoxGeometry(S, WH, S); wGeo.translate(0, WH / 2, 0);
@@ -252,7 +269,12 @@
 
     // Pol
     const fMap = canvasTex(512, floorTex, maze.GW);
-    const floor = new T.Mesh(new T.PlaneGeometry(maze.GW * S, maze.GH * S), new T.MeshStandardMaterial({ map: fMap, roughness: 0.92 }));
+    // nam joylar: qorong'i dog'lar silliq (yaltiraydi), qolgani g'adir-budur
+    const wetMap = canvasTex(256, (g, s2) => { g.fillStyle = "#ececec"; g.fillRect(0, 0, s2, s2); for (let i = 0; i < 7; i++) { const x = Math.random() * s2, y = Math.random() * s2, r = rr(20, 60); const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, "#2a2a2a"); gr.addColorStop(1, "rgba(236,236,236,0)"); g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, 6.283); g.fill(); } }, 1, false);
+    wetMap.repeat.set(maze.GW / 3, maze.GH / 3);
+    const floorNormal = normalFrom(fMap.image, 2.0);
+    const floor = new T.Mesh(new T.PlaneGeometry(maze.GW * S, maze.GH * S), new T.MeshStandardMaterial({ map: fMap, normalMap: floorNormal, roughness: 1, roughnessMap: wetMap, metalness: 0.05, envMapIntensity: 0.9 }));
+    floorNormal.repeat.set(maze.GW, maze.GH);
     fMap.repeat.set(maze.GW, maze.GH);
     floor.rotation.x = -Math.PI / 2; floor.position.set((maze.GW - 1) * S / 2, 0, (maze.GH - 1) * S / 2); floor.receiveShadow = true; scene.add(floor);
 
@@ -287,6 +309,42 @@
     const dGeo = new T.BufferGeometry(); dGeo.setAttribute("position", new T.BufferAttribute(dpos, 3));
     const dust = new T.Points(dGeo, new T.PointsMaterial({ color: 0xffd9a0, size: 0.07, map: glowTex, transparent: true, opacity: 0.55, depthWrite: false, blending: T.AdditiveBlending }));
     scene.add(dust);
+
+    // Devorlardan osilib turgan pechaklar
+    const vineTex = (() => { const c = document.createElement("canvas"); c.width = 128; c.height = 256; const g = c.getContext("2d");
+      for (let k = 0; k < 6; k++) { let x = rr(10, 118), y = 0; g.strokeStyle = "rgba(40,70,25,.9)"; g.lineWidth = 2; g.beginPath(); g.moveTo(x, 0);
+        const len = rr(120, 250); while (y < len) { x += rr(-6, 6); y += 8; g.lineTo(x, y); } g.stroke();
+        for (let yy = 6; yy < len; yy += rr(8, 14)) { const lx = x + rr(-10, 10); g.fillStyle = ["#2f5a22", "#3f7a2c", "#4d8f33", "#2a4f1d"][(Math.random() * 4) | 0]; g.beginPath(); g.ellipse(lx + rr(-8, 8), yy, rr(4, 8), rr(3, 5), rr(0, 3), 0, 6.283); g.fill(); } }
+      const t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; return t; })();
+    const vinePlaces = [];
+    for (let y = 1; y < maze.GH - 1; y++) for (let x = 1; x < maze.GW - 1; x++) {
+      if (G[y][x] !== 0 || Math.random() > 0.3) continue;
+      [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => { if (G[y + dy][x + dx] === 1 && Math.random() < 0.35) vinePlaces.push([x, y, dx, dy]); });
+    }
+    if (vinePlaces.length) {
+      const vI = new T.InstancedMesh(new T.PlaneGeometry(1.3, 2.2), new T.MeshStandardMaterial({ map: vineTex, alphaTest: 0.4, side: T.DoubleSide, roughness: 0.9 }), vinePlaces.length);
+      const q = new T.Quaternion(), sc = new T.Vector3(1, 1, 1), ps = new T.Vector3();
+      vinePlaces.forEach(([x, y, dx, dy], i) => {
+        ps.set(x * S + dx * (S / 2 - 0.03) + (dy !== 0 ? rr(-0.9, 0.9) : 0), WH - 1.1 + rr(-0.1, 0.25), y * S + dy * (S / 2 - 0.03) + (dx !== 0 ? rr(-0.9, 0.9) : 0));
+        q.setFromAxisAngle(new T.Vector3(0, 1, 0), Math.atan2(-dx, -dy)); sc.set(rr(0.7, 1.2), rr(0.7, 1.3), 1);
+        mtx.compose(ps, q, sc); vI.setMatrixAt(i, mtx);
+      });
+      scene.add(vI);
+    }
+    // Yer bag'irlab o'rmalayotgan tuman
+    const mistTex = (() => { const c = document.createElement("canvas"); c.width = c.height = 128; const g = c.getContext("2d"); const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, "rgba(200,210,255,.55)"); gr.addColorStop(1, "rgba(200,210,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return new T.CanvasTexture(c); })();
+    const mist = [];
+    for (let i = 0; i < (LOW ? 14 : 36); i++) {
+      const sp = new T.Sprite(new T.SpriteMaterial({ map: mistTex, transparent: true, opacity: rr(0.05, 0.11), depthWrite: false, color: 0xaab8ff }));
+      sp.position.set(rr(0, maze.GW * S), rr(0.25, 0.6), rr(0, maze.GH * S)); sp.scale.set(rr(5, 9), rr(1.2, 2), 1);
+      sp.userData.v = [rr(-0.25, 0.25), rr(-0.25, 0.25)]; scene.add(sp); mist.push(sp);
+    }
+    // Mash'ala uchqunlari (eng yaqin mash'alalarda)
+    const SPN = LOW ? 30 : 90, spPos = new Float32Array(SPN * 3), spV = [];
+    for (let i = 0; i < SPN; i++) { spPos[i * 3 + 1] = -10; spV.push({ v: new T.Vector3(), life: 0 }); }
+    const spGeo = new T.BufferGeometry(); spGeo.setAttribute("position", new T.BufferAttribute(spPos, 3));
+    const sparks = new T.Points(spGeo, new T.PointsMaterial({ color: 0xffb35a, size: 0.05, map: glowTex, transparent: true, blending: T.AdditiveBlending, depthWrite: false }));
+    scene.add(sparks);
 
     // Darvozalar (savol): oddiy (ko'k), qo'rqinchli (qizil ko'zlar), yoqimli (oltin gullar)
     const MOOD = {
@@ -612,14 +670,21 @@
         const breathe = 1 + Math.sin(t * (gd.name === "maxluq" ? 2.2 : 3) + gd.ph) * 0.025;
         gd.lunge = Math.max(0, gd.lunge - adt * 1.8);
         const lk = Math.sin(Math.min(1, gd.lunge) * Math.PI) * 0.9;
-        const bx = gd.base[0] + gd.dir[0] * lk, bz = gd.base[1] + gd.dir[1] * lk;
+        // koridor bo'ylab u yoqdan-bu yoqqa yuradi (patrul), ba'zan oldinga bir qadam tashlaydi
+        const pat = gd.state === "idle" ? Math.sin(t * 0.85 + gd.ph) * 0.8 - (gd.ph > 3 ? 0.75 : -0.75) : 0;
+        const step = gd.state === "idle" ? Math.max(0, Math.sin(t * 0.37 + gd.ph * 2)) * 0.45 : 0;
+        const px = gd.dir[1] !== 0 ? pat : 0, pz = gd.dir[0] !== 0 ? pat : 0;
+        const bx = gd.base[0] + gd.dir[0] * (lk + step) + px, bz = gd.base[1] + gd.dir[1] * (lk + step) + pz;
+        const walking = gd.state === "idle" && Math.abs(Math.cos(t * 0.85 + gd.ph)) > 0.25;
         if (gd.state === "rise") {
           const k = Math.min(1, gd.t / (gd.gate.mood === "scary" ? 0.35 : 0.7)), e = 1 - Math.pow(1 - k, 3);
           r.position.set(bx, -2.4 + (2.4 + hover) * e, bz);
           if (L) L.intensity = 1.6 * k;
           if (k >= 1) { gd.state = "idle"; if (gd.gate.mood === "scary") gd.lunge = 1; }
         } else if (gd.state === "idle") {
-          r.position.set(bx, hover, bz);
+          const hop = gd.name !== "arvoh" && walking ? Math.abs(Math.sin(t * 7 + gd.ph)) * 0.09 : 0;
+          r.position.set(bx, hover + hop, bz);
+          if (gd.name !== "arvoh" && walking) r.rotation.x = Math.sin(t * 7 + gd.ph) * 0.05;
           r.scale.set(breathe, 1 / breathe * (1 + (breathe - 1) * 0.5), breathe);
           r.rotation.z = Math.sin(t * 1.3 + gd.ph) * (gd.name === "arvoh" ? 0.08 : 0.03);
           if (L) L.intensity = (gd.name === "olov" ? 1.8 : 1.2) * (0.8 + 0.2 * Math.sin(t * 11 + gd.ph));
@@ -664,6 +729,80 @@
 
     gates.forEach((g) => makeGuard(g));
 
+    /* Adashgan arvohlar: labirintda kezib yuradi, sizni ko'rsa quvadi, ushlasa — savol */
+    const roam = [];
+    async function makeRoamers() {
+      const n = Math.min(3, Math.max(1, Math.ceil((opts.level || 1) / 2)));
+      let geo; try { geo = await loadGuardGeo("arvoh"); } catch (e) { return; }
+      if (!alive) return;
+      for (let i = 0; i < n; i++) {
+        const mat = guardMaterial("arvoh"); mat.opacity = 0.55; mat.color.set(0xa8b8ff); mat.emissive.set(0x26306e);
+        const mesh = new T.Mesh(geo, mat); mesh.castShadow = false;
+        const root = new T.Group(); root.add(mesh); root.scale.setScalar(0.85);
+        const gl = new T.PointLight(0x8aa0ff, 0.9, 6, 2); gl.position.y = 1.3; root.add(gl);
+        scene.add(root);
+        const rg = { root, mat, light: gl, path: [], speed: 1.4, chase: false, cool: 4 + i * 3, state: "roam", t: 0, ph: Math.random() * 6, q: null };
+        spawnRoamer(rg);
+        roam.push(rg);
+      }
+    }
+    function farTile(minD) {
+      const tx = Math.round(me.x / S), ty = Math.round(me.z / S);
+      for (let k = 0; k < 200; k++) {
+        const x = 1 + 2 * ri(0, L.w - 1), y = 1 + 2 * ri(0, L.h - 1);
+        if (Math.abs(x - tx) + Math.abs(y - ty) >= minD && !(x === exit[0] && y === exit[1])) return [x, y];
+      }
+      return [exit[0] - 2 > 0 ? exit[0] - 2 : exit[0], exit[1]];
+    }
+    function spawnRoamer(rg) {
+      const [x, y] = farTile(10);
+      rg.root.position.set(x * S, 0.3, y * S); rg.path = []; rg.state = "roam"; rg.t = 0; rg.mat.opacity = 0.55; rg.root.visible = true; rg.q = null;
+    }
+    function updateRoamers(t, adt) {
+      for (const rg of roam) {
+        const r = rg.root;
+        rg.cool = Math.max(0, rg.cool - adt);
+        if (rg.state === "fade") { rg.t += adt; r.position.y += adt * 1.2; rg.mat.opacity = Math.max(0, 0.55 - rg.t * 0.6); rg.light.intensity = Math.max(0, 0.9 - rg.t); if (rg.t > 1) { r.visible = false; rg.state = "dead"; rg.t = 0; } continue; }
+        if (rg.state === "dead") { rg.t += adt; if (rg.t > 18) { spawnRoamer(rg); rg.cool = 3; } continue; }
+        const dpl = Math.hypot(me.x - r.position.x, me.z - r.position.z);
+        if (st.zone !== "maze" || st.done || !st.started) { r.visible = st.zone === "maze"; continue; }
+        r.visible = true;
+        if (st.active && st.active.target === rg) { // savol vaqtida o'yinchi oldida suzib turadi
+          const a = Math.atan2(me.x - r.position.x, me.z - r.position.z); r.rotation.y = a;
+          r.position.y = 0.3 + Math.sin(t * 2 + rg.ph) * 0.12;
+          if (dpl > 3.5) { closeAsk(); rg.cool = 3; }
+          continue;
+        }
+        // ko'rib qolsa quvadi (bir koridorda, 8 m ichida)
+        const tx = Math.round(r.position.x / S), ty = Math.round(r.position.z / S), px = Math.round(me.x / S), py = Math.round(me.z / S);
+        let sees = false;
+        if (dpl < 8.5 && (tx === px || ty === py)) {
+          sees = true;
+          const sx = Math.sign(px - tx), sy = Math.sign(py - ty);
+          for (let x = tx, y = ty; x !== px || y !== py; x += sx, y += sy) { if (G[y][x] === 1) { sees = false; break; } }
+        }
+        if (sees && !rg.chase) { rg.chase = true; rg.path = []; if (rg.cool <= 0) Snd.sample("nafas", 0.6, 1.15, 0.6); }
+        if (!sees && rg.chase && Math.random() < adt * 0.5) rg.chase = false;
+        if (!rg.path.length || (rg.chase && Math.random() < adt * 2)) {
+          const goal = rg.chase ? [px, py] : farTile(4);
+          rg.path = bfs(maze, tx, ty, goal[0], goal[1]).slice(1);
+        }
+        const nx = rg.path[0];
+        if (nx) {
+          const wx = nx[0] * S, wz = nx[1] * S, dx = wx - r.position.x, dz = wz - r.position.z, d = Math.hypot(dx, dz);
+          const sp = (rg.chase ? 2.1 : 1.3) * adt;
+          if (d < 0.15) rg.path.shift(); else { r.position.x += dx / d * Math.min(sp, d); r.position.z += dz / d * Math.min(sp, d); }
+          const want = Math.atan2(dx, dz); let dy = ((want - r.rotation.y + Math.PI * 3) % (Math.PI * 2)) - Math.PI; r.rotation.y += dy * Math.min(1, adt * 4);
+        }
+        r.position.y = 0.3 + Math.sin(t * 1.7 + rg.ph) * 0.15;
+        r.rotation.z = Math.sin(t * 1.3 + rg.ph) * 0.07;
+        rg.light.intensity = 0.7 + Math.sin(t * 5 + rg.ph) * 0.2;
+        // ushladi
+        if (dpl < 1.15 && rg.cool <= 0 && !st.active) { Snd.sample("nafas", 1, 0.8, 0.5); Snd.scary(); st.shake = 0.8; flash("rgba(90,100,255,.45)"); rg.q = Q.make(opts.grade); ask(rg, "ghost"); }
+      }
+    }
+    makeRoamers();
+
     /* ---------------- HUD ---------------- */
     const hud = document.createElement("div");
     hud.className = "lb-hud";
@@ -676,7 +815,7 @@
       <div class="lb-hint" data-hint></div>
       <form class="lb-q" data-q hidden autocomplete="off"><div class="lb-q-rune">❔</div><div class="lb-q-body">
         <small data-qk>Darvoza savoli</small><b data-qt></b>
-        <div class="lb-q-row"><input data-qi type="text" inputmode="text" enterkeyhint="done" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Javobni yozing va Enter bosing"><button type="submit">✔</button></div>
+        <div class="lb-opts" data-opts></div>
         <em data-qm></em></div></form>
       <div class="lb-over" data-over hidden></div>
       <div class="lb-flash" data-flash></div>
@@ -684,7 +823,7 @@
       <button class="lb-btn menu" data-b="menu" type="button">☰</button><button class="lb-btn mapb" data-b="map" type="button">🗺️</button>`;
     container.appendChild(hud);
     const $ = (s) => hud.querySelector(s);
-    const ui = { lv: $("[data-lv]"), tm: $("[data-tm]"), hp: $("[data-hp]"), sc: $("[data-sc]"), gt: $("[data-gt]"), map: $("[data-map]"), hint: $("[data-hint]"), q: $("[data-q]"), qt: $("[data-qt]"), qk: $("[data-qk]"), qi: $("[data-qi]"), qm: $("[data-qm]"), over: $("[data-over]"), flash: $("[data-flash]"), pz: $("[data-pz]") };
+    const ui = { lv: $("[data-lv]"), tm: $("[data-tm]"), hp: $("[data-hp]"), sc: $("[data-sc]"), gt: $("[data-gt]"), map: $("[data-map]"), hint: $("[data-hint]"), q: $("[data-q]"), qt: $("[data-qt]"), qk: $("[data-qk]"), qi: { value: "", blur() {}, focus() {} }, opts: $("[data-opts]"), qm: $("[data-qm]"), over: $("[data-over]"), flash: $("[data-flash]"), pz: $("[data-pz]") };
     const mctx = ui.map.getContext("2d");
     let bigMap = false;
 
@@ -702,21 +841,43 @@
       }
       if (!target.q) target.q = Q.make(opts.grade);
       ui.q.hidden = false;
-      ui.q.className = "lb-q" + (kind === "gate" ? " m-" + target.mood : kind === "task" ? " m-task" : " m-chest");
+      ui.q.className = "lb-q" + (kind === "gate" ? " m-" + target.mood : kind === "task" ? " m-task" : kind === "ghost" ? " m-scary" : " m-chest");
       ui.qk.textContent = kind === "gate" ? (target.mood === "scary" ? "😱 Qorong‘i darvoza — jasorat bilan javob bering!" : target.mood === "nice" ? "✨ Oltin darvoza — yoqimli savol (+150 ⭐)" : "🚪 Darvoza savoli — to‘g‘ri javob yo‘lni ochadi")
-        : kind === "task" ? `🎁 ${target.prize.icon} ${target.prize.name} — ${target.task.title}` : "💰 Xazina sandig‘i — to‘g‘ri javob +50 ⭐";
+        : kind === "task" ? `🎁 ${target.prize.icon} ${target.prize.name} — ${target.task.title}` : kind === "ghost" ? "👻 Adashgan arvoh sizni ushladi! To‘g‘ri javob bersangiz — tarqalib ketadi" : "💰 Xazina sandig‘i — to‘g‘ri javob +50 ⭐";
       ui.qt.textContent = target.q.q; ui.qm.textContent = kind === "task" && target.task.type === "streak3" ? `Natija: ${target.task.got}/3` : target.q.hint || "";
-      ui.qi.value = "";
-      ui.qi.inputMode = /^[\d\s+\-×:=?().√²x%/ninghqismiechaga teng]+$/i.test(target.q.q) && /\d/.test(target.q.q) ? "text" : "text";
-      setTimeout(() => { try { ui.qi.focus({ preventScroll: true }); } catch (e) { ui.qi.focus(); } }, 60);
+      renderOpts(target.q);
     }
     function closeAsk() { st.active = null; ui.q.hidden = true; ui.qi.blur(); }
-    ui.q.addEventListener("submit", (e) => {
-      e.preventDefault();
+    /** 4 ta variant tugmasi (klaviatura kerak emas; kompyuterda 1–4 tugmalari ham ishlaydi) */
+    let optLock = false;
+    function renderOpts(qq) {
+      const list = Q.options(qq);
+      optLock = false;
+      ui.opts.innerHTML = list.map((o, i) => `<button type="button" data-opt="${i}"><i>${"ABCD"[i]}</i><span>${esc(o)}</span></button>`).join("");
+    }
+    ui.opts.addEventListener("click", (e) => { const b = e.target.closest("[data-opt]"); if (b) pickOpt(Number(b.dataset.opt)); });
+    function pickOpt(i) {
+      const a = st.active; if (!a || optLock) return;
+      const qq = a.target.q, v = qq.opts[i];
+      if (v == null) return;
+      const ok = Q.check(qq, v) || v === qq.right;
+      optLock = true;
+      const btns = ui.opts.querySelectorAll("button");
+      btns.forEach((b, k) => { b.disabled = true; if (qq.opts[k] === qq.right) b.classList.add("right"); });
+      if (!ok) btns[i].classList.add("wrong");
+      setTimeout(() => answer(ok), ok ? 380 : 650);
+    }
+    ui.q.addEventListener("submit", (e) => e.preventDefault());
+    function answer(v) {
       const a = st.active; if (!a) return;
-      const v = ui.qi.value.trim(); if (!v) return;
-      if (a.kind === "task") { onTaskAnswer(a.target, Q.check(a.target.q, v)); return; }
-      if (Q.check(a.target.q, v)) {
+      if (a.kind === "task") { onTaskAnswer(a.target, v); return; }
+      if (a.kind === "ghost") {
+        const rg = a.target;
+        if (v) { Snd.good(); st.score += 80; hint("💨 Arvoh tarqalib ketdi! +80 ⭐"); burstAt(rg.root.position.x, 1.2, rg.root.position.z, 0x9fb4ff, 50); rg.state = "fade"; rg.t = 0; }
+        else { Snd.bad(); st.hearts--; st.shake = 0.9; flash("rgba(255,60,60,.4)"); hint(`❌ Javob: ${rg.q.right || rg.q.a[0]}. Arvoh yuragingizdan birini olib qochdi!`, 3000); rg.state = "fade"; rg.t = 0; if (st.hearts <= 0) { closeAsk(); lose(); return; } }
+        closeAsk(); return;
+      }
+      if (v) {
         Snd.good(); flash("rgba(80,255,200,.35)");
         if (a.kind === "gate") { a.target.state = "sinking"; a.target.t = 0; st.gatesOpen++; st.score += a.target.tries ? 60 : a.target.mood === "nice" ? 150 : a.target.mood === "scary" ? 120 : 100; Snd.sink(); hint(a.target.mood === "scary" ? "💪 Barakalla! Qorong‘i darvoza yengildi" : "✅ To‘g‘ri! Darvoza ochildi"); if (a.target.mood === "nice") burstAt(a.target.x * S, 1.5, a.target.y * S, 0xffd34d, 60); if (a.target.eyes) a.target.eyes.visible = false; if (a.target.guard && a.target.guard.state !== "gone") { a.target.guard.state = "fade"; a.target.guard.t = 0; burstAt(a.target.guard.root.position.x, 1.2, a.target.guard.root.position.z, a.target.guard.name === "olov" ? 0xff7a20 : 0x9fb4ff, 50); } }
         else { a.target.open = true; st.chestsOpen++; st.score += 50; Snd.coin(); hint("💰 +50 ⭐ Xazina topildi!"); burstGold(a.target); }
@@ -727,19 +888,19 @@
         if (a.kind === "gate") {
           st.hearts--; a.target.tries++;
           if (a.target.guard && a.target.guard.state === "idle") { a.target.guard.lunge = 1; st.shake = 0.7; Snd.sample("nafas", 1, 0.8, 0.4); }
-          const right = a.target.q.a[0];
+          const right = a.target.q.right || a.target.q.a[0];
           ui.qm.textContent = `❌ Noto‘g‘ri. To‘g‘ri javob: ${right}. Yangi savol!`;
           if (st.hearts <= 0) { lose(); return; }
-          setTimeout(() => { if (st.active && st.active.target === a.target) { a.target.q = Q.make(opts.grade); ui.qt.textContent = a.target.q.q; ui.qi.value = ""; } }, 1400);
-        } else { ui.qm.textContent = `❌ Noto‘g‘ri (to‘g‘ri javob: ${a.target.q.a[0]}). Sandiq yopildi.`; a.target.asked = true; setTimeout(closeAsk, 1600); }
+          setTimeout(() => { if (st.active && st.active.target === a.target) { a.target.q = Q.make(opts.grade); ui.qt.textContent = a.target.q.q; renderOpts(a.target.q); } }, 1400);
+        } else { ui.qm.textContent = `❌ Noto‘g‘ri (to‘g‘ri javob: ${a.target.q.right || a.target.q.a[0]}). Sandiq yopildi.`; a.target.asked = true; setTimeout(closeAsk, 1600); }
       }
-    });
+    }
 
     function onTaskAnswer(ped, ok) {
       const tk = ped.task;
       if (ok) {
         Snd.good(); flash("rgba(255,220,120,.35)");
-        if (tk.type === "streak3" && ++tk.got < 3) { tk.q = newTaskQ(tk); ped.q = tk.q; ui.qt.textContent = tk.q.q; ui.qm.textContent = `✅ To‘g‘ri! Natija: ${tk.got}/3`; ui.qi.value = ""; return; }
+        if (tk.type === "streak3" && ++tk.got < 3) { tk.q = newTaskQ(tk); ped.q = tk.q; ui.qt.textContent = tk.q.q; ui.qm.textContent = `✅ To‘g‘ri! Natija: ${tk.got}/3`; renderOpts(tk.q); return; }
         ped.taken = true; st.prizes++; st.score += 200;
         Snd.prize(); burstAt(ped.wx, 1.8, ped.wz, ped.prize.col, 70);
         hint(`🏆 Yangi yutuq: ${ped.prize.icon} ${ped.prize.name}! +200 ⭐`, 3500);
@@ -747,10 +908,10 @@
         closeAsk();
       } else {
         Snd.bad(); ui.q.classList.remove("shake"); void ui.q.offsetWidth; ui.q.classList.add("shake");
-        const right = tk.q.a[0];
+        const right = tk.q.right || tk.q.a[0];
         if (tk.type === "streak3") tk.got = 0;
         ui.qm.textContent = `❌ Noto‘g‘ri (javob: ${right}). ${tk.type === "streak3" ? "Hisob 0 dan boshlanadi. " : ""}Yangi savol!`;
-        setTimeout(() => { if (st.active && st.active.target === ped) { tk.q = newTaskQ(tk); ped.q = tk.q; if (tk.type === "timed") tk.deadline = performance.now() + 20000; ui.qt.textContent = tk.q.q; ui.qi.value = ""; } }, 1500);
+        setTimeout(() => { if (st.active && st.active.target === ped) { tk.q = newTaskQ(tk); ped.q = tk.q; if (tk.type === "timed") tk.deadline = performance.now() + 20000; ui.qt.textContent = tk.q.q; renderOpts(tk.q); } }, 1500);
       }
     }
     function burstAt(x, y, z, color, n = 40) {
@@ -797,6 +958,7 @@
       gates.forEach((g) => { if (!seen[g.y][g.x]) return; c.fillStyle = g.state === "open" || g.state === "sinking" ? "#34d399" : "#5ef2ff"; c.fillRect(g.x * k + k * 0.2, g.y * k + k * 0.2, k * 0.6, k * 0.6); });
       chests.forEach((h) => { if (!seen[h.y][h.x]) return; c.fillStyle = h.open ? "#7c6a2a" : "#fbbf24"; c.beginPath(); c.arc(h.x * k + k / 2, h.y * k + k / 2, k * 0.32, 0, 6.283); c.fill(); });
       if (sportal && seen[sportal.userData.y][sportal.userData.x]) { c.fillStyle = "#ffd34d"; c.font = `${Math.round(k * 1.4)}px system-ui`; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText("✦", sportal.userData.x * k + k / 2, sportal.userData.y * k + k / 2); }
+      roam.forEach((rg) => { if (rg.state !== "roam") return; const d = Math.hypot(rg.root.position.x - me.x, rg.root.position.z - me.z); if (d > 10) return; c.fillStyle = `rgba(140,160,255,${0.5 + 0.5 * Math.sin(performance.now() / 150)})`; c.beginPath(); c.arc((rg.root.position.x / S) * k + k / 2, (rg.root.position.z / S) * k + k / 2, k * 0.45, 0, 6.283); c.fill(); });
       // chiqish doim ko'rinadi
       const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 250);
       c.fillStyle = `rgba(167,139,250,${0.6 + pulse * 0.4})`; c.beginPath(); c.arc(exit[0] * k + k / 2, exit[1] * k + k / 2, k * (0.45 + pulse * 0.15), 0, 6.283); c.fill();
@@ -810,9 +972,9 @@
     /* ---------------- Boshqaruv ---------------- */
     const keys = new Set();
     let mx = 0, my = 0, locked = false, paused = false, joy = { id: null, x: 0, y: 0, ox: 0, oy: 0 }, look = { id: null, x: 0, y: 0 };
-    const typing = () => document.activeElement === ui.qi;
+    const typing = () => false;
     const kd = (e) => {
-      if (typing()) { if (e.code === "Escape") ui.qi.blur(); return; }
+      if (st.active && /^(Digit|Numpad)[1-4]$/.test(e.code)) { pickOpt(Number(e.code.slice(-1)) - 1); return; }
       keys.add(e.code);
       if (e.code === "KeyM") { bigMap = !bigMap; hud.classList.toggle("bigmap", bigMap); }
       if (["Space", "ArrowUp", "ArrowDown"].includes(e.code)) e.preventDefault();
@@ -825,7 +987,7 @@
     document.addEventListener("pointerlockchange", onLock);
     const onMove = (e) => { if (locked && Math.abs(e.movementX) < 250 && Math.abs(e.movementY) < 250) { mx += e.movementX; my += e.movementY; } };
     document.addEventListener("mousemove", onMove);
-    canvas.addEventListener("mousedown", () => { Snd.init(); if (!locked) lockIt(); if (st.active) ui.qi.focus(); });
+    canvas.addEventListener("mousedown", () => { Snd.init(); if (!locked) lockIt(); });
     if (MOBILE) {
       const jEl = $("[data-joy]"), knob = jEl.querySelector("i");
       // Telefon tik bo'lsa o'yin 90° burilgan — koordinatalarni aylantiramiz
@@ -940,7 +1102,7 @@
           if (st.active && st.active.kind === "task" && st.active.target.task.type === "timed") {
             const left = Math.max(0, st.active.target.task.deadline - performance.now());
             if (!ui.qm.textContent.startsWith("❌")) ui.qm.textContent = `⏳ ${Math.ceil(left / 1000)} soniya qoldi`;
-            if (left <= 0) { const pd = st.active.target; pd.task.deadline = performance.now() + 60000; ui.qm.textContent = `⌛ Vaqt tugadi! Javob: ${pd.task.q.a[0]}`; Snd.bad(); setTimeout(() => { if (st.active && st.active.target === pd) { pd.task.q = newTaskQ(pd.task); pd.q = pd.task.q; pd.task.deadline = performance.now() + 20000; ui.qt.textContent = pd.task.q.q; ui.qi.value = ""; } }, 1600); }
+            if (left <= 0) { const pd = st.active.target; pd.task.deadline = performance.now() + 60000; ui.qm.textContent = `⌛ Vaqt tugadi! Javob: ${pd.task.q.a[0]}`; Snd.bad(); setTimeout(() => { if (st.active && st.active.target === pd) { pd.task.q = newTaskQ(pd.task); pd.q = pd.task.q; pd.task.deadline = performance.now() + 20000; ui.qt.textContent = pd.task.q.q; renderOpts(pd.task.q); } }, 1600); }
           }
           if (st.warpT <= 0 && Math.hypot(secret.back.x - me.x, secret.back.z - me.z) < 1.0) warp("maze");
         }
@@ -979,9 +1141,11 @@
         else if (g.state === "sinking") { g.t += adt / 1.1; const k = Math.min(1, g.t); g.grp.position.y = -(WH + 0.2) * k * k; g.light.intensity = 1.6 * (1 - k); if (k >= 1) { g.state = "open"; g.grp.visible = false; } }
       });
       updateGuards(t, adt);
+      updateRoamers(t, adt);
       if (st.started && !paused) {
         let wl = 0;
         if (st.zone === "maze" && !st.done) gates.forEach((g) => { if (g.mood === "scary" && (g.state === "up" || g.state === "rising")) wl = Math.max(wl, 1 - Math.hypot(g.x * S - me.x, g.y * S - me.z) / 12); });
+        if (st.zone === "maze" && !st.done) roam.forEach((rg) => { if (rg.state === "roam") wl = Math.max(wl, (1 - Math.hypot(rg.root.position.x - me.x, rg.root.position.z - me.z) / 10) * 0.8); });
         Snd.whisper(wl);
       } else Snd.whisper(0);
       st.warpT = Math.max(0, st.warpT - adt);
@@ -1000,6 +1164,13 @@
       chests.forEach((c) => { if (c.open) c.lidG.rotation.x = Math.max(c.lidG.rotation.x - dt * 3, -1.9); c.glow.material.opacity = c.open ? Math.max(0, c.glow.material.opacity - dt) : 0.4 + Math.sin(t * 3 + c.x) * 0.15; });
       for (let i = gold.length - 1; i >= 0; i--) { const e = gold[i]; e.t += dt; const a = e.p.geometry.attributes.position; e.vel.forEach((v, j) => { v.y -= 6 * dt; a.array[j * 3] += v.x * dt; a.array[j * 3 + 1] += v.y * dt; a.array[j * 3 + 2] += v.z * dt; }); a.needsUpdate = true; e.p.material.opacity = 1 - e.t; if (e.t > 1) { scene.remove(e.p); gold.splice(i, 1); } }
       // mash'alalar va yorug'lik
+      // tuman va uchqunlar
+      mist.forEach((m) => { m.position.x += m.userData.v[0] * adt; m.position.z += m.userData.v[1] * adt; if (Math.abs(m.position.x - me.x) > 25) m.position.x = me.x + rr(-15, 15); if (Math.abs(m.position.z - me.z) > 25) m.position.z = me.z + rr(-15, 15); });
+      { const near = lights.map((l) => l.userData.h).filter(Boolean).slice(0, 4), a = sparks.geometry.attributes.position;
+        for (let i = 0; i < SPN; i++) { const p = spV[i]; p.life -= adt;
+          if (p.life <= 0 && near.length && st.zone === "maze") { const h = near[i % near.length]; a.array[i * 3] = h.pos.x + rr(-0.06, 0.06); a.array[i * 3 + 1] = h.pos.y - 0.2; a.array[i * 3 + 2] = h.pos.z + rr(-0.06, 0.06); p.v.set(rr(-0.15, 0.15), rr(0.4, 1.0), rr(-0.15, 0.15)); p.life = rr(0.6, 1.6); }
+          else { a.array[i * 3] += p.v.x * adt + Math.sin(t * 5 + i) * adt * 0.1; a.array[i * 3 + 1] += p.v.y * adt; a.array[i * 3 + 2] += p.v.z * adt; } }
+        a.needsUpdate = true; }
       torches.forEach((h) => { const f = 0.85 + 0.15 * Math.sin(t * 11 + h.ph) * Math.sin(t * 7.3 + h.ph * 2); h.fl.scale.set(0.5 * f, 0.85 * f, 1); h.halo.material.opacity = 0.3 * f; });
       lightT -= dt;
       if (lightT <= 0) {
@@ -1057,7 +1228,7 @@
       <div class="lb-row"><button class="lb-big" data-b="start" type="button">▶ Boshlash</button><button class="lb-big ghost" data-b="exit" type="button">🚪 Chiqish</button></div></div>`;
     for (let y = 0; y <= 3; y++) for (let x = 0; x <= 3; x++) if (seen[y]) seen[y][x] = true;
     frame();
-    return { destroy: () => destroy(false), debug: { guards, me, st, gates, chests, exit, camera, renderer, scene, path, S, secret, sportal, warp } };
+    return { destroy: () => destroy(false), debug: { guards, roam, me, st, gates, chests, exit, camera, renderer, scene, path, S, secret, sportal, warp } };
   }
 
   window.SofiMaze3D = { create, LEVELS };

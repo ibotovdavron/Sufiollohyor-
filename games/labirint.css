@@ -135,3 +135,23 @@ body.lb-open { overflow: hidden; }
 .lb-game.rot .lb-big, .lb-game.short .lb-big { padding: 10px 16px; }
 .lb-game.rot .lb-stats, .lb-game.short .lb-stats { margin: 6px 0; } .lb-game.rot .lb-stats b, .lb-game.short .lb-stats b { font-size: 18px; }
 .lb-hud:has(.lb-over:not([hidden])) .lb-joy { display: none; }
+
+/* Variantli javoblar */
+.lb-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.lb-opts button { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 10px 12px; border-radius: 14px; border: 1.5px solid rgba(94, 242, 255, .45); background: rgba(255, 255, 255, .06); color: #fff; font: inherit; font-size: clamp(15px, 2.4vw, 19px); font-weight: 800; text-align: left; cursor: pointer; transition: transform .12s, background .2s, border-color .2s; touch-action: manipulation; }
+.lb-opts button i { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px; background: rgba(255, 255, 255, .12); font-style: normal; font-size: 14px; }
+.lb-opts button:not(:disabled):hover { background: rgba(94, 242, 255, .16); transform: translateY(-2px); }
+.lb-opts button:active { transform: scale(.97); }
+.lb-opts button.right { background: rgba(34, 197, 94, .35); border-color: #4ade80; animation: lbPop .4s; }
+.lb-opts button.wrong { background: rgba(239, 68, 68, .35); border-color: #f87171; animation: lbShake .35s; }
+.lb-opts button:disabled:not(.right):not(.wrong) { opacity: .5; }
+@keyframes lbPop { 50% { transform: scale(1.06); } }
+.lb-q.m-scary .lb-opts button { border-color: rgba(255, 80, 80, .5); }
+.lb-q.m-nice .lb-opts button { border-color: rgba(255, 211, 77, .55); }
+.lb-q.m-task .lb-opts button { border-color: rgba(125, 255, 154, .55); }
+.lb-game.rot .lb-opts button, .lb-game.short .lb-opts button { min-height: 38px; padding: 6px 10px; font-size: 14px; }
+.lb-game.rot .lb-q, .lb-game.short .lb-q { padding: 10px 12px; bottom: 3%; top: auto; gap: 10px; }
+.lb-game.rot .lb-q-rune, .lb-game.short .lb-q-rune { font-size: 26px; }
+.lb-game.rot .lb-q-body b, .lb-game.short .lb-q-body b { font-size: 17px; }
+/* Kino uslubidagi qorong'i chetlar */
+.lb-hud::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, .55) 100%); }

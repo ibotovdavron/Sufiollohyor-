@@ -9,8 +9,8 @@
   let libs = null;
   const loadLibs = () => libs || (libs = (async () => {
     if (!window.THREE) await loadScript("lib/three.min.js?v=149");
-    if (!window.SofiMazeQ) await loadScript("games/labirint-q.js?v=2");
-    if (!window.SofiMaze3D) await loadScript("games/labirint3d.js?v=4");
+    if (!window.SofiMazeQ) await loadScript("games/labirint-q.js?v=3");
+    if (!window.SofiMaze3D) await loadScript("games/labirint3d.js?v=5");
   })().catch((e) => { libs = null; throw e; }));
   const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 

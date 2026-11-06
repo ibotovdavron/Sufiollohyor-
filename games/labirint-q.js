@@ -119,3 +119,56 @@
   const riddle = () => { const [q, a] = pick(RIDDLES); return { q, a }; };
   Object.assign(window.SofiMazeQ, { seq, riddle });
 })();
+
+/* Variantli javoblar: har bir savolga 4 ta variant (biri to'g'ri) */
+(() => {
+  "use strict";
+  const Q = window.SofiMazeQ;
+  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const SYM = { o: "O", fe: "Fe", au: "Au", na: "Na", h: "H", c: "C", cu: "Cu", ag: "Ag", zn: "Zn", k: "K", ca: "Ca", n: "N", s: "S", cl: "Cl", mg: "Mg" };
+  const POOLS = [
+    ["sym", Object.keys(SYM)],
+    ["planet", ["yupiter", "mars", "venera", "saturn", "merkuriy", "neptun", "uran", "yer"]],
+    ["en", ["book", "apple", "school", "red", "water", "teacher", "house", "green", "bread", "window", "pencil"]],
+    ["city", ["toshkent", "samarqand", "buxoro", "xiva", "andijon", "shahrisabz", "namangan", "termiz"]],
+    ["formula", ["h2o", "co2", "o2", "nacl", "h2so4", "ch4", "nh3"]],
+    ["riddle", ["taroq", "archa", "bulut", "kitob", "oy", "samolyot", "toshbaqa", "soat", "quyosh", "xat", "qalam", "shamol"]],
+    ["sky", ["quyosh", "oy", "yer", "mars", "yulduz", "kometa"]],
+    ["ocean", ["tinch", "atlantika", "hind", "shimoliy muz"]],
+    ["pc", ["protsessor", "monitor", "klaviatura", "sichqoncha", "printer", "xotira"]],
+  ];
+  const pretty = (s) => {
+    const k = String(s).toLowerCase();
+    if (SYM[k]) return SYM[k];
+    if (/^[a-z0-9]+$/.test(k) && /\d/.test(k) && /[a-z]/.test(k)) return k.toUpperCase().replace(/(\d)/g, (d) => "₀₁₂₃₄₅₆₇₈₉"[d]); // h2o → H₂O
+    if (/^-?\d+([.,]\d+)?$/.test(k)) return k.replace(".", ",");
+    if (/^\d+\/\d+$/.test(k)) return k;
+    return k.charAt(0).toUpperCase() + k.slice(1);
+  };
+  function numDistract(n) {
+    const out = new Set(), isInt = Number.isInteger(n), mag = Math.max(1, Math.abs(n));
+    const cands = isInt ? [n + 1, n - 1, n + 2, n - 2, n + 10, n - 10, n * 2, Math.round(n / 2), n + 5, n - 5, -n, n + 100, Math.round(mag * 1.1), Math.round(mag * 0.9)]
+      : [+(n + 0.1).toFixed(2), +(n - 0.1).toFixed(2), +(n * 10).toFixed(2), +(n / 10).toFixed(2), +(n + 1).toFixed(2)];
+    shuffle(cands).forEach((c) => { if (out.size < 3 && c !== n && !(n >= 0 && c < 0 && Math.random() < 0.7)) out.add(c); });
+    let k = 3; while (out.size < 3) { out.add(n + k); k++; }
+    return [...out].map(String);
+  }
+  /** qq: {q, a:[...]} → qq.opts: 4 ta matn (aralash), qq.right: to'g'ri variant matni */
+  Q.options = function (qq) {
+    if (qq.opts) return qq.opts;
+    const ans = String(qq.a[0]);
+    let wrong;
+    const num = Number(ans.replace(",", "."));
+    if (ans.trim() !== "" && !isNaN(num)) wrong = numDistract(num);
+    else {
+      const key = Q.norm(ans);
+      const pool = POOLS.find(([, list]) => list.some((x) => Q.norm(x) === key || qq.a.some((y) => Q.norm(y) === Q.norm(x))));
+      const list = pool ? pool[1] : POOLS.flatMap((p) => p[1]);
+      wrong = shuffle(list.filter((x) => !qq.a.some((y) => Q.norm(y) === Q.norm(x)))).slice(0, 3);
+    }
+    const right = pretty(ans);
+    qq.right = right;
+    qq.opts = shuffle([right, ...wrong.map(pretty)]);
+    return qq.opts;
+  };
+})();
