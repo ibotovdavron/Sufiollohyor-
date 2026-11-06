@@ -47,6 +47,28 @@
     };
     return {
       init, get on() { return on; }, set(v) { on = v; if (master) master.gain.value = v ? 0.85 : 0; },
+      /** Yozilgan tovushlar (Mixkit): shivir-shivir, og'ir nafas, yiqilib qichqirish */
+      async loadSamples() {
+        if (!ac || this._smp) return; this._smp = {};
+        const get = async (n, u) => { try { const r = await fetch(u); const b = await r.arrayBuffer(); this._smp[n] = await new Promise((res, rej) => ac.decodeAudioData(b, res, rej)); } catch (e) { /* tovushsiz davom etamiz */ } };
+        await Promise.all([get("shivir", "games/sounds/shivir.mp3?v=1"), get("nafas", "games/sounds/nafas.mp3?v=1"), get("qichqiriq", "games/sounds/qichqiriq.mp3?v=1")]);
+      },
+      sample(n, vol = 1, rate = 1, wet = 0.4) {
+        if (!ok() || !this._smp || !this._smp[n]) return null;
+        const s = ac.createBufferSource(); s.buffer = this._smp[n]; s.playbackRate.value = rate;
+        const g = ac.createGain(); g.gain.value = vol; s.connect(g); g.connect(out(wet)); s.start(); return s;
+      },
+      /** Qo'rqinchli darvoza yaqinida shivir-shivir — balandligi masofaga qarab */
+      whisper(level) {
+        if (!ac || !this._smp || !this._smp.shivir) return;
+        if (!this._wh) {
+          const s = ac.createBufferSource(); s.buffer = this._smp.shivir; s.loop = true;
+          const g = ac.createGain(); g.gain.value = 0; s.connect(g); g.connect(out(0.7)); s.start(); this._wh = { s, g };
+        }
+        const v = on ? clamp(level, 0, 1) * 0.55 : 0;
+        this._wh.g.gain.setTargetAtTime(v, ac.currentTime, 0.4);
+      },
+      stopSamples() { if (this._wh) { try { this._wh.s.stop(); } catch (e) {} this._wh = null; } },
       step(k = 1) { if (!ok()) return; const t = ac.currentTime, o = out(0.25); noise(t, 0.07, 2600, 700, 0.12 * k, "bandpass", o, 1.2); tone(t, 0.06, 140, 80, 0.08 * k, "sine", o); },
       rumble() { if (!ok()) return; const t = ac.currentTime, o = out(0.6); noise(t, 1.1, 500, 60, 0.9, "lowpass", o, 0.7, 0.03); tone(t, 0.9, 55, 32, 0.6, "sine", o, 0.03); noise(t + 0.6, 0.25, 3000, 800, 0.25, "bandpass", o, 1); },
       sink() { if (!ok()) return; const t = ac.currentTime, o = out(0.6); noise(t, 1.0, 300, 50, 0.6, "lowpass", o, 0.7, 0.05); },
@@ -56,7 +78,7 @@
       drip() { if (!ok()) return; const t = ac.currentTime, o = out(0.9), f = rr(900, 1700); tone(t, 0.12, f * 1.6, f, 0.05, "sine", o, 0.002); },
       crackle(k) { if (!ok() || k < 0.05) return; const t = ac.currentTime, o = out(0.1); noise(t, 0.04, 3500, 1500, 0.08 * k, "bandpass", o, 2, 0.001); },
       win() { if (!ok()) return; const t = ac.currentTime, o = out(0.6); [523, 659, 784, 1046, 1318].forEach((f, i) => tone(t + i * 0.13, 0.7, f, f, 0.14, "triangle", o)); noise(t, 1.5, 6000, 1500, 0.1, "highpass", o, 0.5, 0.3); },
-      lose() { if (!ok()) return; const t = ac.currentTime, o = out(0.5); [392, 311, 262, 196].forEach((f, i) => tone(t + i * 0.2, 0.5, f, f * 0.97, 0.15, "triangle", o)); },
+      lose() { if (!ok()) return; this.sample("qichqiriq", 0.9, 1, 0.6); const t = ac.currentTime + 1.2, o = out(0.5); [392, 311, 262, 196].forEach((f, i) => tone(t + i * 0.2, 0.5, f, f * 0.97, 0.15, "triangle", o)); },
       scary() { if (!ok()) return; const t = ac.currentTime, o = out(0.9); tone(t, 1.6, 70, 40, 0.5, "sawtooth", o, 0.02); noise(t, 1.4, 900, 200, 0.35, "bandpass", o, 6, 0.1); [0, 0.3, 0.6].forEach((d) => noise(t + d, 0.5, 2200 + d * 900, 1200, 0.12, "bandpass", o, 8, 0.15)); tone(t + 0.1, 1.2, 466, 440, 0.06, "sine", o, 0.2); tone(t + 0.1, 1.2, 494, 470, 0.06, "sine", o, 0.2); },
       nice() { if (!ok()) return; const t = ac.currentTime, o = out(0.8); [523, 659, 784, 988, 1175, 1568].forEach((f, i) => tone(t + i * 0.09, 1.2, f, f, 0.07, "sine", o, 0.02)); noise(t, 1.2, 8000, 4000, 0.05, "highpass", o, 0.5, 0.2); },
       moan() { if (!ok()) return; const t = ac.currentTime, o = out(1.0); const f = rr(80, 120); tone(t, 2.6, f, f * 0.8, 0.12, "triangle", o, 0.6); noise(t + 0.4, 2.2, 600, 150, 0.08, "bandpass", o, 4, 0.8); },
@@ -482,6 +504,135 @@
       return g;
     }
 
+    /* ---------------- Darvoza qo'riqchilari (3D modellar) ---------------- */
+    const GUARD = {
+      olov: { url: "games/models/olov.bin?v=1", h: 1.75 },
+      arvoh: { url: "games/models/arvoh.bin?v=1", h: 2.15 },
+      maxluq: { url: "games/models/maxluq.bin?v=1", tex: "games/models/maxluq.jpg?v=1", h: 2.1 },
+    };
+    const geoCache = {};
+    async function loadGuardGeo(name) {
+      if (geoCache[name]) return geoCache[name];
+      const buf = await (await fetch(GUARD[name].url)).arrayBuffer();
+      const dv = new DataView(buf);
+      if (String.fromCharCode(dv.getUint8(0), dv.getUint8(1), dv.getUint8(2), dv.getUint8(3)) !== "LBM1") throw new Error("model");
+      const vc = dv.getUint32(4, true), ic = dv.getUint32(8, true), fl = dv.getUint32(12, true);
+      const mn = [0, 1, 2].map((i) => dv.getFloat32(16 + i * 4, true)), mxv = [0, 1, 2].map((i) => dv.getFloat32(28 + i * 4, true));
+      let o = 40;
+      const q = new Int16Array(buf, o, vc * 3); o += vc * 6;
+      const nq = new Int8Array(buf, o, vc * 3); o += vc * 3; o += (4 - (vc * 3) % 4) % 4;
+      const pos = new Float32Array(vc * 3), nrm = new Float32Array(vc * 3);
+      for (let i = 0; i < vc * 3; i++) { const a = i % 3; pos[i] = mn[a] + ((q[i] + 32768) / 65535) * (mxv[a] - mn[a]); nrm[i] = nq[i] / 127; }
+      const g = new T.BufferGeometry();
+      g.setAttribute("position", new T.BufferAttribute(pos, 3)); g.setAttribute("normal", new T.BufferAttribute(nrm, 3));
+      if (fl & 1) { const u = new Uint16Array(buf, o, vc * 2); o += vc * 4; const uv = new Float32Array(vc * 2); for (let i = 0; i < vc * 2; i++) uv[i] = u[i] / 65535; g.setAttribute("uv", new T.BufferAttribute(uv, 2)); }
+      g.setIndex(new T.BufferAttribute(fl & 2 ? new Uint32Array(buf, o, ic) : new Uint16Array(buf, o, ic), 1));
+      // markazlash: oyoq y=0, kerakli balandlik
+      g.computeBoundingBox(); const bb = g.boundingBox, hh = bb.max.y - bb.min.y, k = GUARD[name].h / hh;
+      g.translate(-(bb.min.x + bb.max.x) / 2, -bb.min.y, -(bb.min.z + bb.max.z) / 2); g.scale(k, k, k);
+      g.computeBoundingSphere();
+      return (geoCache[name] = g);
+    }
+    function guardMaterial(name) {
+      if (name === "arvoh") { // arvoh: yarim shaffof, etagi hilpiraydi, chetlari yaltiraydi
+        const m = new T.MeshStandardMaterial({ color: 0xbcc8ff, emissive: 0x1b2a66, roughness: 0.6, transparent: true, opacity: 0.78, side: T.DoubleSide });
+        m.onBeforeCompile = (sh) => {
+          sh.uniforms.uTime = uTime;
+          sh.vertexShader = "uniform float uTime;\n" + sh.vertexShader.replace("#include <begin_vertex>", `#include <begin_vertex>
+            float lo = clamp(1.0 - position.y / 1.4, 0.0, 1.0);
+            transformed.x += sin(uTime * 2.6 + position.y * 5.0 + position.z * 3.0) * 0.09 * lo;
+            transformed.z += cos(uTime * 2.1 + position.y * 4.0 + position.x * 3.0) * 0.08 * lo;
+            transformed.y += sin(uTime * 1.7 + position.x * 6.0) * 0.03 * lo;`);
+          sh.fragmentShader = sh.fragmentShader.replace("#include <dithering_fragment>", `#include <dithering_fragment>
+            float fr = pow(1.0 - abs(dot(normalize(vNormal), vec3(0.0, 0.0, 1.0))), 2.2);
+            gl_FragColor.rgb += vec3(0.45, 0.6, 1.0) * fr * 0.9;`);
+        };
+        return m;
+      }
+      if (name === "olov") { // olov maxluqi: tanasi titraydi, rangi tepaga qarab sarg'ayadi
+        const m = new T.MeshStandardMaterial({ color: 0x3a1206, emissive: 0xff5a10, emissiveIntensity: 1.0, roughness: 0.45, metalness: 0.2 });
+        m.onBeforeCompile = (sh) => {
+          sh.uniforms.uTime = uTime;
+          sh.vertexShader = "uniform float uTime;\nvarying float vH;\nvarying vec3 vP;\n" + sh.vertexShader.replace("#include <begin_vertex>", `#include <begin_vertex>
+            vH = position.y; vP = position;
+            float n = sin(uTime * 9.0 + position.y * 18.0 + position.x * 11.0) * sin(uTime * 6.3 + position.z * 14.0);
+            transformed += normal * n * 0.025 * (0.4 + position.y);`);
+          sh.fragmentShader = "uniform float uTime;\nvarying float vH;\nvarying vec3 vP;\n" + sh.fragmentShader.replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>
+            // ichidan yonib turgan olov tana: pastda qizil, tepada sariq, lipillaydi
+            float fl = 0.8 + 0.2 * sin(uTime * 13.0 + vH * 9.0) * sin(uTime * 7.0 + vP.x * 20.0);
+            float wave = 0.5 + 0.5 * sin(vP.y * 26.0 - uTime * 7.0 + sin(vP.x * 15.0) * 1.5);
+            vec3 hot = mix(vec3(1.0, 0.22, 0.02), vec3(1.0, 0.78, 0.28), clamp(vH / 1.75, 0.0, 1.0));
+            totalEmissiveRadiance = hot * (0.1 + 0.22 * pow(wave, 3.0) + 0.14 * smoothstep(0.9, 1.75, vH)) * fl;`);
+        };
+        return m;
+      }
+      const tex = new T.TextureLoader().load(GUARD.maxluq.tex); tex.encoding = T.sRGBEncoding; tex.flipY = false;
+      return new T.MeshStandardMaterial({ map: tex, roughness: 0.85, emissive: 0x1a1206, emissiveIntensity: 0.4 });
+    }
+    const guards = [];
+    async function makeGuard(g) {
+      const FM = (location.search.match(/lbguard=(\w+)/) || [])[1];
+      // qo'rqinchli → arvoh, yoqimli → yungli maxluq, oddiy → olov maxluqi
+      const name = FM ? FM : g.mood === "scary" ? "arvoh" : g.mood === "nice" ? "maxluq" : "olov";
+      if (!name) return;
+      try {
+        const geo = await loadGuardGeo(name);
+        if (!alive) return;
+        const mat = guardMaterial(name);
+        const mesh = new T.Mesh(geo, mat); mesh.castShadow = true; mesh.rotation.y = GUARD[name].yaw || 0;
+        const root = new T.Group(); root.add(mesh); root.visible = false;
+        if (name === "olov") { // atrofida olov uchqunlari va yorug'lik
+          for (let i = 0; i < 5; i++) { const sp = new T.Sprite(new T.SpriteMaterial({ map: glowTex, color: 0xff7a20, blending: T.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.6 })); sp.position.set(rr(-0.35, 0.35), rr(0.4, 1.7), rr(-0.2, 0.2)); sp.scale.setScalar(rr(0.5, 0.9)); sp.userData.ph = Math.random() * 6; root.add(sp); }
+          const fl = new T.PointLight(0xff6a20, 0, 6, 2); fl.position.y = 1.2; root.add(fl); root.userData.light = fl;
+        }
+        if (name === "arvoh") { const gl = new T.PointLight(0x7f9bff, 0, 5, 2); gl.position.y = 1.4; root.add(gl); root.userData.light = gl; }
+        if (name === "maxluq") { const gl = new T.PointLight(0xffd36a, 0, 5, 2); gl.position.set(0, 1.8, 0.6); root.add(gl); root.userData.light = gl; }
+        scene.add(root);
+        guards.push({ gate: g, name, root, mesh, mat, state: "wait", t: 0, lunge: 0, side: 1, yaw: 0, ph: Math.random() * 6 });
+        g.guard = guards[guards.length - 1];
+      } catch (e) { /* model yuklanmasa — qo'riqchisiz */ }
+    }
+    function placeGuard(gd) {
+      const g = gd.gate, horiz = G[g.y][g.x - 1] === 0;
+      const sgn = horiz ? Math.sign(me.x - g.x * S) || 1 : Math.sign(me.z - g.y * S) || 1;
+      const fwd = 0.95, lat = 0.75 * (gd.ph > 3 ? 1 : -1);
+      gd.base = horiz ? [g.x * S + sgn * fwd, g.y * S + lat] : [g.x * S + lat, g.y * S + sgn * fwd];
+      gd.dir = horiz ? [sgn, 0] : [0, sgn];
+      gd.root.position.set(gd.base[0], -2.4, gd.base[1]); gd.root.visible = true; gd.state = "rise"; gd.t = 0;
+    }
+    function updateGuards(t, adt) {
+      for (const gd of guards) {
+        if (gd.state === "wait" || gd.state === "gone") continue;
+        gd.t += adt;
+        const r = gd.root, L = r.userData.light;
+        // o'yinchiga qarab burilish
+        const want = Math.atan2(me.x - r.position.x, me.z - r.position.z);
+        let dy = ((want - gd.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI; gd.yaw += dy * Math.min(1, adt * 3); r.rotation.y = gd.yaw;
+        const hover = gd.name === "arvoh" ? 0.35 + Math.sin(t * 1.6 + gd.ph) * 0.12 : 0;
+        const breathe = 1 + Math.sin(t * (gd.name === "maxluq" ? 2.2 : 3) + gd.ph) * 0.025;
+        gd.lunge = Math.max(0, gd.lunge - adt * 1.8);
+        const lk = Math.sin(Math.min(1, gd.lunge) * Math.PI) * 0.9;
+        const bx = gd.base[0] + gd.dir[0] * lk, bz = gd.base[1] + gd.dir[1] * lk;
+        if (gd.state === "rise") {
+          const k = Math.min(1, gd.t / (gd.gate.mood === "scary" ? 0.35 : 0.7)), e = 1 - Math.pow(1 - k, 3);
+          r.position.set(bx, -2.4 + (2.4 + hover) * e, bz);
+          if (L) L.intensity = 1.6 * k;
+          if (k >= 1) { gd.state = "idle"; if (gd.gate.mood === "scary") gd.lunge = 1; }
+        } else if (gd.state === "idle") {
+          r.position.set(bx, hover, bz);
+          r.scale.set(breathe, 1 / breathe * (1 + (breathe - 1) * 0.5), breathe);
+          r.rotation.z = Math.sin(t * 1.3 + gd.ph) * (gd.name === "arvoh" ? 0.08 : 0.03);
+          if (L) L.intensity = (gd.name === "olov" ? 1.8 : 1.2) * (0.8 + 0.2 * Math.sin(t * 11 + gd.ph));
+        } else if (gd.state === "fade") {
+          const k = Math.min(1, gd.t / 1.0);
+          r.position.y = hover + k * 1.5; r.scale.setScalar(Math.max(0.01, 1 - k * 0.7));
+          gd.mat.transparent = true; gd.mat.opacity = 1 - k; if (L) L.intensity *= 0.9;
+          if (k >= 1) { gd.state = "gone"; r.visible = false; }
+        }
+        r.children.forEach((c) => { if (c.isSprite) { c.material.opacity = 0.16 + 0.12 * Math.sin(t * 12 + c.userData.ph); c.position.y += Math.sin(t * 3 + c.userData.ph) * 0.002; } });
+      }
+    }
+
     /* ---------------- O'yinchi ---------------- */
     const me = { x: start[0] * S, z: start[1] * S, yaw: 0, pitch: 0, vx: 0, vz: 0, bob: 0, stepT: 0 };
     { const d = [[1, 0], [0, 1]].find(([dx, dy]) => G[start[1] + dy][start[0] + dx] === 0) || [1, 0]; me.yaw = Math.atan2(-d[0], -d[1]); }
@@ -510,6 +661,8 @@
         if (d2 < R * R && d2 > 1e-9) { const d = Math.sqrt(d2), k = (R - d) / d; me.x += dx * k; me.z += dz * k; }
       }
     }
+
+    gates.forEach((g) => makeGuard(g));
 
     /* ---------------- HUD ---------------- */
     const hud = document.createElement("div");
@@ -565,7 +718,7 @@
       if (a.kind === "task") { onTaskAnswer(a.target, Q.check(a.target.q, v)); return; }
       if (Q.check(a.target.q, v)) {
         Snd.good(); flash("rgba(80,255,200,.35)");
-        if (a.kind === "gate") { a.target.state = "sinking"; a.target.t = 0; st.gatesOpen++; st.score += a.target.tries ? 60 : a.target.mood === "nice" ? 150 : a.target.mood === "scary" ? 120 : 100; Snd.sink(); hint(a.target.mood === "scary" ? "💪 Barakalla! Qorong‘i darvoza yengildi" : "✅ To‘g‘ri! Darvoza ochildi"); if (a.target.mood === "nice") burstAt(a.target.x * S, 1.5, a.target.y * S, 0xffd34d, 60); if (a.target.eyes) a.target.eyes.visible = false; }
+        if (a.kind === "gate") { a.target.state = "sinking"; a.target.t = 0; st.gatesOpen++; st.score += a.target.tries ? 60 : a.target.mood === "nice" ? 150 : a.target.mood === "scary" ? 120 : 100; Snd.sink(); hint(a.target.mood === "scary" ? "💪 Barakalla! Qorong‘i darvoza yengildi" : "✅ To‘g‘ri! Darvoza ochildi"); if (a.target.mood === "nice") burstAt(a.target.x * S, 1.5, a.target.y * S, 0xffd34d, 60); if (a.target.eyes) a.target.eyes.visible = false; if (a.target.guard && a.target.guard.state !== "gone") { a.target.guard.state = "fade"; a.target.guard.t = 0; burstAt(a.target.guard.root.position.x, 1.2, a.target.guard.root.position.z, a.target.guard.name === "olov" ? 0xff7a20 : 0x9fb4ff, 50); } }
         else { a.target.open = true; st.chestsOpen++; st.score += 50; Snd.coin(); hint("💰 +50 ⭐ Xazina topildi!"); burstGold(a.target); }
         closeAsk();
       } else {
@@ -573,6 +726,7 @@
         ui.q.classList.remove("shake"); void ui.q.offsetWidth; ui.q.classList.add("shake");
         if (a.kind === "gate") {
           st.hearts--; a.target.tries++;
+          if (a.target.guard && a.target.guard.state === "idle") { a.target.guard.lunge = 1; st.shake = 0.7; Snd.sample("nafas", 1, 0.8, 0.4); }
           const right = a.target.q.a[0];
           ui.qm.textContent = `❌ Noto‘g‘ri. To‘g‘ri javob: ${right}. Yangi savol!`;
           if (st.hearts <= 0) { lose(); return; }
@@ -702,7 +856,7 @@
         <div class="lb-row"><button class="lb-big" data-b="resume" type="button">▶ Davom etish</button><button class="lb-big ghost" data-b="exit" type="button">🚪 Chiqish</button></div></div>`;
     }
     function begin() {
-      Snd.init(); Snd.ambience(true);
+      Snd.init(); Snd.ambience(true); Snd.loadSamples();
       ui.over.hidden = true; st.started = true; st.t0 = performance.now(); paused = false; lockIt();
       if (MOBILE) {
         const el = document.documentElement, fs = el.requestFullscreen || el.webkitRequestFullscreen;
@@ -801,6 +955,7 @@
           if (st.zone !== "maze") return;
           if (g.state === "hidden" && d < 3.9) {
             g.state = "rising"; g.t = 0; Snd.rumble();
+            if (g.guard) { placeGuard(g.guard); Snd.sample("nafas", g.mood === "scary" ? 0.9 : 0.5, g.guard.name === "maxluq" ? 0.85 : 1, 0.5); }
             if (g.mood === "scary") { Snd.scary(); st.shake = 1.1; st.red = 2.2; flash("rgba(120,0,0,.55)"); hint("😱 Qorong‘i darvoza! Qizil ko‘zlar sizni kuzatmoqda...", 3200); }
             else if (g.mood === "nice") { Snd.nice(); st.shake = 0.25; burstAt(g.x * S, 0.5, g.y * S, 0xffd34d, 50); hint("✨ Oltin darvoza paydo bo‘ldi — yoqimli savol!"); }
             else { st.shake = 0.6; hint("⚠️ Oldingizda sehrli darvoza paydo bo‘ldi!"); }
@@ -823,6 +978,12 @@
         else if (g.state === "up") g.light.intensity = 1.3 + Math.sin(t * 3) * 0.3;
         else if (g.state === "sinking") { g.t += adt / 1.1; const k = Math.min(1, g.t); g.grp.position.y = -(WH + 0.2) * k * k; g.light.intensity = 1.6 * (1 - k); if (k >= 1) { g.state = "open"; g.grp.visible = false; } }
       });
+      updateGuards(t, adt);
+      if (st.started && !paused) {
+        let wl = 0;
+        if (st.zone === "maze" && !st.done) gates.forEach((g) => { if (g.mood === "scary" && (g.state === "up" || g.state === "rising")) wl = Math.max(wl, 1 - Math.hypot(g.x * S - me.x, g.y * S - me.z) / 12); });
+        Snd.whisper(wl);
+      } else Snd.whisper(0);
       st.warpT = Math.max(0, st.warpT - adt);
       st.red = Math.max(0, st.red - adt);
       if (scene.fog) {
@@ -879,7 +1040,7 @@
       window.removeEventListener("keydown", kd); window.removeEventListener("keyup", ku); window.removeEventListener("resize", resize);
       document.removeEventListener("mousemove", onMove); document.removeEventListener("pointerlockchange", onLock);
       if (document.pointerLockElement) document.exitPointerLock();
-      Snd.ambience(false); Snd.garden(false);
+      Snd.ambience(false); Snd.garden(false); Snd.stopSamples();
       scene.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => { if (m.map) m.map.dispose(); m.dispose(); }); });
       renderer.dispose(); container.innerHTML = "";
       if (user && opts.onExit) opts.onExit();
@@ -896,7 +1057,7 @@
       <div class="lb-row"><button class="lb-big" data-b="start" type="button">▶ Boshlash</button><button class="lb-big ghost" data-b="exit" type="button">🚪 Chiqish</button></div></div>`;
     for (let y = 0; y <= 3; y++) for (let x = 0; x <= 3; x++) if (seen[y]) seen[y][x] = true;
     frame();
-    return { destroy: () => destroy(false), debug: { me, st, gates, chests, exit, camera, renderer, scene, path, S, secret, sportal, warp } };
+    return { destroy: () => destroy(false), debug: { guards, me, st, gates, chests, exit, camera, renderer, scene, path, S, secret, sportal, warp } };
   }
 
   window.SofiMaze3D = { create, LEVELS };
