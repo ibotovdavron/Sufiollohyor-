@@ -735,6 +735,7 @@
     function resize() {
       const w = container.clientWidth || innerWidth, h = container.clientHeight || innerHeight;
       renderer.setSize(w, h); camera.aspect = w / h;
+      container.classList.toggle("short", h < 520);
       camera.fov = w / h < 1 ? 88 : 72; camera.updateProjectionMatrix();
     }
     window.addEventListener("resize", resize); resize();
