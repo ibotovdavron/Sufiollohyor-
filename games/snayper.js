@@ -1,4 +1,4 @@
-/* SNAYPER JANGI — Qizil va Ko'k robot jamoalar, 5 ga 5.
+/* SNAYPER JANGI — Qizil (askarlar) va Ko'k (sheriflar) jamoalar, 5 ga 5.
    Lobbi: xonalar ro'yxati (sn-lobby), xona: sn-r-KOD (Supabase Realtime yoki shu qurilma).
    Bo'sh o'rinlarni botlar to'ldiradi. Xona egasi (host) botlar va raundlarni boshqaradi. */
 (() => {
@@ -26,8 +26,8 @@
     if (!window.THREE) await loadScript("lib/three.min.js?v=149");
     if (!window.THREE.GLTFLoader) await loadScript("lib/GLTFLoader.js?v=1");
     if (!window.THREE.SkeletonUtils) await loadScript("lib/SkeletonUtils.js?v=1");
-    if (!window.SofiSniperWorld) await loadScript("games/snayper-world.js?v=4");
-    if (!window.SofiSniper3D) await loadScript("games/snayper3d.js?v=7");
+    if (!window.SofiSniperWorld) await loadScript("games/snayper-world.js?v=5");
+    if (!window.SofiSniper3D) await loadScript("games/snayper3d.js?v=8");
     await window.SofiSniper3D.load();
   })().catch((e) => { libs = null; throw e; }));
 
@@ -83,7 +83,7 @@
     panel().innerHTML = `
       <div class="sn-lob">
         <header><button class="sn-x" data-a="close" type="button">✕</button>
-          <span class="sn-logo">🎯</span><div><h2>Snayper jangi</h2><p>🔴 Qizil 🆚 🔵 Ko‘k · 5 ga 5 · robotlar jangi</p></div></header>
+          <span class="sn-logo">🎯</span><div><h2>Snayper jangi</h2><p>🔴 Qizil 🆚 🔵 Ko‘k · 5 ga 5 · askarlar 🆚 sheriflar</p></div></header>
         <div class="sn-acts">
           <button class="sn-btn" data-a="create" type="button">➕ Xona ochish</button>
           <button class="sn-btn ghost" data-a="solo" type="button">🤖 Botlar bilan mashq</button>
@@ -97,8 +97,8 @@
         ${local ? `<p class="sn-warn">⚠️ Internet aloqasi yo‘q — faqat shu qurilmadagi oynalar ko‘rinadi. Botlar bilan mashq qilishingiz mumkin.</p>` : ""}
         <div class="sn-rules"><b>📜 Qoidalar</b><ul>
           <li>Ikki uy bir-biriga qarama-qarshi turibdi. Siz jamoangiz uyidan boshlaysiz.</li>
-          <li>🔭 Durbin bilan nishonga oling: boshga tekkan o‘q robotni darhol o‘chiradi, tanaga — 2 ta o‘q kerak.</li>
-          <li>Raqib jamoaning hamma robotini o‘chirgan jamoa raundni yutadi. 3 raund yutgan — g‘olib!</li>
+          <li>🔭 Durbin bilan nishonga oling: boshga yoki tanaga tekkan bitta o‘q raqibni safdan chiqaradi, oyoqqa — 2 ta.</li>
+          <li>Raqib jamoaning hamma o‘yinchisini safdan chiqargan jamoa raundni yutadi. 3 raund yutgan — g‘olib!</li>
           <li>Xonada 10 kishigacha o‘ynaydi, bo‘sh joylarni 🤖 botlar egallaydi.</li></ul></div>
       </div>`;
   }

@@ -19,3 +19,7 @@ Tovushlar (games/sounds) — Mixkit (mixkit.co), "Mixkit Sound Effects Free Lice
 - shivir.mp3   — "Male crowd whispering voices" (455), qisqartirilgan
 - nafas.mp3    — "Male sleep breathe" (2236)
 - qichqiriq.mp3 — "Male falling scream" (392)
+
+Snayper jangi — personajlar va qurol (markaz direktori yuborgan modellar)
+- soldier.bin/.jpg (Soldier) — qizil jamoa, lawman.bin/.jpg (Lawman) — ko'k jamoa, launcher.bin/.jpg (Launcher) — qurol.
+  Ixcham LBM1 shaklga o'girilgan, teksturalar 1024 px. Yurish (oyoq/qo'l tebranishi), yiqilish — o'yin kodida.

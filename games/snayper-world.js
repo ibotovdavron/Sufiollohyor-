@@ -681,7 +681,7 @@
 
   /* ========== Robot personaj ========== */
   let ROBOT = null, ROBOT_H = 1;
-  function loadRobot() {
+  function loadRobotOld() {
     if (ROBOT) return Promise.resolve(ROBOT);
     return new Promise((res, rej) => new T.GLTFLoader().load("games/models/robot.glb?v=1", (g) => {
       ROBOT = g;
@@ -701,7 +701,7 @@
     m.envMapIntensity = 0.8;
     return (matCache[key] = m);
   }
-  function makeAvatar(team, height = 1.5) {
+  function makeAvatarRobot(team, height = 1.5) {
     const root = T.SkeletonUtils.clone(ROBOT.scene);
     root.traverse((o) => {
       if (o.isMesh) {
@@ -755,7 +755,7 @@
     });
   }
   /** AWP uslubidagi snayper miltiq. -z tomonga qaragan, uzunligi ~1.25 m. lite = robot qo'lidagi soddaroq nusxa. */
-  function makeRifle(team, lite) {
+  function makeRifleProc(team, lite) {
     const m = rifleMat(team);
     const g = new T.Group();
     const seg = lite ? 8 : 20;
@@ -817,6 +817,120 @@
     g.userData.bolt = bolt;
     g.userData.muzzle = new T.Vector3(0, 0.05, -1.27);
     g.userData.eject = new T.Vector3(0.03, 0.07, -0.06);
+    return g;
+  }
+
+  /* ========== Odam personajlar (Soldier — qizil, Lawman — ko'k) va qurol (Launcher) ==========
+     Modellar riglanmagan, shuning uchun harakat shaderda: oyoq va qo'llar qadam bilan tebranadi. */
+  const HUMAN = { r: { name: "soldier", h: 1.78 }, b: { name: "lawman", h: 1.8 } };
+  const MODEL_GEO = {}, MODEL_TEX = {};
+  function decodeLBM(buf) {
+    const dv = new DataView(buf);
+    const vc = dv.getUint32(4, true), ic = dv.getUint32(8, true), fl = dv.getUint32(12, true);
+    const mn = [0, 1, 2].map((i) => dv.getFloat32(16 + i * 4, true)), mx = [0, 1, 2].map((i) => dv.getFloat32(28 + i * 4, true));
+    let o = 40;
+    const q = new Int16Array(buf, o, vc * 3); o += vc * 6;
+    const nq = new Int8Array(buf, o, vc * 3); o += vc * 3; o += (4 - (vc * 3) % 4) % 4;
+    const pos = new Float32Array(vc * 3), nrm = new Float32Array(vc * 3);
+    for (let i = 0; i < vc * 3; i++) { const a = i % 3; pos[i] = mn[a] + ((q[i] + 32768) / 65535) * (mx[a] - mn[a]); nrm[i] = nq[i] / 127; }
+    const g = new T.BufferGeometry();
+    g.setAttribute("position", new T.BufferAttribute(pos, 3)); g.setAttribute("normal", new T.BufferAttribute(nrm, 3));
+    if (fl & 1) { const u = new Uint16Array(buf, o, vc * 2); o += vc * 4; const uv = new Float32Array(vc * 2); for (let i = 0; i < vc * 2; i++) uv[i] = u[i] / 65535; g.setAttribute("uv", new T.BufferAttribute(uv, 2)); }
+    g.setIndex(new T.BufferAttribute(fl & 2 ? new Uint32Array(buf, o, ic) : new Uint16Array(buf, o, ic), 1));
+    g.computeBoundingBox(); g.computeBoundingSphere();
+    return g;
+  }
+  async function loadModel(name) {
+    if (MODEL_GEO[name]) return;
+    const buf = await (await fetch(`games/models/${name}.bin?v=1`)).arrayBuffer();
+    MODEL_GEO[name] = decodeLBM(buf);
+    const tex = await new Promise((res) => new T.TextureLoader().load(`games/models/${name}.jpg?v=1`, res, undefined, () => res(null)));
+    if (tex) { tex.encoding = T.sRGBEncoding; tex.flipY = false; tex.anisotropy = 4; }
+    MODEL_TEX[name] = tex;
+  }
+  let modelsReady = null;
+  const loadRobot = () => modelsReady || (modelsReady = Promise.all(["soldier", "lawman", "launcher"].map(loadModel)));
+
+  function humanMaterial(team) {
+    const name = HUMAN[team].name, g = MODEL_GEO[name], H = g.boundingBox.max.y - g.boundingBox.min.y;
+    const u = { uSwing: { value: 0 }, uHip: { value: H * 0.52 }, uSh: { value: H * 0.79 }, uRim: { value: new T.Color(TEAM[team].col) }, uRimK: { value: 0.55 } };
+    const m = new T.MeshStandardMaterial({ map: MODEL_TEX[name], roughness: 0.8, metalness: 0.05 });
+    m.onBeforeCompile = (sh) => {
+      Object.assign(sh.uniforms, u);
+      sh.vertexShader = "uniform float uSwing; uniform float uHip; uniform float uSh;\n" + sh.vertexShader.replace("#include <begin_vertex>", `#include <begin_vertex>
+        float side = clamp(position.x / 0.07, -1.0, 1.0);
+        // oyoqlar: son bo'g'imidan tebranadi (chap va o'ng qarama-qarshi)
+        float wl = smoothstep(uHip + 0.02, uHip - 0.22, position.y);
+        float al = side * uSwing * wl;
+        float yy = transformed.y - uHip, zz = transformed.z;
+        transformed.y = uHip + yy * cos(al) - zz * sin(al); transformed.z = yy * sin(al) + zz * cos(al);
+        // qo'llar: yelkadan, oyoqlarga teskari
+        float wa = smoothstep(0.17, 0.27, abs(position.x)) * smoothstep(uSh - 0.65, uSh - 0.35, position.y) * (1.0 - smoothstep(uSh - 0.02, uSh + 0.06, position.y));
+        float aa = -side * uSwing * 0.7 * wa;
+        float y2 = transformed.y - uSh, z2 = transformed.z;
+        transformed.y = uSh + y2 * cos(aa) - z2 * sin(aa); transformed.z = y2 * sin(aa) + z2 * cos(aa);`);
+      sh.fragmentShader = "uniform vec3 uRim; uniform float uRimK;\n" + sh.fragmentShader.replace("#include <dithering_fragment>", `#include <dithering_fragment>
+        float rim = pow(1.0 - abs(dot(normalize(vNormal), vec3(0.0, 0.0, 1.0))), 2.5);
+        gl_FragColor.rgb += uRim * rim * uRimK;`);
+    };
+    m.userData.u = u;
+    return m;
+  }
+  function makeAvatar(team, height = HUMAN[team].h) {
+    const name = HUMAN[team].name, geo = MODEL_GEO[name];
+    const bb = geo.boundingBox, s = height / (bb.max.y - bb.min.y);
+    const mat = humanMaterial(team), u = mat.userData.u;
+    const mesh = new T.Mesh(geo, mat); mesh.castShadow = true; mesh.receiveShadow = true; mesh.frustumCulled = false;
+    mesh.scale.setScalar(s); mesh.position.y = -bb.min.y * s;
+    const body = new T.Group(); body.add(mesh);
+    const wrap = new T.Group(); wrap.add(body);
+    // jamoa rangidagi oyoq ostidagi halqa
+    const ring = new T.Mesh(new T.RingGeometry(0.34, 0.46, 32), new T.MeshBasicMaterial({ color: TEAM[team].col, transparent: true, opacity: 0.55, depthWrite: false, side: T.DoubleSide }));
+    ring.rotation.x = -Math.PI / 2; ring.position.y = 0.03; wrap.add(ring);
+    // qo'lda qurol (gavdaga biriktirilgan: o'ng tomonda, ko'krak balandligida)
+    const gun = makeRifle(team, true);
+    gun.scale.setScalar(0.9); gun.position.set(-0.2 * height / 1.78, 1.22 * height / 1.78, 0.18); gun.rotation.y = Math.PI;
+    body.add(gun);
+    let cur = "Idle", t0 = performance.now(), phase = 0, deathT = 0;
+    const play = (n) => { if (n === cur) return; cur = n; if (n === "Death") deathT = 0; if (n === "Idle") { body.rotation.set(0, 0, 0); body.position.set(0, 0, 0); } };
+    const mixer = {
+      update(dt) {
+        const k = cur === "Running" ? 1 : 0;
+        if (cur === "Death") {
+          deathT += dt; const e = Math.min(1, deathT / 0.55), ee = e * e * (3 - 2 * e);
+          body.rotation.x = -ee * 1.45; body.position.y = -ee * 0.1; body.position.z = -ee * 0.25; u.uSwing.value *= 0.9; ring.material.opacity = 0.55 * (1 - e);
+          return;
+        }
+        ring.material.opacity = 0.55;
+        phase += dt * (k ? 9.5 : 0);
+        const sw = k ? Math.sin(phase) * 0.6 : 0;
+        u.uSwing.value += (sw - u.uSwing.value) * Math.min(1, dt * 14);
+        const t = (performance.now() - t0) / 1000;
+        body.position.y = k ? Math.abs(Math.cos(phase)) * 0.06 : Math.sin(t * 2.2) * 0.008;
+        body.rotation.x = k ? 0.12 : 0; body.rotation.z = k ? Math.sin(phase) * 0.04 : Math.sin(t * 1.1) * 0.01;
+        if (cur === "Jump") { body.rotation.x = -0.1; u.uSwing.value = 0.35; }
+        gun.rotation.x = k ? Math.sin(phase * 2) * 0.04 : Math.sin(t * 2.2) * 0.01;
+      },
+    };
+    return { obj: wrap, root: body, mixer, play, get anim() { return cur; }, gun, syncGun() {} };
+  }
+
+  /** Launcher qurol modeli: -z tomonga qaragan, uzunligi ~1.1 m. */
+  function makeRifle(team, lite) {
+    const g = new T.Group();
+    const geo = MODEL_GEO.launcher;
+    if (!geo) return makeRifleProc(team, lite);
+    const S2 = 1.25;
+    const m = new T.Mesh(geo, new T.MeshStandardMaterial({ map: MODEL_TEX.launcher, roughness: 0.45, metalness: 0.55, envMapIntensity: 1 }));
+    m.castShadow = true; m.scale.setScalar(S2); m.rotation.y = Math.PI;
+    const bb = geo.boundingBox;
+    // tutqich (o'rta-orqa qism) koordinata boshiga, stvol -z tomonga
+    m.position.set(0, -0.12, -0.12);
+    g.add(m);
+    const bolt = new T.Group(); bolt.position.set(0, 0.06, 0.05); g.add(bolt);
+    g.userData.bolt = bolt;
+    g.userData.muzzle = new T.Vector3(0, -0.12 + (bb.max.y * 0.66) * S2, -0.12 - bb.max.z * S2);
+    g.userData.eject = new T.Vector3(0.05, 0.08, -0.05);
     return g;
   }
 

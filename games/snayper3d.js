@@ -16,7 +16,7 @@
     HP: 100, DMG: { head: 100, body: 100, legs: 70 },
     MAG: 5, RESERVE: 25, BOLT: 1.15, RELOAD: 2.5,
     SPEED: 4.6, SPRINT: 6.4, CROUCH: 2.2, SCOPED: 2.2,
-    H: 1.55, HC: 1.1, EYE: 1.4, EYEC: 0.95, R: 0.3,
+    H: 1.8, HC: 1.25, EYE: 1.62, EYEC: 1.08, R: 0.3,
     FOV: 72, ZOOM: [72, 20, 9], NET_MS: 150,
   };
   const TEAMNAME = { r: "Qizil", b: "Ko‘k" };
@@ -223,7 +223,7 @@
       av.obj.visible = false;
       if (r.id !== myId) {
         const tag = nameTag(r.name, r.team, r.bot);
-        tag.position.y = 1.85; av.obj.add(tag); p.tag = tag;
+        tag.position.y = 2.1; av.obj.add(tag); p.tag = tag;
       }
       P.set(r.id, p);
       return p;
@@ -393,11 +393,11 @@
         if (!p.alive || p.id === shooter || (sp && p.team === sp.team)) continue;
         const q = rp(p), hs = p.crouch ? 0.72 : 1;
         const x = q.x, y = q.y, z = q.z;
-        let t = raySphere(oa, da, [x, y + 1.25 * hs, z], 0.25);
+        let t = raySphere(oa, da, [x, y + 1.6 * hs, z], 0.17);
         if (t > 0 && t < best) { best = t; hit = p.id; part = "head"; }
-        t = rayCyl(oa, da, x, z, y + 0.5 * hs, y + 1.08 * hs, 0.28);
+        t = rayCyl(oa, da, x, z, y + 0.92 * hs, y + 1.47 * hs, 0.27);
         if (t > 0 && t < best) { best = t; hit = p.id; part = "body"; }
-        t = rayCyl(oa, da, x, z, y, y + 0.5 * hs, 0.2);
+        t = rayCyl(oa, da, x, z, y, y + 0.92 * hs, 0.2);
         if (t > 0 && t < best) { best = t; hit = p.id; part = "legs"; }
       }
       return { dist: best, hit, part };
@@ -477,7 +477,7 @@
     }
     function showDead(k) {
       ui.dead.hidden = false;
-      ui.dead.innerHTML = `<b>🔌 Robotingiz o‘chdi</b><small>${k ? `${esc(k.name)} ${k.bot ? "(bot)" : ""} sizni nishonga oldi` : ""}</small><small>Raund oxirigacha jamoadoshingizni kuzatasiz · bosib almashtiring</small>`;
+      ui.dead.innerHTML = `<b>🎯 Siz safdan chiqdingiz</b><small>${k ? `${esc(k.name)} ${k.bot ? "(bot)" : ""} sizni nishonga oldi` : ""}</small><small>Raund oxirigacha jamoadoshingizni kuzatasiz · bosib almashtiring</small>`;
     }
 
     /* ---------- Mahalliy o'yinchi ---------- */
@@ -602,7 +602,7 @@
           const qp = rp(q), d = qp.distanceTo(p.pos);
           if (d > (b.path.length ? 40 : 130)) continue; // yo'lda ketayotganda faqat yaqin raqibga to'xtaydi
           const hs = q.crouch ? 0.72 : 1;
-          const head = qp.clone().add(new T.Vector3(0, 1.25 * hs, 0)), chest = qp.clone().add(new T.Vector3(0, 0.85 * hs, 0));
+          const head = qp.clone().add(new T.Vector3(0, 1.6 * hs, 0)), chest = qp.clone().add(new T.Vector3(0, 1.2 * hs, 0));
           const vis = visible(eye, chest) ? chest : visible(eye, head) ? head : null;
           if (vis && d < bd) { bd = d; best = { id: q.id, aim: vis === head ? "head" : "body" }; }
         }
@@ -618,7 +618,7 @@
         if (!q || !q.alive) b.target = null;
         else {
           const hs = q.crouch ? 0.72 : 1;
-          const aimPt = rp(q).clone().add(new T.Vector3(0, (b.target.aim === "head" ? 1.25 : 0.85) * hs, 0));
+          const aimPt = rp(q).clone().add(new T.Vector3(0, (b.target.aim === "head" ? 1.6 : 1.2) * hs, 0));
           const d = aimPt.clone().sub(eye);
           const wantYaw = Math.atan2(-d.x, -d.z), wantPitch = Math.atan2(d.y, Math.hypot(d.x, d.z));
           let dy = ((wantYaw - p.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
@@ -1053,7 +1053,7 @@
       const bob = me.onGround ? sp * 0.004 : 0;
       L.kick = Math.max(0, L.kick - dt * 3.2);
       const k = L.kick;
-      let x = (vmCam.aspect < 1.25 ? 0.13 : 0.21) + Math.sin(ts * 8) * bob, y = -0.25 - Math.abs(Math.cos(ts * 8)) * bob, z = -0.46 + k * 0.11, rx = k * 0.18, rz = 0;
+      let x = (vmCam.aspect < 1.25 ? 0.15 : 0.24) + Math.sin(ts * 8) * bob, y = -0.24 - Math.abs(Math.cos(ts * 8)) * bob, z = -0.42 + k * 0.11, rx = k * 0.18, rz = 0;
       // Zatvor animatsiyasi
       const bolt = vm.userData.bolt;
       const bt = me.boltT > 0 ? 1 - me.boltT / CFG.BOLT : 1;
@@ -1119,7 +1119,7 @@
     ui.start.hidden = false;
     ui.start.innerHTML = `<div class="sn-intro"><span class="big">🎯</span><h2>${TEAMNAME[me.team]} jamoa</h2>
       <p>${MOBILE ? "Chap barmoq — yurish, o‘ng barmoq — qarash. 🔭 — durbin, 🎯 — otish." : "Sichqoncha bilan qarang, o‘ng tugma — durbin, chap tugma — otish. Shift — nafasni ushlash."}</p>
-      <p class="sm">Raqib jamoaning hamma robotini o‘chiring. ${CFG.WIN} raund yutgan jamoa g‘olib!</p>
+      <p class="sm">Raqib jamoaning hamma o‘yinchisini safdan chiqaring. ${CFG.WIN} raund yutgan jamoa g‘olib!</p>
       <div class="sn-row"><button class="sn-btn" data-go type="button">▶ Jangga kirish</button><button class="sn-btn ghost" data-b="exit" type="button">🚪 Chiqish</button></div></div>`;
     ui.start.querySelector("[data-go]").onclick = () => {
       Snd.init(); Snd.ambience(true);
