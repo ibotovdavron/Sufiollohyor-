@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="games/kimyo.css?v=2">
   <link rel="stylesheet" href="games/snayper.css?v=7">
   <link rel="stylesheet" href="games/labirint.css?v=5">
+  <link rel="stylesheet" href="games/turnir-play.css?v=1">
 </head>
 <body>
 
@@ -128,6 +129,7 @@
           <button class="btn g-start" data-cs="play" type="button">♟ Do‘st bilan o‘ynash</button>
           <button class="btn ghost" data-cs="watch" type="button">👁 Kuzatish</button>
           <button class="btn ghost" data-cs="rating" type="button">🏆 Reyting</button>
+          <button class="btn ghost" data-tn-play type="button">🏆 Turnir o‘yinim</button>
         </div>
         <div id="csLive"></div>
       </div>
@@ -301,7 +303,7 @@
 <script src="games/zakovat.js?v=2"></script>
 <script src="games/master-questions.js?v=1"></script>
 <script src="games/master.js?v=4"></script>
-<script src="games/shaxmat.js?v=3"></script>
+<script src="games/shaxmat.js?v=4"></script>
 <script src="games/ferma-sound.js?v=1"></script>
 <script src="games/ferma.js?v=5"></script>
 <script src="games/shashka.js?v=1"></script>
@@ -309,6 +311,8 @@
 <script src="games/kimyo.js?v=5"></script>
 <script src="games/snayper.js?v=7"></script>
 <script src="games/labirint.js?v=5"></script>
+<script src="turnir.js?v=1"></script>
+<script src="games/turnir-play.js?v=1"></script>
 <script>
   // O'yindan qaytganda sahifa o'sha joyidan davom etsin
   (() => { let y = 0, was = false; const isOn = () => /\b(g-playing|lb-open|sn-open)\b/.test(document.body.className);

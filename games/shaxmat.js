@@ -363,9 +363,18 @@
   // =========================================================
   // HOST: xona egasi — o'yin holatini boshqaradi
   // =========================================================
-  async function createRoom(tcId, colorPref) {
-    let code;
-    do { code = String(1000 + Math.floor(Math.random() * 9000)); } while (rooms.has(code));
+  async function createRoom(tcId, colorPref, opt = {}) {
+    let code = opt.code;
+    if (!code) do { code = String(1000 + Math.floor(Math.random() * 9000)); } while (rooms.has(code));
+    const TN = opt.tn || null; // turnir o'yini: { ev, round, slot, p1, p2, title }
+    const created = Date.now();
+    let tnDone = false;
+    const tnReport = (winner, reason) => {
+      if (!TN || tnDone) return; tnDone = true;
+      const R = window.SofiTurnir; if (!R) return;
+      R.report(TN.ev, TN.round, TN.slot, winner, G.session.name, reason).catch((e) => console.warn("tn_report", e));
+      setTimeout(() => { if (root) closeRoot(); window.SofiTurnirPlay && window.SofiTurnirPlay.resume(winner === G.session.name); }, 6500);
+    };
     const me = G.session;
     main().innerHTML = `<div class="cs-wait"><span class="cs-spin"></span><p>Xona ochilmoqda…</p></div>`;
     let room = null;
@@ -383,7 +392,7 @@
       t: "state", code, phase: "wait", tc: tc.id,
       players: { w: null, b: null },
       moves: [], clock: { w: tc.base * 1000, b: tc.base * 1000 }, turnStart: 0,
-      result: null, draw: null, rematch: { w: false, b: false }, viewers: 0, gameId: null, deltas: null, startedAt: 0
+      result: null, draw: null, rematch: { w: false, b: false }, viewers: 0, gameId: null, deltas: null, startedAt: 0, tn: TN
     };
     S.players[myColor] = { name: me.name, cls: me.cls, cid: me.cid, rating: myRating };
     const chess = new window.Chess();
@@ -426,6 +435,11 @@
       S.result = { score, reason };
       S.draw = null;
       push(); announce();
+      if (TN) {
+        if (score === "1/2-1/2") { // turnirda durang bo'lmaydi — ranglar almashib qayta o'ynaladi
+          setTimeout(() => { if (!root || S.phase !== "end") return; const w = S.players.w; S.players.w = S.players.b; S.players.b = w; startGame(); }, 4000);
+        } else tnReport(score === "1-0" ? S.players.w.name : S.players.b.name, reason);
+      }
       if (reason === "abort" || S.moves.length < 2 || !ratedGame(S)) return;
       const out = await Rating.finish({
         id: S.gameId, white: S.players.w.name, black: S.players.b.name, result: score, reason, moves: S.moves.length,
@@ -456,6 +470,7 @@
           const already = colorOf(m.cid, m.name);
           if (already) { S.players[already].cid = m.cid; push(); break; }
           if (S.phase !== "wait") { push(); break; }
+          if (TN && m.name !== TN.p1 && m.name !== TN.p2) { push(); break; }
           const free = !S.players.w ? "w" : !S.players.b ? "b" : null;
           if (!free) { push(); break; }
           S.players[free] = { name: m.name, cls: m.cls, cid: m.cid, rating: m.rating || (isMehmon(m) ? null : START_RATING) };
@@ -525,6 +540,10 @@
 
     // Soat va aloqa nazorati
     const tick = setInterval(() => {
+      if (TN && S.phase === "wait" && Date.now() - created > 300000 && !tnDone) {
+        S.phase = "end"; S.result = { score: S.players.w ? "1-0" : "0-1", reason: "left" }; push();
+        tnReport(me.name, "noshow");
+      }
       if (S.phase !== "play") return;
       const now = Date.now();
       const turn = chess.turn();
@@ -555,10 +574,20 @@
     push();
   }
 
+  /** Turnir o'yini: host — 1-o'yinchi (oq), mehmon — 2-o'yinchi */
+  window.SofiChessT = {
+    async play({ code, host, tn }) {
+      if (host) { openRoot(); root.dataset.screen = "game"; return createRoom("10+0", "w", { code, tn }); }
+      return openGame(code, "guest", { tn });
+    },
+  };
+
   // =========================================================
   // MEHMON yoki KUZATUVCHI
   // =========================================================
-  async function openGame(code, role) {
+  async function openGame(code, role, opt = {}) {
+    const TN = opt.tn || null;
+    let tnDone = false;
     openRoot();
     main().innerHTML = `<div class="cs-wait"><span class="cs-spin"></span><p>#${esc(code)} xonasiga ulanmoqda…</p></div>`;
     try { await Promise.all([loadLibs(), window.SofiNet.init()]); }
@@ -573,7 +602,19 @@
     try {
       room = await window.SofiNet.join("cs-" + code, {
         meta: { cid, name, role: role === "guest" ? "player" : "viewer" },
-        onMsg: (m) => { if (m && m.code === code && m.t === "state") gotState = true; ui && ui.onMsg(m); },
+        onMsg: (m) => {
+          if (m && m.code === code && m.t === "state") {
+            gotState = true;
+            // zaxira: natijani mehmon ham yuboradi (server ikkinchisini e'tiborsiz qoldiradi)
+            if (TN && !tnDone && m.phase === "end" && m.result && m.result.score !== "1/2-1/2" && m.players && m.players.w && m.players.b) {
+              tnDone = true;
+              const winner = m.result.score === "1-0" ? m.players.w.name : m.players.b.name;
+              window.SofiTurnir && window.SofiTurnir.report(TN.ev, TN.round, TN.slot, winner, G.session.name, m.result.reason).catch(() => {});
+              setTimeout(() => { if (root) closeRoot(); window.SofiTurnirPlay && window.SofiTurnirPlay.resume(winner === G.session.name); }, 6500);
+            }
+          }
+          ui && ui.onMsg(m);
+        },
         onPresence: () => {}
       });
     } catch (e) {
@@ -585,7 +626,17 @@
     ui = gameView(code, role, { send });
     const hello = setInterval(() => { if (!gotState) send({ t: role === "guest" ? "sit" : "hello" }); }, 1000);
     send({ t: role === "guest" ? "sit" : "hello" });
-    const notFound = setTimeout(() => { if (!gotState && root) ui.gone("Bunday xona topilmadi yoki yopilgan."); }, 10000);
+    const notFound = setTimeout(() => {
+      if (gotState || !root) return;
+      if (TN && !tnDone) { // raqib 5 daqiqa ichida kelmadi — texnik g'alaba
+        tnDone = true;
+        window.SofiTurnir && window.SofiTurnir.report(TN.ev, TN.round, TN.slot, G.session.name, G.session.name, "noshow").catch(() => {});
+        ui.gone("Raqibingiz kelmadi — sizga texnik g‘alaba berildi! ✅");
+        setTimeout(() => { if (root) closeRoot(); window.SofiTurnirPlay && window.SofiTurnirPlay.resume(true); }, 4000);
+        return;
+      }
+      ui.gone("Bunday xona topilmadi yoki yopilgan.");
+    }, TN ? 300000 : 10000);
     onClose(() => {
       clearInterval(hello); clearTimeout(notFound);
       if (role === "guest") send({ t: "leave" });
@@ -929,7 +980,8 @@
           <p>${esc(REASONS[r.reason] || "")} · ${Math.ceil(S.moves.length / 2)} yurish</p>
           ${line("w")}${line("b")}
           ${!ratedGame(S) ? `<p class="cs-muted">👤 Mehmon ishtirokidagi o‘yin — reyting o‘zgarmaydi.</p>` : r.reason !== "abort" && S.moves.length >= 2 && !S.deltas ? `<p class="cs-muted">Reyting hisoblanmoqda…</p>` : ""}
-          <div class="cs-ov-btns">
+          ${S.tn ? `<p class="cs-muted">🏆 ${!winC ? "Turnirda durang bo‘lmaydi — ranglar almashib qayta o‘ynaladi…" : myColor ? (iWon ? "Siz keyingi bosqichga o‘tdingiz! Turnir oynasiga qaytilmoqda…" : "Turnirda ishtirok etganingiz uchun rahmat! Turnir oynasiga qaytilmoqda…") : ""}</p>` : ""}
+          <div class="cs-ov-btns" ${S.tn ? "hidden" : ""}>
             ${myColor ? `<button class="cs-btn gold" type="button" data-ov="rematch" ${S.rematch && S.rematch[myColor] ? "disabled" : ""}>🔁 ${S.rematch && S.rematch[myColor] ? "Raqib kutilmoqda…" : (S.rematch && S.rematch[myColor === "w" ? "b" : "w"] ? "Raqib qayta o‘ynamoqchi — Qabul!" : "Qayta o‘ynash")}</button>` : ""}
             <button class="cs-btn ghost" type="button" data-ov="board">♟ Taxtani ko‘rish</button>
             <button class="cs-btn ghost" type="button" data-ov="menu">📋 Menyu</button>
