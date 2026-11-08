@@ -83,6 +83,8 @@
   }
 
   async function open() {
+    // sahifa ochilganda saqlangan ism ~1.5 soniyada tiklanadi — shuni kutamiz
+    for (let i = 0; i < 30 && !G.session.name; i++) await new Promise((r) => setTimeout(r, 100));
     if (!G.session.name && !(await api.askName())) { close(); return; }
     if (G.session.role === "guest") { view(`<div class="tp-card"><span class="tp-big">👤</span><h2>Mehmonlar turnirda qatnashmaydi</h2><p>Ro‘yxatdagi ismingiz bilan kiring.</p></div>`); return; }
     shell();

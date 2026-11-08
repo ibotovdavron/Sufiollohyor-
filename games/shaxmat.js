@@ -913,7 +913,7 @@
       let html = "";
       if (myColor && S.phase === "play") {
         html += `<button type="button" class="cs-btn ghost" data-act="draw" ${S.draw || S.moves.length < 2 ? "disabled" : ""}>🤝 Durang</button>`;
-        html += `<button type="button" class="cs-btn danger" data-act="resign">🏳️ ${S.moves.length < 2 ? "Bekor qilish" : "Taslim"}</button>`;
+        html += `<button type="button" class="cs-btn danger" data-act="resign">🏳️ ${S.moves.length < 2 && !S.tn ? "Bekor qilish" : "Taslim"}</button>`;
       }
       if (myColor && S.phase === "wait") html += `<button type="button" class="cs-btn gold" data-act="invite">📨 Do‘stni taklif qilish</button>`;
       if (S.phase === "end" && myColor) html += `<button type="button" class="cs-btn gold" data-act="rematch" ${S.rematch && S.rematch[myColor] ? "disabled" : ""}>🔁 ${S.rematch && S.rematch[myColor] ? "Kutilmoqda…" : "Qayta o‘ynash"}</button>`;
@@ -966,8 +966,9 @@
       const ov = $("#csOverlay", m);
       ov.hidden = false;
       ov.className = "cs-overlay end";
-      const head = r.reason === "abort" ? "O‘yin bekor qilindi" : !winC ? "Durang!" : myColor ? (iWon ? "G‘alaba!" : "Mag‘lubiyat") : `${winC === "w" ? "Oq" : "Qora"} yutdi!`;
-      const ico = r.reason === "abort" ? "⛔" : !winC ? "🤝" : myColor ? (iWon ? "🏆" : "😔") : "🏆";
+      const tnAbort = S.tn && r.reason === "abort";
+      const head = r.reason === "abort" && !tnAbort ? "O‘yin bekor qilindi" : !winC ? "Durang!" : myColor ? (iWon ? "G‘alaba!" : "Mag‘lubiyat") : `${winC === "w" ? "Oq" : "Qora"} yutdi!`;
+      const ico = r.reason === "abort" && !tnAbort ? "⛔" : !winC ? "🤝" : myColor ? (iWon ? "🏆" : "😔") : "🏆";
       const line = (c) => {
         const p = S.players[c];
         if (!p) return "";
@@ -977,7 +978,7 @@
       ov.innerHTML = `<div class="cs-ov-card ${iWon ? "gold" : ""}">
           <span class="cs-ov-ico">${ico}</span>
           <h3>${head}</h3>
-          <p>${esc(REASONS[r.reason] || "")} · ${Math.ceil(S.moves.length / 2)} yurish</p>
+          <p>${esc(tnAbort ? "Raqib taslim bo‘ldi / o‘yindan chiqdi" : REASONS[r.reason] || "")} · ${Math.ceil(S.moves.length / 2)} yurish</p>
           ${line("w")}${line("b")}
           ${!ratedGame(S) ? `<p class="cs-muted">👤 Mehmon ishtirokidagi o‘yin — reyting o‘zgarmaydi.</p>` : r.reason !== "abort" && S.moves.length >= 2 && !S.deltas ? `<p class="cs-muted">Reyting hisoblanmoqda…</p>` : ""}
           ${S.tn ? `<p class="cs-muted">🏆 ${!winC ? "Turnirda durang bo‘lmaydi — ranglar almashib qayta o‘ynaladi…" : myColor ? (iWon ? "Siz keyingi bosqichga o‘tdingiz! Turnir oynasiga qaytilmoqda…" : "Turnirda ishtirok etganingiz uchun rahmat! Turnir oynasiga qaytilmoqda…") : ""}</p>` : ""}

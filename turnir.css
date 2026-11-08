@@ -45,9 +45,10 @@
 .tn-pl.me { outline: 2px solid #fde68a; } .tn-pl.out { opacity: .45; text-decoration: line-through; }
 .tn-empty { margin: 0; color: #b9ae88; }
 .tn-bracket { position: relative; display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: thin; }
-.tn-col { flex: 0 0 auto; width: 200px; display: flex; flex-direction: column; justify-content: space-around; gap: 8px; }
+.tn-col { flex: 0 0 auto; width: 200px; display: flex; flex-direction: column; gap: 6px; }
+.tn-ms { flex: 1; display: flex; flex-direction: column; justify-content: space-around; gap: 8px; }
 .tn-col h4 { margin: 0 0 4px; font-size: 13px; color: #fde68a; text-align: center; }
-.tn-col.third { justify-content: center; }
+.tn-col.third .tn-ms { justify-content: center; }
 .tn-m { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255, 255, 255, .12); background: rgba(0, 0, 0, .3); font-size: 13px; }
 .tn-m > div { padding: 7px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tn-m > div + div { border-top: 1px solid rgba(255, 255, 255, .08); }

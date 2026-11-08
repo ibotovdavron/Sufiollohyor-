@@ -143,7 +143,7 @@
       const live = !m.winner && m.p1 && m.p2;
       return `<div class="tn-m ${live ? "live" : ""}">${pl(m.p1)}${pl(m.p2)}${live ? `<span class="lv">● o‘ynalmoqda</span>` : ""}</div>`;
     };
-    return `<div class="tn-bracket-head">🗂 Turnir setkasi</div><div class="tn-bracket">${cols.map(([r, ms]) => `<div class="tn-col"><h4>${esc(roundName(r, R))}</h4>${ms.map(cell).join("")}</div>`).join("")}${third ? `<div class="tn-col third"><h4>🥉 3-o‘rin uchun</h4>${cell(third)}</div>` : ""}</div>`;
+    return `<div class="tn-bracket-head">🗂 Turnir setkasi</div><div class="tn-bracket">${cols.map(([r, ms]) => `<div class="tn-col"><h4>${esc(roundName(r, R))}</h4><div class="tn-ms">${ms.map(cell).join("")}</div></div>`).join("")}${third ? `<div class="tn-col third"><h4>🥉 3-o‘rin uchun</h4><div class="tn-ms">${cell(third)}</div></div>` : ""}</div>`;
   }
 
   async function refresh() {
