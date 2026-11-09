@@ -88,6 +88,25 @@
     if (F) { const i = Math.floor((x - F.x0) * F.sx), j = Math.floor((z - F.z0) * F.sz); if (i < 0 || j < 0 || i >= F.w || j >= F.h) return 999; return F.f[j * F.w + i]; }
     let d = 1e9; for (const sg of SEGS) { const v = segDist(x, z, sg); if (v < d) d = v; } return d;
   }
+  /** Xaritadagi yer rangi va daraxt ulushi (12 px lik kataklar) */
+  let VGR = null;
+  function vgrid() {
+    if (VGR !== null) return VGR;
+    const V = window.SofiOvchiVillage; if (!V || !V.grid) return (VGR = false);
+    const dec = (b) => { const s = atob(b), a = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return a; };
+    return (VGR = { w: V.grid.w, h: V.grid.h, rgb: dec(V.grid.rgb), tree: dec(V.grid.tree), x0: V.roads.x0, z0: V.roads.z0, sx: V.grid.w / V.roads.w, sz: V.grid.h / V.roads.h, W: V.roads.w, H: V.roads.h });
+  }
+  /** [r, g, b (0..1, sRGB), og'irlik] yoki null */
+  function mapColor(x, z) {
+    const G = vgrid(); if (!G) return null;
+    const fx = (x - G.x0) * G.sx - 0.5, fz = (z - G.z0) * G.sz - 0.5;
+    if (fx < -0.5 || fz < -0.5 || fx > G.w - 0.5 || fz > G.h - 0.5) return null;
+    const i = clamp(Math.floor(fx), 0, G.w - 2), j = clamp(Math.floor(fz), 0, G.h - 2), u = clamp(fx - i, 0, 1), v = clamp(fz - j, 0, 1);
+    const c = [0, 1, 2].map((k) => { const at = (ii, jj) => G.rgb[(jj * G.w + ii) * 3 + k]; return lerp(lerp(at(i, j), at(i + 1, j), u), lerp(at(i, j + 1), at(i + 1, j + 1), u), v) / 255; });
+    const e = Math.min(x - G.x0, G.x0 + G.W - x, z - G.z0, G.z0 + G.H - z);
+    return [c[0], c[1], c[2], sstep(0, 25, e)];
+  }
+  function mapTree(x, z) { const G = vgrid(); if (!G) return 0; const i = Math.floor((x - G.x0) * G.sx), j = Math.floor((z - G.z0) * G.sz); if (i < 0 || j < 0 || i >= G.w || j >= G.h) return 0; return G.tree[j * G.w + i] / 255; }
   // qishloq niqobi (yo'llardan uzoqlik bo'yicha) — tez o'qish uchun 4 m to'r
   const VB = { x0: VC.x - 200, z0: VC.z - 200, n: 100, c: 4 };
   let VGRID = null;
@@ -275,7 +294,7 @@
     /* ---------- Yer ---------- */
     const SEG = LOW ? 150 : MOBILE ? 220 : 300;
     const tg = new T.PlaneGeometry(HALF * 2, HALF * 2, SEG, SEG); tg.rotateX(-Math.PI / 2);
-    const tp = tg.attributes.position, tc = new Float32Array(tp.count * 3), tmp = new T.Color();
+    const tp = tg.attributes.position, tc = new Float32Array(tp.count * 3), tmp = new T.Color(), MC = new T.Color();
     const C = { grass: new T.Color(0x5b7d2e), grass2: new T.Color(0x7a8f3a), forest: new T.Color(0x2f4a22), soil: new T.Color(0x5a4630), sand: new T.Color(0xd2b783), sand2: new T.Color(0xc29d68), rock: new T.Color(0x8b8478), dry: new T.Color(0x9a8158), dry2: new T.Color(0x7d6f48) };
     for (let i = 0; i < tp.count; i++) {
       const x = tp.getX(i), z = tp.getZ(i), y = heightAt(x, z); tp.setY(i, y);
@@ -284,7 +303,9 @@
       tmp.lerp(C.forest, b.forest * 0.85); if (b.forest > 0.5 && n > 0.62) tmp.lerp(C.soil, 0.45);
       tmp.lerp(tmp.clone().copy(C.sand).lerp(C.sand2, n), b.desert);
       const edge = Math.max(Math.abs(x), Math.abs(z)); tmp.lerp(C.rock, sstep(150 * K, 180 * K, edge) * 0.85);
-      const vg = villageAt(x, z); if (vg > 0) tmp.lerp(tmp.clone().copy(C.dry).lerp(C.dry2, fbm(x * 0.05 + 3, z * 0.05)), vg * 0.75);
+      const mc = mapColor(x, z);
+      if (mc) { MC.setRGB(mc[0] * 0.78 + 0.13, mc[1] * 0.78 + 0.14, mc[2] * 0.7 + 0.08).convertSRGBToLinear().multiplyScalar(1.6); MC.r = Math.min(1, MC.r); MC.g = Math.min(1, MC.g); MC.b = Math.min(1, MC.b); tmp.lerp(MC, mc[3]); }
+      else { const vg = villageAt(x, z); if (vg > 0) tmp.lerp(tmp.clone().copy(C.dry).lerp(C.dry2, fbm(x * 0.05 + 3, z * 0.05)), vg * 0.75); }
       if (Math.hypot(x - CAMP.x, z - CAMP.z) < 12) tmp.lerp(C.soil, 0.6);
       tc[i * 3] = tmp.r; tc[i * 3 + 1] = tmp.g; tc[i * 3 + 2] = tmp.b;
     }
@@ -316,7 +337,7 @@
     const sr = (a, b) => a + srnd() * (b - a);
     const houses = [], hGrid = new Map(), hKey = (x, z) => Math.floor(x / 12) + "," + Math.floor(z / 12);
     const nearHouse = (x, z, r) => { for (let ox = -1; ox <= 1; ox++) for (let oz = -1; oz <= 1; oz++) for (const h of hGrid.get((Math.floor(x / 12) + ox) + "," + (Math.floor(z / 12) + oz)) || []) if (Math.hypot(h.x - x, h.z - z) < r + h.r) return true; return false; };
-    function vBlocked(x, z) { return villageAt(x, z) > 0.05 && (roadDist(x, z) < 6 || nearHouse(x, z, 2.5)); }
+    function vBlocked(x, z) { const mc = mapColor(x, z); if (mc && mc[3] > 0.3) return true; return villageAt(x, z) > 0.05 && (roadDist(x, z) < 6 || nearHouse(x, z, 2.5)); }
     { // ko'chalar: haqiqiy xaritadan olingan niqob yer shaderida chiziladi
       const V = window.SofiOvchiVillage;
       if (V && V.img) {
@@ -330,14 +351,14 @@
       }
     }
     { // uylar: yo'l bo'ylab ikki tomonda
-      const tryHouse = (x, z, ang, w, d, force) => { if (!force && (nearHouse(x, z, Math.max(w, d) * 0.4) || Math.abs(x) > EDGE - 10 || Math.abs(z) > EDGE - 10)) return false;
-        const h = { x, z, ang, w, d, r: Math.max(w, d) * 0.55 }; houses.push(h); const k = hKey(x, z); if (!hGrid.has(k)) hGrid.set(k, []); hGrid.get(k).push(h); return true; };
+      const tryHouse = (x, z, ang, w, d, force, roof) => { if (!force && (nearHouse(x, z, Math.max(w, d) * 0.4) || Math.abs(x) > EDGE - 10 || Math.abs(z) > EDGE - 10)) return false;
+        const h = { x, z, ang, w, d, roof, r: Math.max(w, d) * 0.55 }; houses.push(h); const k = hKey(x, z); if (!hGrid.has(k)) hGrid.set(k, []); hGrid.get(k).push(h); return true; };
       const V = window.SofiOvchiVillage;
       if (V && V.houses) {
         // o'zimizning uy: lagerga eng yaqin uy (bo'lmasa — yangisi)
         let own = null, od = 16; V.houses.forEach((q) => { const d = Math.hypot(q[0] - CAMP.x, q[1] - CAMP.z); if (d < od && d > 6) { od = d; own = q; } });
         if (own) tryHouse(own[0], own[1], own[4], own[2], own[3], true); else tryHouse(CAMP.x - 9, CAMP.z + 4, 0.1, 9, 6.5, true);
-        V.houses.forEach((q) => { if (q !== own && Math.hypot(q[0] - CAMP.x, q[1] - CAMP.z) > 7) tryHouse(q[0], q[1], q[4], q[2], q[3]); });
+        V.houses.forEach((q) => { if (q !== own && Math.hypot(q[0] - CAMP.x, q[1] - CAMP.z) > 7) tryHouse(q[0], q[1], q[4], q[2], q[3], false, q[5]); });
       } else {
         tryHouse(CAMP.x - 9, CAMP.z + 4, 0.1, 11, 8);
         ROADS.forEach((r) => { for (let i = 1; i < r.length; i++) { const [ax, az] = r[i - 1], [bx, bz] = r[i], L = Math.hypot(bx - ax, bz - az), ang = Math.atan2(bx - ax, bz - az);
@@ -353,7 +374,7 @@
       houses.forEach((h, i) => {
         const y = Math.min(heightAt(h.x - h.w / 2, h.z), heightAt(h.x + h.w / 2, h.z), heightAt(h.x, h.z - h.d / 2), heightAt(h.x, h.z + h.d / 2)) - 0.3, H = sr(2.8, 3.4) + (i === 0 ? 0.4 : 0);
         qq.setFromAxisAngle(YY, h.ang); pp.set(h.x, y, h.z); ss.set(h.w, H + 0.3, h.d); m4.compose(pp, qq, ss); walls.setMatrixAt(i, m4); walls.setColorAt(i, col.setHex(WALL[(srnd() * WALL.length) | 0]));
-        pp.set(h.x, y + H + 0.3, h.z); ss.set(h.w + 0.7, sr(0.9, 1.5), h.d + 0.7); m4.compose(pp, qq, ss); roofs.setMatrixAt(i, m4); roofs.setColorAt(i, col.setHex(i === 0 ? 0x2f6f9f : ROOF[(srnd() * ROOF.length) | 0]));
+        pp.set(h.x, y + H + 0.3, h.z); ss.set(h.w + 0.7, sr(0.9, 1.5), h.d + 0.7); m4.compose(pp, qq, ss); roofs.setMatrixAt(i, m4); roofs.setColorAt(i, i === 0 ? col.setHex(0x2f6f9f) : h.roof !== undefined ? col.setHex(h.roof).multiplyScalar(0.8) : col.setHex(ROOF[(srnd() * ROOF.length) | 0]));
         // eshik va ikki deraza (yo'l tomonda)
         [[0, 0.3, 2.1, 1.0], [-h.w * 0.3, 1.1, 1.1, 1.2], [h.w * 0.3, 1.1, 1.1, 1.2]].forEach(([ox, oy, hh, ww], k) => { off.set(ox, 0, h.d / 2 + 0.03).applyQuaternion(qq); pp.set(h.x + off.x, y + 0.3 + oy, h.z + off.z); ss.set(ww, hh, 0.08); m4.compose(pp, qq, ss); doors.setMatrixAt(di, m4); doors.setColorAt(di++, col.setHex(k ? 0x2b3d4f : 0x5a3a22)); });
         // to'qnashuv: uy bo'ylab ikki doira
@@ -366,11 +387,15 @@
       const fruitGeo = merge([[new T.CylinderGeometry(0.1, 0.16, 1.4, 6).translate(0, 0.7, 0), 0x5a4128], [new T.IcosahedronGeometry(1.15, 1).scale(1, 0.85, 1).translate(0, 2.1, 0), 0x5c8a30], [new T.IcosahedronGeometry(0.7, 0).translate(0.6, 2.4, 0.3), 0x6b9a38]]);
       const popGeo = merge([[new T.CylinderGeometry(0.12, 0.2, 2, 6).translate(0, 1, 0), 0x6b5a44], [new T.ConeGeometry(0.95, 9, 8).translate(0, 6, 0), 0x4c7a2e], [new T.ConeGeometry(0.7, 4, 8).translate(0, 10, 0), 0x56862f]]);
       const fruits = [], pops = [];
-      houses.forEach((h) => { if (srnd() < 0.35) return; const rows = 2 + ((srnd() * 3) | 0), cols = 3 + ((srnd() * 4) | 0), back = h.d / 2 + 5, sp = 4.2, fx = Math.sin(h.ang), fz = Math.cos(h.ang), rx = Math.cos(h.ang), rz = -Math.sin(h.ang);
+      if (vgrid()) { // xaritada daraxt bor joylarga
+        const G = vgrid(), cw = 1 / G.sx, chh = 1 / G.sz;
+        for (let j = 0; j < G.h; j++) for (let i = 0; i < G.w; i++) { const t = G.tree[j * G.w + i] / 255; if (t < 0.12) continue; const n = t > 0.55 ? 2 : 1;
+          for (let k = 0; k < n; k++) { if (srnd() > t * 1.6) continue; const x = G.x0 + (i + srnd()) * cw, z = G.z0 + (j + srnd()) * chh; if (roadDist(x, z) > 2.8 && !nearHouse(x, z, 1.2) && Math.hypot(x - CAMP.x, z - CAMP.z) > 13) (srnd() < 0.08 ? pops : fruits).push([x, z]); } }
+      } else houses.forEach((h) => { if (srnd() < 0.35) return; const rows = 2 + ((srnd() * 3) | 0), cols = 3 + ((srnd() * 4) | 0), back = h.d / 2 + 5, sp = 4.2, fx = Math.sin(h.ang), fz = Math.cos(h.ang), rx = Math.cos(h.ang), rz = -Math.sin(h.ang);
         for (let a = 0; a < rows; a++) for (let b = 0; b < cols; b++) { const along = -(back + a * sp), side = (b - (cols - 1) / 2) * sp, x = h.x + fx * along + rx * side + sr(-0.5, 0.5), z = h.z + fz * along + rz * side + sr(-0.5, 0.5);
           if (roadDist(x, z) > 3.5 && !nearHouse(x, z, 1.2)) fruits.push([x, z]); } });
-      ROADS.forEach((r, ri) => { if (ri % 3) return; for (let i = 1; i < r.length; i++) { const [ax, az] = r[i - 1], [bx, bz] = r[i], L = Math.hypot(bx - ax, bz - az); for (let t = 3; t < L; t += 6) { if (srnd() < 0.55) continue; const x = lerp(ax, bx, t / L) + (bz - az) / L * 4.2, z = lerp(az, bz, t / L) - (bx - ax) / L * 4.2; if (!nearHouse(x, z, 1) && roadDist(x, z) > 2.5) pops.push([x, z]); } } });
-      for (let i = 0; i < RAVINE.length - 1; i++) for (let k = 0; k < 14; k++) { const t = srnd(), x = lerp(RAVINE[i][0], RAVINE[i + 1][0], t) + sr(-5, 5), z = lerp(RAVINE[i][1], RAVINE[i + 1][1], t) + sr(-5, 5); (srnd() < 0.3 ? pops : fruits).push([x, z]); }
+      if (!vgrid()) ROADS.forEach((r, ri) => { if (ri % 3) return; for (let i = 1; i < r.length; i++) { const [ax, az] = r[i - 1], [bx, bz] = r[i], L = Math.hypot(bx - ax, bz - az); for (let t = 3; t < L; t += 6) { if (srnd() < 0.55) continue; const x = lerp(ax, bx, t / L) + (bz - az) / L * 4.2, z = lerp(az, bz, t / L) - (bx - ax) / L * 4.2; if (!nearHouse(x, z, 1) && roadDist(x, z) > 2.5) pops.push([x, z]); } } });
+      if (!vgrid()) for (let i = 0; i < RAVINE.length - 1; i++) for (let k = 0; k < 14; k++) { const t = srnd(), x = lerp(RAVINE[i][0], RAVINE[i + 1][0], t) + sr(-5, 5), z = lerp(RAVINE[i][1], RAVINE[i + 1][1], t) + sr(-5, 5); (srnd() < 0.3 ? pops : fruits).push([x, z]); }
       const fr = inst(fruitGeo, vmat, fruits, () => rr(0.8, 1.2), 0.25), pp2 = inst(popGeo, vmat, pops, () => rr(0.85, 1.25), 0.25);
       [fr, pp2].forEach((m) => (m.userData.village = true));
     }

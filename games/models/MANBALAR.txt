@@ -34,3 +34,5 @@ OVCHI o'yini:
   (bizon — Bull modeli to'q jigarrangga bo'yalgan; jayron — Deer; bug'u — Stag). Ayiq va yovvoyi cho'chqa — kod bilan yasalgan.
 - ovchi-relief.js — qishloq atrofining haqiqiy relyefi: AWS Terrain Tiles (Terrarium, SRTM asosida, ochiq ma'lumot) —
   https://registry.opendata.aws/terrain-tiles/ ; o'yinda 1:2 masshtabda.
+- ovchi-village.js, img/ovchi-roads.png — qishloq ko'chalari, uylar joylashuvi, tom ranglari va umumlashtirilgan yer ranglari
+  markaz direktori yuborgan xarita skrinshotidan avtomatik olingan (sun'iy yo'ldosh tasviri: Google Maps / Imagery © Google).
