@@ -44,7 +44,42 @@
   function vnoise(x, y) { const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
     return lerp(lerp(hash2(xi, yi), hash2(xi + 1, yi), u), lerp(hash2(xi, yi + 1), hash2(xi + 1, yi + 1), u), v); }
   const fbm = (x, y) => vnoise(x, y) * 0.55 + vnoise(x * 2.1, y * 2.1) * 0.28 + vnoise(x * 4.3, y * 4.3) * 0.17;
-  const K = 1.8, HALF = Math.round(190 * K), EDGE = 165 * K, CAMP = { x: 0, z: 120 * K };
+  const K = 1.8, HALF = Math.round(190 * K), EDGE = 165 * K;
+  /* ================= Qishloq (markaz direktori yuborgan xaritadan) =================
+     Rasmdagi piksel → o'yin metri. Ko'chalar, uylar va bog'lar shu chiziqlar bo'ylab joylashadi. */
+  const VS = 0.4, VC = { px: 565, py: 975, x: -60, z: 95 };
+  const vp = ([px, py]) => [VC.x + (px - VC.px) * VS, VC.z + (py - VC.py) * VS];
+  const ROADS = [
+    [[0, 845], [80, 860], [150, 880], [210, 930], [255, 955], [285, 940], [300, 890], [290, 800], [300, 760]],
+    [[235, 700], [235, 760], [250, 800], [290, 800]],
+    [[235, 700], [270, 670], [370, 660], [450, 680], [520, 690], [545, 700], [540, 760], [530, 820]],
+    [[290, 790], [360, 775], [450, 760], [520, 750], [560, 770], [620, 760], [660, 770], [780, 770], [820, 760]],
+    [[300, 880], [360, 860], [430, 840], [520, 830]],
+    [[430, 840], [445, 960], [430, 1060], [420, 1160]],
+    [[445, 960], [520, 985], [560, 1050], [590, 1130], [580, 1200], [560, 1250], [480, 1340]],
+    [[520, 985], [600, 975], [640, 900], [620, 840], [660, 770]],
+    [[650, 765], [620, 700], [630, 620], [560, 650]],
+    [[660, 770], [700, 850], [700, 950], [690, 1020], [700, 1100]],
+    [[780, 770], [760, 830], [740, 900], [720, 1000], [700, 1100], [690, 1250], [800, 1250], [860, 1200], [870, 1100], [830, 1040], [820, 960], [780, 880], [760, 830]],
+    [[780, 770], [840, 700], [900, 620]],
+    [[820, 760], [900, 720]],
+    [[870, 1180], [900, 1150]],
+    [[380, 1100], [400, 1000], [430, 960]],
+  ].map((r) => r.map(vp));
+  const RAVINE = [[180, 980], [215, 1060], [240, 1150], [262, 1250], [290, 1360], [320, 1480]].map(vp);
+  const CAMP = (() => { const [x, z] = vp([370, 880]); return { x, z }; })();
+  const SEGS = []; ROADS.forEach((r) => { for (let i = 1; i < r.length; i++) SEGS.push([r[i - 1][0], r[i - 1][1], r[i][0], r[i][1]]); });
+  function segDist(x, z, s) { const dx = s[2] - s[0], dz = s[3] - s[1], l2 = dx * dx + dz * dz || 1; const t = clamp(((x - s[0]) * dx + (z - s[1]) * dz) / l2, 0, 1); return Math.hypot(x - s[0] - dx * t, z - s[1] - dz * t); }
+  function roadDist(x, z) { let d = 1e9; for (const sg of SEGS) { const v = segDist(x, z, sg); if (v < d) d = v; } return d; }
+  // qishloq niqobi (yo'llardan uzoqlik bo'yicha) — tez o'qish uchun 4 m to'r
+  const VB = { x0: VC.x - 200, z0: VC.z - 200, n: 100, c: 4 };
+  let VGRID = null;
+  function villageAt(x, z) {
+    if (!VGRID) { VGRID = new Float32Array(VB.n * VB.n); for (let j = 0; j < VB.n; j++) for (let i = 0; i < VB.n; i++) VGRID[j * VB.n + i] = sstep(85, 35, roadDist(VB.x0 + i * VB.c, VB.z0 + j * VB.c)); }
+    const fx = (x - VB.x0) / VB.c, fz = (z - VB.z0) / VB.c; if (fx < 0 || fz < 0 || fx >= VB.n - 1 || fz >= VB.n - 1) return 0;
+    const i = fx | 0, j = fz | 0, u = fx - i, v = fz - j, g = VGRID, n = VB.n;
+    return lerp(lerp(g[j * n + i], g[j * n + i + 1], u), lerp(g[(j + 1) * n + i], g[(j + 1) * n + i + 1], u), v);
+  }
   function biome(x, z) {
     x /= K; z /= K;
     const n = fbm(x * 0.012 + 7, z * 0.012 - 3);
@@ -60,6 +95,7 @@
     h += (Math.sin(x * 0.055 + Math.cos(z * 0.032) * 2.2) * 2.6 + Math.sin(z * 0.08 + x * 0.02) * 1.4) * b.desert;
     const edge = Math.max(Math.abs(x), Math.abs(z));
     h += sstep(150, 195, edge) * (34 + fbm(x * 0.03, z * 0.03) * 22);
+    h *= 1 - villageAt(x0, z0) * 0.55;
     const dc = Math.hypot(x0 - CAMP.x, z0 - CAMP.z);
     if (dc < 18) h = lerp(h, 0.2, sstep(18, 7, dc));
     return h;
@@ -202,7 +238,7 @@
     const SEG = LOW ? 150 : MOBILE ? 220 : 300;
     const tg = new T.PlaneGeometry(HALF * 2, HALF * 2, SEG, SEG); tg.rotateX(-Math.PI / 2);
     const tp = tg.attributes.position, tc = new Float32Array(tp.count * 3), tmp = new T.Color();
-    const C = { grass: new T.Color(0x5b7d2e), grass2: new T.Color(0x7a8f3a), forest: new T.Color(0x2f4a22), soil: new T.Color(0x5a4630), sand: new T.Color(0xd2b783), sand2: new T.Color(0xc29d68), rock: new T.Color(0x8b8478) };
+    const C = { grass: new T.Color(0x5b7d2e), grass2: new T.Color(0x7a8f3a), forest: new T.Color(0x2f4a22), soil: new T.Color(0x5a4630), sand: new T.Color(0xd2b783), sand2: new T.Color(0xc29d68), rock: new T.Color(0x8b8478), dry: new T.Color(0x9a8158), dry2: new T.Color(0x7d6f48) };
     for (let i = 0; i < tp.count; i++) {
       const x = tp.getX(i), z = tp.getZ(i), y = heightAt(x, z); tp.setY(i, y);
       const b = biome(x, z), n = fbm(x * 0.08, z * 0.08);
@@ -210,6 +246,7 @@
       tmp.lerp(C.forest, b.forest * 0.85); if (b.forest > 0.5 && n > 0.62) tmp.lerp(C.soil, 0.45);
       tmp.lerp(tmp.clone().copy(C.sand).lerp(C.sand2, n), b.desert);
       const edge = Math.max(Math.abs(x), Math.abs(z)); tmp.lerp(C.rock, sstep(150 * K, 180 * K, edge) * 0.85);
+      const vg = villageAt(x, z); if (vg > 0) tmp.lerp(tmp.clone().copy(C.dry).lerp(C.dry2, fbm(x * 0.05 + 3, z * 0.05)), vg * 0.75);
       if (Math.hypot(x - CAMP.x, z - CAMP.z) < 12) tmp.lerp(C.soil, 0.6);
       tc[i * 3] = tmp.r; tc[i * 3 + 1] = tmp.g; tc[i * 3 + 2] = tmp.b;
     }
@@ -222,7 +259,7 @@
     const mtx = new T.Matrix4(), q = new T.Quaternion(), sc = new T.Vector3(), ps = new T.Vector3(), Y = new T.Vector3(0, 1, 0);
     const trunks = new Map(); // to'qnashuv uchun: "cx,cz" → [[x,z,r]]
     const addTrunk = (x, z, r) => { const k = Math.floor(x / 10) + "," + Math.floor(z / 10); if (!trunks.has(k)) trunks.set(k, []); trunks.get(k).push([x, z, r]); };
-    function scatter(n, test, tries = 20) { const out = []; let k = 0; while (out.length < n && k < n * tries) { k++; const x = rr(-HALF + 15, HALF - 15), z = rr(-HALF + 15, HALF - 15); if (Math.hypot(x - CAMP.x, z - CAMP.z) < 16) continue; if (test(x, z, biome(x, z))) out.push([x, z]); } return out; }
+    function scatter(n, test, tries = 20) { const out = []; let k = 0; while (out.length < n && k < n * tries) { k++; const x = rr(-HALF + 15, HALF - 15), z = rr(-HALF + 15, HALF - 15); if (Math.hypot(x - CAMP.x, z - CAMP.z) < 16 || vBlocked(x, z)) continue; if (test(x, z, biome(x, z))) out.push([x, z]); } return out; }
     function inst(geo, mat, pts, scaleFn, trunkR) {
       const im = new T.InstancedMesh(geo, mat, pts.length);
       pts.forEach(([x, z], i) => { const s = scaleFn(); q.setFromAxisAngle(Y, Math.random() * 6.28); sc.set(s, s * rr(0.9, 1.15), s); ps.set(x, heightAt(x, z) - 0.1, z); mtx.compose(ps, q, sc); im.setMatrixAt(i, mtx); if (trunkR) addTrunk(x, z, trunkR * s); });
@@ -236,6 +273,65 @@
     const shrubGeo = merge([[new T.IcosahedronGeometry(0.55, 0).scale(1, 0.6, 1).translate(0, 0.3, 0), 0x8f7d4a]]);
     const rockGeo = (() => { const g = new T.IcosahedronGeometry(1, 1); const p = g.attributes.position; for (let i = 0; i < p.count; i++) { const v = new T.Vector3().fromBufferAttribute(p, i); v.multiplyScalar(1 + (fbm(v.x * 2 + 5, v.z * 2 + v.y) - 0.5) * 0.5); v.y *= 0.65; p.setXYZ(i, v.x, v.y, v.z); } return merge([[g, 0x8e877c]]); })();
     const D = (LOW ? 0.45 : MOBILE ? 0.7 : 1) * K * K * 0.85;
+    /* ---------- Qishloq: ko'chalar, uylar, bog'lar, teraklar ---------- */
+    let seed = 20261109; const srnd = () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    const sr = (a, b) => a + srnd() * (b - a);
+    const houses = [], hGrid = new Map(), hKey = (x, z) => Math.floor(x / 12) + "," + Math.floor(z / 12);
+    const nearHouse = (x, z, r) => { for (let ox = -1; ox <= 1; ox++) for (let oz = -1; oz <= 1; oz++) for (const h of hGrid.get((Math.floor(x / 12) + ox) + "," + (Math.floor(z / 12) + oz)) || []) if (Math.hypot(h.x - x, h.z - z) < r + h.r) return true; return false; };
+    function vBlocked(x, z) { return villageAt(x, z) > 0.05 && (roadDist(x, z) < 6 || nearHouse(x, z, 2.5)); }
+    { // ko'cha lentalari
+      const pos = [], idx = [];
+      ROADS.forEach((r, ri) => {
+        const W = ri === 3 || ri === 10 || ri === 0 ? 3.2 : 2.5; const pts = [];
+        for (let i = 1; i < r.length; i++) { const [ax, az] = r[i - 1], [bx, bz] = r[i], L = Math.hypot(bx - ax, bz - az), n = Math.max(1, Math.ceil(L / 2.5)); for (let k = i === 1 ? 0 : 1; k <= n; k++) pts.push([lerp(ax, bx, k / n), lerp(az, bz, k / n)]); }
+        const base = pos.length / 3;
+        pts.forEach(([x, z], k) => { const a = pts[Math.max(0, k - 1)], b = pts[Math.min(pts.length - 1, k + 1)], dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz) || 1, nx = -dz / l * W, nz = dx / l * W;
+          pos.push(x + nx, heightAt(x + nx, z + nz) + 0.07, z + nz, x - nx, heightAt(x - nx, z - nz) + 0.07, z - nz);
+          if (k) { const q = base + k * 2; idx.push(q - 2, q - 1, q, q - 1, q + 1, q); } });
+      });
+      const rg = new T.BufferGeometry(); rg.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); rg.setIndex(idx); rg.computeVertexNormals();
+      const road = new T.Mesh(rg, new T.MeshStandardMaterial({ color: 0x857660, roughness: 1, polygonOffset: true, polygonOffsetFactor: -2, side: T.DoubleSide }));
+      road.receiveShadow = true; scene.add(road);
+    }
+    { // uylar: yo'l bo'ylab ikki tomonda
+      const list = [];
+      const tryHouse = (x, z, ang, w, d) => { if (roadDist(x, z) < Math.max(w, d) / 2 + 2.5 || nearHouse(x, z, Math.max(w, d) * 0.55) || Math.abs(x) > EDGE - 10 || Math.abs(z) > EDGE - 10) return false;
+        const h = { x, z, ang, w, d, r: Math.max(w, d) * 0.55 }; houses.push(h); const k = hKey(x, z); if (!hGrid.has(k)) hGrid.set(k, []); hGrid.get(k).push(h); return true; };
+      // o'zimizning uy (lager yonida)
+      tryHouse(CAMP.x - 9, CAMP.z + 4, 0.1, 11, 8);
+      ROADS.forEach((r) => { for (let i = 1; i < r.length; i++) { const [ax, az] = r[i - 1], [bx, bz] = r[i], L = Math.hypot(bx - ax, bz - az), ang = Math.atan2(bx - ax, bz - az);
+        for (let t = 5; t < L; t += sr(11, 17)) { const x = lerp(ax, bx, t / L), z = lerp(az, bz, t / L); for (const side of [-1, 1]) { if (srnd() < 0.3) continue; const w = sr(7, 11), d = sr(5.5, 8), off = d / 2 + sr(4, 7);
+          tryHouse(x + Math.cos(ang) * off * side, z - Math.sin(ang) * off * side, ang + (side > 0 ? 0 : Math.PI), w, d); } } } });
+      const N = houses.length, box = new T.BoxGeometry(1, 1, 1).translate(0, 0.5, 0);
+      const roofG = (() => { const g = new T.BufferGeometry(); const v = [-0.5, 0, -0.5, 0.5, 0, -0.5, 0, 1, -0.5, -0.5, 0, 0.5, 0.5, 0, 0.5, 0, 1, 0.5]; const ix = [0, 2, 1, 3, 4, 5, 0, 3, 5, 0, 5, 2, 1, 2, 5, 1, 5, 4, 0, 1, 4, 0, 4, 3]; const pos = []; ix.forEach((k) => pos.push(v[k * 3], v[k * 3 + 1], v[k * 3 + 2])); g.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); return g; })();
+      const walls = new T.InstancedMesh(box, new T.MeshStandardMaterial({ roughness: 0.92 }), N), roofs = new T.InstancedMesh(roofG, new T.MeshStandardMaterial({ roughness: 0.55, metalness: 0.25, side: T.DoubleSide }), N);
+      const doors = new T.InstancedMesh(new T.BoxGeometry(1, 1, 1).translate(0, 0.5, 0), new T.MeshStandardMaterial({ color: 0x4a3322, roughness: 0.8 }), N * 3);
+      const WALL = [0xe9e2d2, 0xdcd0b8, 0xd2c6ad, 0xece9e1, 0xc9b99a], ROOF = [0xc9ccd0, 0xb3b9be, 0xe4e6e8, 0x8e9aa6, 0x6f86a0, 0xa04a3a, 0x7c8c5c], col = new T.Color();
+      const m4 = new T.Matrix4(), qq = new T.Quaternion(), ss = new T.Vector3(), pp = new T.Vector3(), YY = new T.Vector3(0, 1, 0), off = new T.Vector3(); let di = 0;
+      houses.forEach((h, i) => {
+        const y = Math.min(heightAt(h.x - h.w / 2, h.z), heightAt(h.x + h.w / 2, h.z), heightAt(h.x, h.z - h.d / 2), heightAt(h.x, h.z + h.d / 2)) - 0.3, H = sr(2.8, 3.4) + (i === 0 ? 0.4 : 0);
+        qq.setFromAxisAngle(YY, h.ang); pp.set(h.x, y, h.z); ss.set(h.w, H + 0.3, h.d); m4.compose(pp, qq, ss); walls.setMatrixAt(i, m4); walls.setColorAt(i, col.setHex(WALL[(srnd() * WALL.length) | 0]));
+        pp.set(h.x, y + H + 0.3, h.z); ss.set(h.w + 0.7, sr(0.9, 1.5), h.d + 0.7); m4.compose(pp, qq, ss); roofs.setMatrixAt(i, m4); roofs.setColorAt(i, col.setHex(i === 0 ? 0x2f6f9f : ROOF[(srnd() * ROOF.length) | 0]));
+        // eshik va ikki deraza (yo'l tomonda)
+        [[0, 0.3, 2.1, 1.0], [-h.w * 0.3, 1.1, 1.1, 1.2], [h.w * 0.3, 1.1, 1.1, 1.2]].forEach(([ox, oy, hh, ww], k) => { off.set(ox, 0, h.d / 2 + 0.03).applyQuaternion(qq); pp.set(h.x + off.x, y + 0.3 + oy, h.z + off.z); ss.set(ww, hh, 0.08); m4.compose(pp, qq, ss); doors.setMatrixAt(di, m4); doors.setColorAt(di++, col.setHex(k ? 0x2b3d4f : 0x5a3a22)); });
+        // to'qnashuv: uy bo'ylab ikki doira
+        const ex = Math.sin(h.ang + Math.PI / 2), ez = Math.cos(h.ang + Math.PI / 2), r = Math.min(h.w, h.d) / 2 + 0.2;
+        [-1, 0, 1].forEach((k) => addTrunk(h.x + ex * k * (h.w / 2 - r), h.z + ez * k * (h.w / 2 - r), r));
+      });
+      doors.count = di;
+      [walls, roofs].forEach((m) => { m.castShadow = true; m.receiveShadow = true; scene.add(m); }); scene.add(doors);
+      // bog'lar: uylar ortida mevali daraxt qatorlari
+      const fruitGeo = merge([[new T.CylinderGeometry(0.1, 0.16, 1.4, 6).translate(0, 0.7, 0), 0x5a4128], [new T.IcosahedronGeometry(1.15, 1).scale(1, 0.85, 1).translate(0, 2.1, 0), 0x5c8a30], [new T.IcosahedronGeometry(0.7, 0).translate(0.6, 2.4, 0.3), 0x6b9a38]]);
+      const popGeo = merge([[new T.CylinderGeometry(0.12, 0.2, 2, 6).translate(0, 1, 0), 0x6b5a44], [new T.ConeGeometry(0.95, 9, 8).translate(0, 6, 0), 0x4c7a2e], [new T.ConeGeometry(0.7, 4, 8).translate(0, 10, 0), 0x56862f]]);
+      const fruits = [], pops = [];
+      houses.forEach((h) => { if (srnd() < 0.35) return; const rows = 2 + ((srnd() * 3) | 0), cols = 3 + ((srnd() * 4) | 0), back = h.d / 2 + 5, sp = 4.2, fx = Math.sin(h.ang), fz = Math.cos(h.ang), rx = Math.cos(h.ang), rz = -Math.sin(h.ang);
+        for (let a = 0; a < rows; a++) for (let b = 0; b < cols; b++) { const along = -(back + a * sp), side = (b - (cols - 1) / 2) * sp, x = h.x + fx * along + rx * side + sr(-0.5, 0.5), z = h.z + fz * along + rz * side + sr(-0.5, 0.5);
+          if (roadDist(x, z) > 3.5 && !nearHouse(x, z, 1.2)) fruits.push([x, z]); } });
+      ROADS.forEach((r, ri) => { if (ri % 3) return; for (let i = 1; i < r.length; i++) { const [ax, az] = r[i - 1], [bx, bz] = r[i], L = Math.hypot(bx - ax, bz - az); for (let t = 3; t < L; t += 6) { if (srnd() < 0.55) continue; const x = lerp(ax, bx, t / L) + (bz - az) / L * 4.2, z = lerp(az, bz, t / L) - (bx - ax) / L * 4.2; if (!nearHouse(x, z, 1)) pops.push([x, z]); } } });
+      for (let i = 0; i < RAVINE.length - 1; i++) for (let k = 0; k < 14; k++) { const t = srnd(), x = lerp(RAVINE[i][0], RAVINE[i + 1][0], t) + sr(-5, 5), z = lerp(RAVINE[i][1], RAVINE[i + 1][1], t) + sr(-5, 5); (srnd() < 0.3 ? pops : fruits).push([x, z]); }
+      const fr = inst(fruitGeo, vmat, fruits, () => rr(0.8, 1.2), 0.25), pp2 = inst(popGeo, vmat, pops, () => rr(0.85, 1.25), 0.25);
+      [fr, pp2].forEach((m) => (m.userData.village = true));
+    }
     inst(pineGeo, vmat, scatter(1200 * D, (x, z, b) => b.forest > 0.45 && Math.random() < b.forest), () => rr(0.8, 1.35), 0.35);
     inst(oakGeo, vmat, scatter(160 * D, (x, z, b) => b.field > 0.6 && Math.random() < 0.5 || (b.forest > 0.15 && b.forest < 0.5)), () => rr(0.8, 1.3), 0.4);
     inst(bushGeo, vmat, scatter(500 * D, (x, z, b) => b.desert < 0.3), () => rr(0.6, 1.4), 0);
@@ -261,7 +357,7 @@
 
     /* ---------- Lager (boshlang'ich joy) ---------- */
     const camp = new T.Group(); camp.position.set(CAMP.x, heightAt(CAMP.x, CAMP.z), CAMP.z); scene.add(camp);
-    { const tent = new T.Mesh(new T.ConeGeometry(2.6, 3, 4, 1, true), new T.MeshStandardMaterial({ color: 0xc8a46a, roughness: 0.9, side: T.DoubleSide })); tent.position.set(-4.5, 1.5, 6); tent.rotation.y = Math.PI / 4; tent.castShadow = true; camp.add(tent);
+    {
       const logs = new T.Mesh(new T.CylinderGeometry(0.12, 0.12, 1.2, 6), new T.MeshStandardMaterial({ color: 0x5a3a22 })); [0, 1, 2].forEach((i) => { const l = logs.clone(); l.rotation.z = Math.PI / 2; l.rotation.y = i * 1.05; l.position.y = 0.15; camp.add(l); });
       [[3, 2], [-2, 4], [4, -3]].forEach(([x, z]) => { const s = new T.Mesh(new T.CylinderGeometry(0.4, 0.45, 0.45, 8), new T.MeshStandardMaterial({ color: 0x6b4a2a })); s.position.set(x, 0.22, z); s.castShadow = true; camp.add(s); }); }
     const glowTex = (() => { const c = document.createElement("canvas"); c.width = c.height = 128; const g = c.getContext("2d"); const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, "rgba(255,240,200,1)"); gr.addColorStop(0.3, "rgba(255,160,60,.8)"); gr.addColorStop(1, "rgba(255,80,0,0)"); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return new T.CanvasTexture(c); })();
@@ -413,7 +509,7 @@
       const want = ANIMALS[type].biome;
       for (let k = 0; k < 200; k++) {
         const x = rr(-EDGE + 15, EDGE - 15), z = rr(-EDGE + 15, EDGE - 15), b = biome(x, z);
-        if (Math.hypot(x - CAMP.x, z - CAMP.z) < 60) continue;
+        if (Math.hypot(x - CAMP.x, z - CAMP.z) < 60 || villageAt(x, z) > 0.2) continue;
         if (far && Math.hypot(x - me.x, z - me.z) < far) continue;
         const w = want === "forest" ? b.forest : want === "desert" ? b.desert : b.field;
         if (w > 0.6 || (type === "bori" && b.field > 0.7 && Math.random() < 0.3)) return [x, z];
@@ -831,7 +927,7 @@
     function die() {
       st.dead = true; me.hp = 0; me.ride = false; horse.call = false; const lost = save.bag.length; save.bag = []; persist(); if (document.pointerLockElement) document.exitPointerLock();
       ui.panel.hidden = false;
-      ui.panel.innerHTML = `<div class="ov-shop dead"><span class="big">🩹</span><h2>Siz yaralandingiz</h2><p>Yirtqichlar xavfli! ${lost ? `Xaltadagi ${lost} ta o‘lja yo‘qoldi.` : ""} Lagerda tiklanasiz — pul va qurollar saqlanadi.</p><button class="ov-big" data-s2="respawn" type="button">🏕 Lagerga qaytish</button></div>`;
+      ui.panel.innerHTML = `<div class="ov-shop dead"><span class="big">🩹</span><h2>Siz yaralandingiz</h2><p>Yirtqichlar xavfli! ${lost ? `Xaltadagi ${lost} ta o‘lja yo‘qoldi.` : ""} Uyda tiklanasiz — pul va qurollar saqlanadi.</p><button class="ov-big" data-s2="respawn" type="button">🏡 Uyga qaytish</button></div>`;
       ui.panel.querySelector("[data-s2]").onclick = () => { st.dead = false; me.hp = 100; me.x = CAMP.x; me.z = CAMP.z - 6; me.yaw = Math.PI; horse.x = CAMP.x + 5; horse.z = CAMP.z - 4; ui.panel.hidden = true; animals.forEach((a) => { if (a.state === "chase") { a.state = "walk"; a.tx = a.home[0]; a.tz = a.home[1]; a.t = 6; } }); lockIt(); };
     }
 
@@ -891,7 +987,7 @@
     function begin() {
       Snd.init(); Snd.ambience(true);
       st.started = true; st.paused = false; ui.panel.hidden = true; lockIt();
-      banner(`<b>🏹 Ov boshlandi!</b><small>🌲 Shimolda o‘rmon (bo‘ri, ayiq, bug‘u, to‘ng‘iz) · 🌾 Markazda dala (ot, bizon) · 🏜 Sharqda cho‘l (jayron) · 🐎 Lagerda otingiz kutyapti!</small>`, 5000);
+      banner(`<b>🏹 Ov boshlandi!</b><small>🌲 Shimolda o‘rmon (bo‘ri, ayiq, bug‘u, to‘ng‘iz) · 🌾 Markazda dala (ot, bizon) · 🏜 Sharqda cho‘l (jayron) · 🏡 Qishloqdagi uyingizdan boshlaysiz, otingiz hovlida!</small>`, 5000);
     }
 
     /* ---------- Xarita ---------- */
@@ -901,11 +997,15 @@
       for (let j = 0; j < MS; j++) for (let i = 0; i < MS; i++) { const x = (i / MS) * HALF * 2 - HALF, z = (j / MS) * HALF * 2 - HALF, b = biome(x, z), e = sstep(150 * K, 180 * K, Math.max(Math.abs(x), Math.abs(z))); const k = (j * MS + i) * 4;
         const r = 90 * b.field + 40 * b.forest + 210 * b.desert, gg = 130 * b.field + 80 * b.forest + 180 * b.desert, bl = 55 * b.field + 40 * b.forest + 120 * b.desert;
         img.data[k] = lerp(r, 130, e); img.data[k + 1] = lerp(gg, 125, e); img.data[k + 2] = lerp(bl, 115, e); img.data[k + 3] = 230; }
-      g.putImageData(img, 0, 0); }
+      g.putImageData(img, 0, 0);
+      const tm = (x, z) => [((x + HALF) / (HALF * 2)) * MS, ((z + HALF) / (HALF * 2)) * MS];
+      g.strokeStyle = "rgba(235,222,190,.9)"; g.lineWidth = 1.6; g.lineJoin = "round";
+      ROADS.forEach((r) => { g.beginPath(); r.forEach(([x, z], i) => { const [a, b] = tm(x, z); i ? g.lineTo(a, b) : g.moveTo(a, b); }); g.stroke(); });
+      g.fillStyle = "#f4efe4"; houses.forEach((h) => { const [a, b] = tm(h.x, h.z); g.fillRect(a - 1.2, b - 1.2, 2.4, 2.4); }); }
     const toMap = (x, z) => [((x + HALF) / (HALF * 2)) * MS, ((z + HALF) / (HALF * 2)) * MS];
     function drawMap() {
       mctx.clearRect(0, 0, MS, MS); mctx.drawImage(base, 0, 0);
-      const [cx, cz] = toMap(CAMP.x, CAMP.z); mctx.font = "18px system-ui"; mctx.textAlign = "center"; mctx.textBaseline = "middle"; mctx.fillText("🏕", cx, cz);
+      const [cx, cz] = toMap(CAMP.x, CAMP.z); mctx.font = "18px system-ui"; mctx.textAlign = "center"; mctx.textBaseline = "middle"; mctx.fillText("🏡", cx, cz);
       carcasses.forEach((c) => { const [x, z] = toMap(c.a.x, c.a.z); mctx.fillStyle = "#ffd36a"; mctx.beginPath(); mctx.arc(x, z, 4, 0, 6.28); mctx.fill(); });
       animals.forEach((a) => { if (!a.alive) return; const d = Math.hypot(a.x - me.x, a.z - me.z); if (d > 60 && !(a.cfg.pred && a.state === "chase")) return; const [x, z] = toMap(a.x, a.z); mctx.fillStyle = a.cfg.pred ? "#ff4040" : "#9cff7a"; mctx.globalAlpha = 0.85; mctx.beginPath(); mctx.arc(x, z, a.cfg.pred && a.state === "chase" ? 4 : 2.6, 0, 6.28); mctx.fill(); mctx.globalAlpha = 1; });
       if (merchant) { const [x, z] = toMap(merchant.position.x, merchant.position.z); mctx.fillText("🏪", x, z); }
@@ -1028,7 +1128,7 @@
       horse.vis = makeRideHorse(); if (horse.vis) scene.add(horse.vis.g);
       ui.panel.innerHTML = `<div class="ov-shop"><span class="big">🏹</span><h2>Ovga tayyormisiz?</h2>
         <p>Keng dalada, o‘rmonda va cho‘lda ov qiling. O‘txo‘rlar (🐎 ot, 🦬 bizon, 🦌 jayron, 🫎 bug‘u) sizni sezsa qochadi — <b>cho‘kkalab</b> yaqinlashing. Yirtqichlar (🐺 bo‘ri, 🐻 ayiq) <b>o‘zi hujum qiladi</b>, 🐗 yovvoyi cho‘chqa esa jahli chiqsa tashlanadi!</p>
-        <p>🐎 Lager yonida <b>otingiz</b> turibdi — ${MOBILE ? "🐎 tugma" : "F tugmasi"} bilan mining, uzoqda bo‘lsa hushtak chaling.</p>
+        <p>🏡 Ov qishloqdagi uyingizdan boshlanadi. 🐎 Hovlida <b>otingiz</b> turibdi — ${MOBILE ? "🐎 tugma" : "F tugmasi"} bilan mining, uzoqda bo‘lsa hushtak chaling.</p>
         <p class="ov-tip">Otilgan hayvonni borib oling 🎒, keyin 🏪 do‘konni chaqirib soting va yangi qurollar sotib oling.</p>
         <div class="ov-row"><button class="ov-big" data-b="start" type="button">▶ Ovni boshlash</button><button class="ov-big ghost" data-b="exit" type="button">🚪 Chiqish</button></div></div>`;
     })();
