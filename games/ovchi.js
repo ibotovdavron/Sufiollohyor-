@@ -17,7 +17,8 @@
     if (!window.THREE.GLTFLoader) await loadScript("lib/GLTFLoader.js?v=1");
     if (!window.THREE.SkeletonUtils) await loadScript("lib/SkeletonUtils.js?v=1");
     if (!window.SofiFarm3D) await loadScript("games/ferma3d.js?v=6");
-    if (!window.SofiOvchi3D) await loadScript("games/ovchi3d.js?v=3");
+    if (!window.SofiOvchiRelief) await loadScript("games/ovchi-relief.js?v=1");
+    if (!window.SofiOvchi3D) await loadScript("games/ovchi3d.js?v=4");
   })().catch((e) => { libs = null; throw e; }));
 
   const all = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } };

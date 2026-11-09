@@ -32,3 +32,5 @@ OVCHI o'yini:
 - guns/revolver.glb, shotgun.glb, assault-rifle.glb, sniper-rifle.glb — "Ultimate Guns Pack" (Quaternius), CC0 1.0 — https://quaternius.com
 - animals/Wolf.glb, Horse.glb, Horse_White.glb, Bull.glb, Deer.glb, Stag.glb — "Ultimate Animated Animals" (Quaternius), CC0 1.0 — https://quaternius.com
   (bizon — Bull modeli to'q jigarrangga bo'yalgan; jayron — Deer; bug'u — Stag). Ayiq va yovvoyi cho'chqa — kod bilan yasalgan.
+- ovchi-relief.js — qishloq atrofining haqiqiy relyefi: AWS Terrain Tiles (Terrarium, SRTM asosida, ochiq ma'lumot) —
+  https://registry.opendata.aws/terrain-tiles/ ; o'yinda 1:2 masshtabda.

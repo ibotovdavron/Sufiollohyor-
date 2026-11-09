@@ -87,15 +87,36 @@
     const desert = sstep(45, 95, x + (n - 0.5) * 60) * (1 - forest);
     return { forest, desert, field: Math.max(0, 1 - forest - desert) };
   }
+  /** Haqiqiy relyef (ovchi-relief.js): qishloq atrofi, 1:2 masshtab */
+  let RELIEF = null;
+  function relief(x, z) {
+    if (RELIEF === null) {
+      const R = window.SofiOvchiRelief;
+      if (!R) RELIEF = false;
+      else { const bin = atob(R.d), a = new Int16Array(bin.length >> 1); for (let i = 0; i < a.length; i++) a[i] = ((bin.charCodeAt(i * 2) | (bin.charCodeAt(i * 2 + 1) << 8)) << 16) >> 16; RELIEF = { n: R.n, half: R.half, c: (R.half * 2) / (R.n - 1), a }; }
+    }
+    if (!RELIEF) return null;
+    const { n, half, c, a } = RELIEF, fx = clamp((x + half) / c, 0, n - 1.001), fz = clamp((z + half) / c, 0, n - 1.001), i = fx | 0, j = fz | 0, u = fx - i, v = fz - j;
+    // silliq (kubik) interpolatsiya — 30 m li ma'lumotda "zinapoya" bo'lmasin
+    const su = u * u * (3 - 2 * u), sv = v * v * (3 - 2 * v);
+    return lerp(lerp(a[j * n + i], a[j * n + i + 1], su), lerp(a[(j + 1) * n + i], a[(j + 1) * n + i + 1], su), sv) / 10;
+  }
   function heightAt(x, z) {
     const b = biome(x, z);
     const x0 = x, z0 = z; x /= K; z /= K;
-    let h = (fbm(x * 0.009, z * 0.009) - 0.45) * 16;
-    h *= 0.55 + 0.7 * b.forest;
-    h += (Math.sin(x * 0.055 + Math.cos(z * 0.032) * 2.2) * 2.6 + Math.sin(z * 0.08 + x * 0.02) * 1.4) * b.desert;
+    const r = relief(x0, z0);
+    let h;
+    if (r !== null) {
+      h = r + (fbm(x0 * 0.06, z0 * 0.06) - 0.5) * 1.4;
+      h += (Math.sin(x * 0.055 + Math.cos(z * 0.032) * 2.2) * 1.2 + Math.sin(z * 0.08 + x * 0.02) * 0.6) * b.desert;
+    } else {
+      h = (fbm(x * 0.009, z * 0.009) - 0.45) * 16;
+      h *= 0.55 + 0.7 * b.forest;
+      h += (Math.sin(x * 0.055 + Math.cos(z * 0.032) * 2.2) * 2.6 + Math.sin(z * 0.08 + x * 0.02) * 1.4) * b.desert;
+      h *= 1 - villageAt(x0, z0) * 0.55;
+    }
     const edge = Math.max(Math.abs(x), Math.abs(z));
     h += sstep(150, 195, edge) * (34 + fbm(x * 0.03, z * 0.03) * 22);
-    h *= 1 - villageAt(x0, z0) * 0.55;
     const dc = Math.hypot(x0 - CAMP.x, z0 - CAMP.z);
     if (dc < 18) h = lerp(h, 0.2, sstep(18, 7, dc));
     return h;
