@@ -27,3 +27,10 @@ Snayper jangi — personajlar va qurol (markaz direktori yuborgan modellar)
 Bilim labirinti — yangi qo'riqchilar (markaz direktori yuborgan, teksturali)
 - olov2.bin/.jpg (Fire Creature) — oddiy darvoza, ruh.bin/.jpg (Feathered Spirit) — qo'rqinchli darvoza,
   ayiq.bin/.jpg (IceBearCreature) — oddiy darvoza. Harakat (qanot qoqish, olov lipillashi, nafas) shaderda.
+
+OVCHI o'yini:
+- guns/revolver.glb, shotgun.glb, assault-rifle.glb, sniper-rifle.glb — "Ultimate Guns Pack" (Quaternius), CC0 1.0 — https://quaternius.com
+- fox.glb (bo'ri sifatida kulrangga bo'yalgan) — KhronosGroup glTF-Sample-Models "Fox":
+  model — PixelMannen (CC0); rigging va animatsiya — @tomkranis (CC-BY 4.0);
+  glTF konvertatsiya — @AsoboStudio va @scurest (CC-BY 4.0).
+  https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/Fox

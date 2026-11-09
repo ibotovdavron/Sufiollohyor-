@@ -4,7 +4,7 @@
   "use strict";
   const T = window.SofiTests;
   if (!T) return;
-  const SEL = "[data-start],[data-mm-start],[data-zakovat],[data-cs],[data-sh],[data-fm],[data-ar],[data-kl],[data-sn],[data-lb]";
+  const SEL = "[data-start],[data-mm-start],[data-zakovat],[data-cs],[data-sh],[data-fm],[data-ar],[data-kl],[data-sn],[data-lb],[data-ov]";
   const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const TTL = 60000;
   let cache = { key: null, at: 0, list: [] };

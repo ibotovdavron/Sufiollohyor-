@@ -854,5 +854,7 @@ if (aTW > 0.0) { vec3 tp = uTailP; float ta = uTail * aTW; tPos = rotZ(tPos - tp
     };
   }
   Farm3D.preload = () => Promise.all([preloadHorse(), preloadQ()]);
+  // Boshqa o'yinlar (Ovchi) uchun: haqiqiy hayvon modellari
+  Farm3D.animals = { preloadHorse, preloadQ, buildReal, horse: () => HORSE, cow: () => COW, sheep: () => SHEEP };
   window.SofiFarm3D = Farm3D;
 })();

@@ -65,7 +65,7 @@
   let libs = null;
   const loadLibs = () => libs || (libs = (async () => {
     if (!window.THREE) await loadScript("lib/three.min.js?v=149");
-    if (!window.SofiFarm3D) await loadScript("games/ferma3d.js?v=5");
+    if (!window.SofiFarm3D) await loadScript("games/ferma3d.js?v=6");
     if (window.SofiFarm3D.preload) await window.SofiFarm3D.preload();
   })().catch((e) => { libs = null; throw e; }));
 
