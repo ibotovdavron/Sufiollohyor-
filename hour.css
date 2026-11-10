@@ -1,0 +1,21 @@
+/* O‘zim uchun 1 soat */
+.pf-hour { margin-top: 14px; }
+.ph-card { position: relative; overflow: hidden; padding: 18px 20px; border-radius: 24px; border: 1px solid rgba(250, 204, 21, .45);
+  background: radial-gradient(circle at 90% 10%, rgba(250, 204, 21, .18), transparent 45%), linear-gradient(135deg, rgba(34, 197, 94, .14), rgba(2, 11, 9, .6)); box-shadow: 0 16px 40px rgba(0, 0, 0, .3); }
+.ph-kicker { display: inline-block; padding: 4px 10px; border-radius: 999px; background: rgba(250, 204, 21, .16); color: #fde68a; font-size: 12px; font-weight: 800; letter-spacing: .06em; }
+.ph-row { display: flex; align-items: center; gap: 18px; margin-top: 8px; }
+.ph-text { flex: 1; min-width: 0; } .ph-text h2 { margin: 4px 0 6px; font-size: clamp(22px, 4vw, 30px); } .ph-text p { margin: 0; opacity: .85; line-height: 1.55; }
+.ph-clock { position: relative; flex: none; width: 138px; height: 138px; display: grid; place-content: center; text-align: center; }
+.ph-clock svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+.ph-clock circle { fill: none; stroke-width: 9; } .ph-clock .bg { stroke: rgba(255, 255, 255, .1); }
+.ph-clock .fg { stroke: #facc15; stroke-linecap: round; transition: stroke-dashoffset .3s linear; filter: drop-shadow(0 0 6px rgba(250, 204, 21, .6)); }
+.ph-clock b { position: relative; font-size: 30px; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.ph-clock small { position: relative; opacity: .7; font-size: 12px; }
+.ph-btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.ph-btns .btn { margin: 0; }
+.ph-go { background: linear-gradient(135deg, #facc15, #22c55e) !important; color: #052e16 !important; font-weight: 900; }
+.pf-hour.running .ph-clock b { color: #fde68a; }
+.pf-hour.running .ph-card { animation: phGlow 2.4s ease-in-out infinite; }
+@keyframes phGlow { 50% { box-shadow: 0 16px 50px rgba(250, 204, 21, .25); } }
+.pf-hour.done .ph-clock .fg { stroke: #22c55e; }
+@media (max-width: 560px) { .ph-row { flex-direction: column-reverse; align-items: stretch; } .ph-clock { margin: 0 auto; } .ph-btns .btn { flex: 1; } }
