@@ -84,7 +84,8 @@ declare
 begin
   if encode(extensions.digest(coalesce(p_pin, ''), 'sha256'), 'hex') not in (
        '86fc699a4987c8f7b9f7d01f97863b3667206b5c43e02188c31aa50d51607a73', -- umumiy ustoz paroli
-       '1136e4b62029095e629e1ca4d06643a5f325bc74e2702f5e2f9fa028048145de'  -- Raufov Azizbek
+       '1136e4b62029095e629e1ca4d06643a5f325bc74e2702f5e2f9fa028048145de', -- Raufov Azizbek
+       'c7478b47b806aeb84eb2b0b9f2424cd02ca923555152b172565786a4fdb1b235'  -- Shaymardonov Abdusattor
      ) then
     raise exception 'Parol noto‘g‘ri';
   end if;
