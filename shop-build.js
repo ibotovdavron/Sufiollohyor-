@@ -3,10 +3,9 @@
 (() => {
   "use strict";
   const KEY = "sofi_shop_build";
-  const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   const force = /[?&]build=1/.test(location.search);
   let seen = false; try { seen = sessionStorage.getItem(KEY) === "1"; } catch (e) {}
-  if ((seen || reduce) && !force) return;
+  if (seen && !force) return;
   try { sessionStorage.setItem(KEY, "1"); } catch (e) {}
 
   const css = document.createElement("style");
