@@ -116,7 +116,16 @@
     const i = fx | 0, j = fz | 0, u = fx - i, v = fz - j, g = VGRID, n = VB.n;
     return lerp(lerp(g[j * n + i], g[j * n + i + 1], u), lerp(g[(j + 1) * n + i], g[(j + 1) * n + i + 1], u), v);
   }
+  /** Hududlar haqiqiy relyefdan: soy va pastliklar — bog'lar/daraxtzor (“forest”), baland adirlar — quruq dasht (“desert” = adir), qolgani — ekin va o'tloq (“field”) */
   function biome(x, z) {
+    const r0 = relief(x, z);
+    if (r0 !== null) {
+      const m = (relief(x + 28, z) + relief(x - 28, z) + relief(x, z + 28) + relief(x, z - 28)) / 4;
+      const n = fbm(x * 0.02 + 7, z * 0.02 - 3) - 0.5;
+      const forest = sstep(0.6, 2.6, m - r0 + n * 1.5);
+      const desert = sstep(12, 30, r0 + n * 12) * (1 - forest);
+      return { forest, desert, field: Math.max(0, 1 - forest - desert) };
+    }
     x /= K; z /= K;
     const n = fbm(x * 0.012 + 7, z * 0.012 - 3);
     const forest = sstep(-25, -70, z + (n - 0.5) * 60);
@@ -144,7 +153,7 @@
     let h;
     if (r !== null) {
       h = r + (fbm(x0 * 0.06, z0 * 0.06) - 0.5) * 1.4;
-      h += (Math.sin(x * 0.055 + Math.cos(z * 0.032) * 2.2) * 1.2 + Math.sin(z * 0.08 + x * 0.02) * 0.6) * b.desert;
+      h += (fbm(x0 * 0.12, z0 * 0.12) - 0.5) * 0.8 * b.desert; // adirdagi notekisliklar
     } else {
       h = (fbm(x * 0.009, z * 0.009) - 0.45) * 16;
       h *= 0.55 + 0.7 * b.forest;
@@ -152,7 +161,7 @@
       h *= 1 - villageAt(x0, z0) * 0.55;
     }
     const edge = Math.max(Math.abs(x), Math.abs(z));
-    h += sstep(150, 195, edge) * (34 + fbm(x * 0.03, z * 0.03) * 22);
+    if (r === null) h += sstep(150, 195, edge) * (34 + fbm(x * 0.03, z * 0.03) * 22);
     const dc = Math.hypot(x0 - CAMP.x, z0 - CAMP.z);
     if (dc < 18) h = lerp(h, 0.2, sstep(18, 7, dc));
     return h;
@@ -272,7 +281,7 @@
     renderer.domElement.className = "ov-canvas";
     container.appendChild(renderer.domElement);
     const scene = new T.Scene();
-    const camera = new T.PerspectiveCamera(70, 1, 0.08, 900); camera.rotation.order = "YXZ"; scene.add(camera);
+    const camera = new T.PerspectiveCamera(70, 1, 0.08, 2600); camera.rotation.order = "YXZ"; scene.add(camera);
     const uTime = { value: 0 };
 
     /* ---------- Osmon va yorug'lik ---------- */
@@ -286,15 +295,15 @@
         float fb(vec2 p){ float v = 0.0, a = 0.55; for (int k = 0; k < 5; k++){ v += a * n2(p); p *= 2.03; a *= 0.5; } return v; }
         void main(){ float h = max(vD.y, 0.0);
           vec3 c = mix(vec3(0.80,0.81,0.83), vec3(0.58,0.62,0.68), pow(h, 0.6));
-          if (vD.y < 0.0) c = vec3(0.62,0.60,0.56);
+          c = mix(c, vec3(0.77,0.78,0.80), smoothstep(0.08, -0.02, vD.y)); // ufq tumani (yer bilan qo'shiladi)
           vec2 uv = vD.xz / (vD.y + 0.18) * 1.6 + vec2(uTime * 0.004, uTime * 0.002);
           float cl = smoothstep(0.38, 0.85, fb(uv));
           vec3 cloud = mix(vec3(0.90,0.91,0.92), vec3(0.55,0.57,0.61), smoothstep(0.55, 1.0, fb(uv * 1.7 + 3.0)));
           c = mix(c, cloud, cl * smoothstep(0.0, 0.25, h) * 0.9);
           float s = max(dot(vD, uSun), 0.0); c += vec3(1.0,0.96,0.88) * pow(s, 18.0) * 0.18 * (1.0 - cl);
           gl_FragColor = vec4(c, 1.0); }` });
-    scene.add(new T.Mesh(new T.SphereGeometry(600, 32, 16), skyMat));
-    scene.fog = new T.Fog(0xc4c7cb, 55, LOW ? 210 : 310);
+    const skyDome = new T.Mesh(new T.SphereGeometry(1600, 32, 16), skyMat); skyDome.frustumCulled = false; skyDome.renderOrder = -1; scene.add(skyDome);
+    scene.fog = new T.Fog(0xc4c7cb, 90, LOW ? 380 : 520);
     { const pm = new T.PMREMGenerator(renderer); const es = new T.Scene(); es.add(new T.Mesh(new T.SphereGeometry(10, 32, 16), skyMat)); scene.environment = pm.fromScene(es, 0.04).texture; pm.dispose(); }
     scene.add(new T.HemisphereLight(0xd9dee6, 0x6b5a44, 1.25));
     const sun = new T.DirectionalLight(0xf3eee6, 1.05); sun.castShadow = !LOW;
@@ -302,11 +311,44 @@
     Object.assign(sun.shadow.camera, { left: -45, right: 45, top: 45, bottom: -45, near: 10, far: 220 }); sun.shadow.bias = -0.0008; sun.shadow.normalBias = 0.05;
     scene.add(sun); scene.add(sun.target);
 
+    /* ---------- Ufqdagi haqiqiy tog'lar (ovchi-far.js) ----------
+       Xarita chetidan tashqarisi siqib ko'rsatiladi: burchak bo'yicha balandlik saqlanadi, shuning uchun tog'lar haqiqiydek ko'rinadi. */
+    (() => {
+      const F = window.SofiOvchiFar; if (!F || relief(0, 0) === null) return;
+      const bin = atob(F.d), A = new Int16Array(bin.length >> 1); for (let i = 0; i < A.length; i++) A[i] = ((bin.charCodeAt(i * 2) | (bin.charCodeAt(i * 2 + 1) << 8)) << 16) >> 16;
+      const fn = F.n, fR = F.R, far = (east, south) => { const fx = clamp((east / fR + 1) / 2 * (fn - 1), 0, fn - 1.001), fz = clamp((south / fR + 1) / 2 * (fn - 1), 0, fn - 1.001), i = fx | 0, j = fz | 0, u = fx - i, v = fz - j;
+        return lerp(lerp(A[j * fn + i], A[j * fn + i + 1], u), lerp(A[(j + 1) * fn + i], A[(j + 1) * fn + i + 1], u), v); };
+      const RC = window.SofiOvchiRelief, cx0 = CAMP.x, cz0 = CAMP.z + 6; // relyef markazi (ovchi-relief.js bilan bir xil)
+      const IN = HALF - 2, KF = 0.11, NG = LOW ? 120 : 170, G = 1500;
+      const pos = new Float32Array(NG * NG * 3), col = new Float32Array(NG * NG * 3), idx = [];
+      const haze = new T.Color(0xc4c7cb), dry = new T.Color(0xb39a66), dark = new T.Color(0x7d6a4a), rockC = new T.Color(0x8d877d), snowC = new T.Color(0xe8e8e6), tc = new T.Color();
+      const H = new Float32Array(NG * NG);
+      for (let j = 0; j < NG; j++) for (let i = 0; i < NG; i++) {
+        const gx = (i / (NG - 1) * 2 - 1) * G, gz = (j / (NG - 1) * 2 - 1) * G, sg = Math.max(Math.abs(gx), Math.abs(gz)), k = j * NG + i;
+        let y;
+        if (sg <= IN) y = relief(gx, gz) - 4;
+        else { const sl = IN + (sg - IN) / KF, lx = gx * sl / sg, lz = gz * sl / sg; const real = far((lx - cx0) * 2, (lz - cz0) * 2); y = real / 2 * (sg / sl) - 1.5; }
+        pos[k * 3] = gx; pos[k * 3 + 1] = y; pos[k * 3 + 2] = gz; H[k] = y;
+      }
+      const sd = new T.Vector3(0.55, 0.42, 0.25).normalize();
+      for (let j = 0; j < NG; j++) for (let i = 0; i < NG; i++) {
+        const k = j * NG + i, st = 2 * G / (NG - 1), hx = H[j * NG + Math.min(NG - 1, i + 1)] - H[j * NG + Math.max(0, i - 1)], hz = H[Math.min(NG - 1, j + 1) * NG + i] - H[Math.max(0, j - 1) * NG + i];
+        const nx = -hx / (2 * st), nz = -hz / (2 * st), nl = Math.hypot(nx, 1, nz), lit = clamp(0.55 + 0.6 * (nx * sd.x + sd.y + nz * sd.z) / nl, 0.35, 1.25), slope = 1 - 1 / nl;
+        const sg = Math.max(Math.abs(pos[k * 3]), Math.abs(pos[k * 3 + 2]));
+        tc.copy(dry).lerp(dark, fbm(i * 0.21, j * 0.21) * 0.6).lerp(rockC, sstep(0.25, 0.6, slope)).lerp(snowC, sstep(95, 140, H[k]) * 0.9).multiplyScalar(lit);
+        tc.lerp(haze, sstep(IN, G * 0.9, sg) * 0.75 + 0.1);
+        col[k * 3] = tc.r; col[k * 3 + 1] = tc.g; col[k * 3 + 2] = tc.b;
+        if (i < NG - 1 && j < NG - 1) idx.push(k, k + NG, k + 1, k + 1, k + NG, k + NG + 1);
+      }
+      const g = new T.BufferGeometry(); g.setAttribute("position", new T.BufferAttribute(pos, 3)); g.setAttribute("color", new T.BufferAttribute(col, 3)); g.setIndex(idx); g.computeBoundingSphere();
+      const m = new T.Mesh(g, new T.MeshBasicMaterial({ vertexColors: true, fog: false })); m.frustumCulled = false; scene.add(m);
+    })();
+
     /* ---------- Yer ---------- */
     const SEG = LOW ? 150 : MOBILE ? 220 : 300;
     const tg = new T.PlaneGeometry(HALF * 2, HALF * 2, SEG, SEG); tg.rotateX(-Math.PI / 2);
     const tp = tg.attributes.position, tc = new Float32Array(tp.count * 3), tmp = new T.Color(), MC = new T.Color();
-    const C = { grass: new T.Color(0x8a8148), grass2: new T.Color(0xa5965c), forest: new T.Color(0x4a4a2c), soil: new T.Color(0x5a4630), sand: new T.Color(0xd2b783), sand2: new T.Color(0xc29d68), rock: new T.Color(0x8b8478), dry: new T.Color(0x9a8158), dry2: new T.Color(0x7d6f48) };
+    const C = { grass: new T.Color(0x8a8148), grass2: new T.Color(0xa5965c), forest: new T.Color(0x6a6236), soil: new T.Color(0x5a4630), sand: new T.Color(0xa69472), sand2: new T.Color(0x8a7a5a), rock: new T.Color(0x8b8478), dry: new T.Color(0x9a8158), dry2: new T.Color(0x7d6f48) };
     for (let i = 0; i < tp.count; i++) {
       const x = tp.getX(i), z = tp.getZ(i), y = heightAt(x, z); tp.setY(i, y);
       const b = biome(x, z), n = fbm(x * 0.08, z * 0.08);
@@ -343,6 +385,9 @@
     const shrubGeo = merge([[new T.IcosahedronGeometry(0.55, 0).scale(1, 0.6, 1).translate(0, 0.3, 0), 0x8f7d4a]]);
     const rockGeo = (() => { const g = new T.IcosahedronGeometry(1, 1); const p = g.attributes.position; for (let i = 0; i < p.count; i++) { const v = new T.Vector3().fromBufferAttribute(p, i); v.multiplyScalar(1 + (fbm(v.x * 2 + 5, v.z * 2 + v.y) - 0.5) * 0.5); v.y *= 0.65; p.setXYZ(i, v.x, v.y, v.z); } return merge([[g, 0x8e877c]]); })();
     const D = (LOW ? 0.45 : MOBILE ? 0.7 : 1) * K * K * 0.85;
+    const vmatF = vmat.clone(), paint = (m, pal) => { const c = new T.Color(); for (let k = 0; k < m.count; k++) m.setColorAt(k, c.setHex(pal[(Math.random() * pal.length) | 0])); m.instanceColor.needsUpdate = true; };
+    const oakW = merge([[new T.CylinderGeometry(0.22, 0.34, 3.2, 7).translate(0, 1.6, 0), 0x8a7a66], [new T.IcosahedronGeometry(2.3, 1).translate(0, 4.4, 0), 0xffffff], [new T.IcosahedronGeometry(1.7, 1).translate(1.2, 3.8, 0.4), 0xeeeeee], [new T.IcosahedronGeometry(1.6, 1).translate(-1.1, 4, -0.5), 0xdddddd]]);
+    const farPop = merge([[new T.CylinderGeometry(0.1, 0.22, 12, 6).translate(0, 6, 0), 0xd9d6cc], [new T.ConeGeometry(0.9, 7, 6).translate(0, 8.5, 0), 0xc9a43a]]);
     /* ---------- Qishloq: ko'chalar, uylar, bog'lar, teraklar ---------- */
     let seed = 20261109; const srnd = () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
     const sr = (a, b) => a + srnd() * (b - a);
@@ -514,10 +559,11 @@
       { const st = []; for (let k = 0; k < 900 && st.length < 420; k++) { const x = VB.x0 + srnd() * VB.n * VB.c, z = VB.z0 + srnd() * VB.n * VB.c, rd = roadDist(x, z); if (rd > 1.4 && rd < 4.5 && !nearHouse(x, z, 0.6)) st.push([x, z]); }
         const sm = inst(rockGeo, vmat, st, () => rr(0.12, 0.45), 0); sm.castShadow = false; }
     }
-    inst(pineGeo, vmat, scatter(1200 * D, (x, z, b) => b.forest > 0.45 && Math.random() < b.forest), () => rr(0.8, 1.35), 0.35);
-    inst(oakGeo, vmat, scatter(160 * D, (x, z, b) => b.field > 0.6 && Math.random() < 0.5 || (b.forest > 0.15 && b.forest < 0.5)), () => rr(0.8, 1.3), 0.4);
+    inst(pineGeo, vmat, scatter(90 * D, (x, z, b) => b.desert > 0.5 && Math.random() < 0.5), () => rr(0.45, 0.8), 0.25); // archa (yakka-yakka)
+    { const og = inst(oakW, vmatF, scatter(1100 * D, (x, z, b) => b.forest > 0.4 && Math.random() < b.forest || (b.field > 0.7 && Math.random() < 0.05)), () => rr(0.7, 1.25), 0.4); og.count && paint(og, [0xd8b23c, 0xe0a43a, 0xd27a2c, 0xb94a2c, 0x9ca13e, 0xc9a24a]); }
+    { const pg = inst(farPop, vmat, scatter(260 * D, (x, z, b) => b.forest > 0.5 && Math.random() < 0.6), () => rr(0.8, 1.2), 0.22); }
     inst(bushGeo, vmat, scatter(500 * D, (x, z, b) => b.desert < 0.3), () => rr(0.6, 1.4), 0);
-    inst(cactusGeo, vmat, scatter(170 * D, (x, z, b) => b.desert > 0.6), () => rr(0.7, 1.3), 0.35);
+    
     inst(shrubGeo, vmat, scatter(260 * D, (x, z, b) => b.desert > 0.4), () => rr(0.6, 1.4), 0);
     inst(rockGeo, vmat, scatter(320 * D, (x, z, b) => Math.random() < 0.3 + b.desert * 0.5), () => rr(0.4, 1.8), 0);
     // O't: o'yinchi atrofida (siljib turadi)
@@ -1177,7 +1223,7 @@
     const base = document.createElement("canvas"); base.width = base.height = MS;
     { const g = base.getContext("2d"), img = g.createImageData(MS, MS);
       for (let j = 0; j < MS; j++) for (let i = 0; i < MS; i++) { const x = (i / MS) * HALF * 2 - HALF, z = (j / MS) * HALF * 2 - HALF, b = biome(x, z), e = sstep(150 * K, 180 * K, Math.max(Math.abs(x), Math.abs(z))); const k = (j * MS + i) * 4;
-        const r = 90 * b.field + 40 * b.forest + 210 * b.desert, gg = 130 * b.field + 80 * b.forest + 180 * b.desert, bl = 55 * b.field + 40 * b.forest + 120 * b.desert;
+        const r = 150 * b.field + 150 * b.forest + 196 * b.desert, gg = 140 * b.field + 110 * b.forest + 172 * b.desert, bl = 80 * b.field + 50 * b.forest + 112 * b.desert;
         img.data[k] = lerp(r, 130, e); img.data[k + 1] = lerp(gg, 125, e); img.data[k + 2] = lerp(bl, 115, e); img.data[k + 3] = 230; }
       g.putImageData(img, 0, 0);
       const tm = (x, z) => [((x + HALF) / (HALF * 2)) * MS, ((z + HALF) / (HALF * 2)) * MS];
@@ -1216,7 +1262,7 @@
       if (!alive) return;
       raf = requestAnimationFrame(frame);
       const now = performance.now(), raw = (now - last) / 1000, dt = Math.min(0.05, raw); last = now;
-      const t = now / 1000; uTime.value = t; skyMat.uniforms.uTime.value = t;
+      const t = now / 1000; uTime.value = t; skyMat.uniforms.uTime.value = t; skyDome.position.copy(camera.position);
       if (st.started && !st.paused) { pr.n++; pr.acc += Math.min(raw, 0.5); if (pr.acc > 3) { const fps = pr.n / pr.acc; pr.n = 0; pr.acc = 0; if (fps < 26 && pr.r > 0.55) { pr.r *= 0.78; renderer.setPixelRatio(pr.r); resize(); } } }
       const live = st.started && !st.paused && !st.dead;
       if (live && !st.shop) {

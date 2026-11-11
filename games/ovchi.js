@@ -19,9 +19,10 @@
     if (!window.SofiFarm3D) await loadScript("games/ferma3d.js?v=6");
     if (!window.SofiOvchiRelief) await loadScript("games/ovchi-relief.js?v=1");
     if (!window.SofiOvchiVillage) await loadScript("games/ovchi-village.js?v=2");
+    if (!window.SofiOvchiFar) await loadScript("games/ovchi-far.js?v=1");
     const V = window.SofiOvchiVillage;
     if (V && !V.mask) await new Promise((res) => { const im = new Image(); im.onload = () => { try { const c = document.createElement("canvas"); c.width = im.width; c.height = im.height; const g = c.getContext("2d"); g.drawImage(im, 0, 0); const d = g.getImageData(0, 0, c.width, c.height).data, m = new Uint8Array(c.width * c.height); for (let i = 0; i < m.length; i++) m[i] = d[i * 4]; V.img = im; V.mask = m; V.mw = c.width; V.mh = c.height; } catch (e) {} res(); }; im.onerror = () => res(); im.src = V.roads.src; });
-    if (!window.SofiOvchi3D) await loadScript("games/ovchi3d.js?v=7");
+    if (!window.SofiOvchi3D) await loadScript("games/ovchi3d.js?v=8");
   })().catch((e) => { libs = null; throw e; }));
 
   const all = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } };

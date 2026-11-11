@@ -36,3 +36,4 @@ OVCHI o'yini:
   https://registry.opendata.aws/terrain-tiles/ ; o'yinda 1:2 masshtabda.
 - ovchi-village.js, img/ovchi-roads.png — qishloq ko'chalari, uylar joylashuvi, tom ranglari va umumlashtirilgan yer ranglari
   markaz direktori yuborgan xarita skrinshotidan avtomatik olingan (sun'iy yo'ldosh tasviri: Google Maps / Imagery © Google).
+- ovchi-far.js — ufqdagi tog'lar: qishloq atrofidagi ±12 km hudud relyefi, AWS Terrain Tiles (SRTM, ochiq ma'lumot).
