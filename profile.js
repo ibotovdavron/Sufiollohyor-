@@ -275,6 +275,8 @@
         <button class="pf-btn" type="button" id="pfGive">⭐ Yulduz berish</button>
         <p class="pf-muted" id="pfMsg"></p>
       </section>
+      <section class="pf-card pf-gt" id="pfGT"><h2>🎮 O‘yinga kirish testi <small>“Ovchi” o‘yini</small></h2><p class="pf-muted">Yuklanmoqda…</p></section>
+      <section class="pf-card pf-gt" id="pfCT"><h2>📋 Sinf testlari <small>barcha o‘yinlarni yopadi</small></h2><p class="pf-muted">Yuklanmoqda…</p></section>
       <section class="pf-card"><h2>🕘 So‘nggi berilgan yulduzlar</h2><div id="pfHist"><p class="pf-muted">Yuklanmoqda…</p></div></section>
       <section class="pf-card">
         <h2>👀 O‘quvchi profilini ko‘rish</h2>
@@ -303,6 +305,7 @@
       box.innerHTML = srv.ts.length ? `<ul class="pf-list">${srv.ts.slice(0, 25).map((r) => `<li><span><b>${esc(r.student_name)}</b> <small class="pf-muted">· ${esc(r.reason || "")} · ${esc(r.teacher || "")} · ${String(r.created_at).slice(5, 16).replace("T", " ")}</small></span><b style="color:${r.stars > 0 ? "#22c55e" : "#f87171"}">${r.stars > 0 ? "+" : ""}${r.stars}</b></li>`).join("")}</ul>` : `<p class="pf-muted">${srv.ok ? "Hali yulduz berilmagan." : "Internet bazasiga ulanib bo‘lmadi."}</p>`;
     };
     history();
+    gameTestPanel(me); classTestsPanel();
     $("#pfGive").onclick = async () => {
       const msg = $("#pfMsg");
       if (!picked.size) { msg.textContent = "Avval o‘quvchini tanlang."; return; }
@@ -322,6 +325,82 @@
         msg.textContent = /teacher_add_stars|function|schema cache/i.test(t) ? "⚠️ Supabase’da teacher-stars.sql hali ishga tushirilmagan." : "Xatolik: " + t;
       }
     };
+  }
+
+  /* ---------- Ustoz: o'yinga kirish testi va sinf testlari ---------- */
+  const loadJS = (src) => new Promise((res, rej) => { const sc = document.createElement("script"); sc.src = src; sc.onload = res; sc.onerror = () => rej(new Error(src)); document.head.appendChild(sc); });
+  const askPin = async () => { if (!pinCache) { const p = prompt("Tasdiqlash uchun ustoz parolini kiriting:"); if (!p) return null; pinCache = p.trim(); } return pinCache; };
+  async function gameTestPanel(me) {
+    const box = $("#pfGT"); if (!box) return;
+    try {
+      if (!window.SofiGameSettings) await loadJS("game-settings.js?v=1");
+      if (!window.SofiOvchiBank) await loadJS("games/ovchi-bank.js?v=1");
+    } catch (e) { box.querySelector("p").textContent = "Yuklab bo‘lmadi. Internetni tekshiring."; return; }
+    const GS = window.SofiGameSettings, BANK = window.SofiOvchiBank || {};
+    let all = (await GS.get("ovchi_test")) || {};
+    const CLS = ["5", "6", "7", "8", "9", "10", "11"].filter((k) => (BANK[k] || []).length);
+    let cls = CLS.includes(String(parseInt((STUDENTS[0] || {}).cls) || "")) ? String(parseInt(STUDENTS[0].cls)) : CLS[0], q = "";
+    const def = () => ({ mode: "auto", topics: [], n: 5, pass: 80 });
+    const cur = () => (all[cls] = Object.assign(def(), all[cls] || {}));
+    const draw = () => {
+      const c = cur(), bank = BANK[cls] || [];
+      const groups = {}; bank.forEach((b) => { const g = (b.s || "") + " · " + (b.sec || ""); (groups[g] = groups[g] || []).push(b); });
+      box.innerHTML = `<h2>🎮 O‘yinga kirish testi <small>“Ovchi” o‘yini</small></h2>
+        <p class="pf-muted" style="margin:0 0 10px">O‘quvchi ovga chiqishdan oldin shu sozlama bo‘yicha test topshiradi. ${GS.shared ? "Sozlama internetda saqlanadi — hamma o‘quvchiga ta’sir qiladi." : "⚠️ Hozircha faqat shu qurilmada saqlanadi: Supabase’da <b>game-settings.sql</b> ishga tushirilmagan."}</p>
+        <div class="pf-tabs" data-gt="cls">${CLS.map((k) => `<button type="button" data-k="${k}" class="${k === cls ? "on" : ""}">${k}-sinf${all[k] && all[k].mode === "off" ? " 🚫" : all[k] && all[k].mode === "topics" ? " ✏️" : ""}</button>`).join("")}</div>
+        <h3>Test</h3>
+        <div class="pf-tabs" data-gt="mode">${[["auto", "🤖 Avtomatik (dars rejasi / chorak)"], ["topics", "✏️ Mavzularni o‘zim tanlayman"], ["off", "🚫 Testsiz kirish"]].map(([m, t]) => `<button type="button" data-m="${m}" class="${c.mode === m ? "on" : ""}">${t}</button>`).join("")}</div>
+        ${c.mode === "off" ? `<p class="pf-muted">${cls}-sinf o‘quvchilari “Ovchi” o‘yiniga testsiz kiradi.</p>` : `
+        <h3>Savollar soni</h3><div class="pf-tabs" data-gt="n">${[3, 5, 7, 10].map((n) => `<button type="button" data-n="${n}" class="${c.n === n ? "on" : ""}">${n} ta</button>`).join("")}</div>
+        <h3>O‘tish uchun</h3><div class="pf-tabs" data-gt="pass">${[60, 70, 80, 100].map((p) => `<button type="button" data-p="${p}" class="${c.pass === p ? "on" : ""}">${p}%</button>`).join("")}</div>
+        <p class="pf-muted">${c.n} ta savoldan kamida <b>${Math.max(1, Math.ceil(c.n * c.pass / 100))} ta</b> to‘g‘ri javob kerak.</p>`}
+        ${c.mode === "topics" ? `<h3>Mavzular <small class="pf-muted">(${c.topics.length} ta tanlandi)</small></h3>
+          <input class="pf-select" data-gt="q" placeholder="🔎 Mavzu qidirish" value="${esc(q)}">
+          <div class="pf-gt-list">${Object.keys(groups).map((g) => { const items = groups[g].filter((b) => !q || b.t.toLowerCase().includes(q.toLowerCase())); return items.length ? `<b class="pf-gt-g">${esc(g)}</b>${items.map((b) => `<label class="pf-gt-t"><input type="checkbox" data-t="${esc(b.t)}" ${c.topics.includes(b.t) ? "checked" : ""}><span>${esc(b.t)}</span><small>${b.q.length} savol</small></label>`).join("")}` : ""; }).join("") || `<p class="pf-muted">Mavzu topilmadi.</p>`}</div>` : ""}
+        <button class="pf-btn" type="button" data-gt="save">💾 Saqlash</button>
+        <p class="pf-muted" data-gt="msg">${all._by ? `Oxirgi o‘zgartirish: ${esc(all._by)}${all._at ? " · " + String(all._at).slice(0, 16).replace("T", " ") : ""}` : ""}</p>`;
+    };
+    draw();
+    box.addEventListener("click", async (e) => {
+      const b = e.target.closest("button, input[type=checkbox]"); if (!b) return;
+      const grp = b.closest("[data-gt]") && b.closest("[data-gt]").dataset.gt, c = cur();
+      if (grp === "cls") { cls = b.dataset.k; q = ""; draw(); }
+      else if (grp === "mode") { c.mode = b.dataset.m; draw(); }
+      else if (grp === "n") { c.n = +b.dataset.n; draw(); }
+      else if (grp === "pass") { c.pass = +b.dataset.p; draw(); }
+      else if (b.dataset.t !== undefined) { const t = b.dataset.t; c.topics = b.checked ? [...new Set([...c.topics, t])] : c.topics.filter((x) => x !== t); box.querySelector("h3 small") && (box.querySelector("h3 small").textContent = `(${c.topics.length} ta tanlandi)`); }
+      else if (b.dataset.gt === "save") {
+        const msg = box.querySelector("[data-gt=msg]");
+        if (c.mode === "topics" && !c.topics.length) { msg.textContent = "Kamida bitta mavzu tanlang."; return; }
+        const pin = await askPin(); if (!pin) return;
+        msg.textContent = "Saqlanmoqda…";
+        try { await GS.set(pin, me.name, "ovchi_test", all); msg.innerHTML = `✅ Saqlandi: ${cls}-sinf — ${c.mode === "off" ? "testsiz" : c.mode === "topics" ? `${c.topics.length} ta mavzu, ${c.n} savol, ${c.pass}%` : `avtomatik, ${c.n} savol, ${c.pass}%`}. O‘quvchilar keyingi kirishda yangi testni topshiradi.`; draw(); box.querySelector("[data-gt=msg]").innerHTML = msg.innerHTML; }
+        catch (err) { if (/Parol/i.test(err.message)) pinCache = null; msg.textContent = "Xatolik: " + err.message; }
+      }
+    });
+    box.addEventListener("input", (e) => { if (e.target.dataset.gt === "q") { q = e.target.value; const pos = e.target.selectionStart; draw(); const inp = box.querySelector("[data-gt=q]"); inp.focus(); inp.setSelectionRange(pos, pos); } });
+  }
+  async function classTestsPanel() {
+    const box = $("#pfCT"); if (!box) return;
+    try { if (!window.SofiTests) await loadJS("amaliy/ctest.js?v=1"); } catch (e) { box.querySelector("p").textContent = "Yuklab bo‘lmadi."; return; }
+    const T = window.SofiTests;
+    const draw = async () => {
+      let tests = [];
+      try { tests = await T.listActive(); } catch (e) { box.innerHTML = `<h2>📋 Sinf testlari</h2><p class="pf-muted">Yuklab bo‘lmadi: ${esc(e.message)}</p>`; return; }
+      box.innerHTML = `<h2>📋 Sinf testlari <small>barcha o‘yinlarni yopadi</small></h2>
+        <p class="pf-muted" style="margin:0 0 10px">Faol sinf testi bo‘lsa, o‘quvchi undan o‘tmaguncha hech bir o‘yinga kira olmaydi. Keragi bo‘lmasa — yoping.</p>
+        ${tests.length ? `<ul class="pf-list">${tests.map((t) => `<li><span><b>${esc(t.cls)}</b> · ${esc(t.title)} <small class="pf-muted">· ⏱ ${t.minutes} daq · 🎯 ${t.pass_pct}% · ${esc(t.teacher || "")}</small></span><button type="button" class="pf-mini" data-close="${t.id}">🗑 Yopish</button></li>`).join("")}</ul>` : `<p class="pf-muted">Hozir faol sinf testi yo‘q — o‘yinlar ochiq.</p>`}
+        <div class="pf-row"><a class="pf-mini" href="amaliy.html">➕ Yangi test berish (Amaliy darslar → mavzu)</a><a class="pf-mini" href="amaliy.html#tests">📊 Natijalar</a></div>
+        <p class="pf-muted" data-ct="msg"></p>`;
+    };
+    await draw();
+    box.addEventListener("click", async (e) => {
+      const b = e.target.closest("[data-close]"); if (!b) return;
+      if (!confirm("Testni yopasizmi? O‘quvchilar uchun o‘yinlar yana ochiladi, natijalar saqlanib qoladi.")) return;
+      const pin = await askPin(); if (!pin) return;
+      try { await T.cancel(pin, Number(b.dataset.close)); await draw(); box.querySelector("[data-ct=msg]").textContent = "✅ Test yopildi."; }
+      catch (err) { if (/Parol/i.test(err.message)) pinCache = null; box.querySelector("[data-ct=msg]").textContent = "Xatolik: " + err.message; }
+    });
   }
 
   function render() {

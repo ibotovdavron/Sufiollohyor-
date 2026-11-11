@@ -83,3 +83,12 @@
 .pf-give .pf-btn { margin-top: 12px; width: 100%; }
 .pf-give .pf-select { margin-top: 6px; }
 
+.pf-gt h3 { margin: 12px 0 6px; font-size: 15px; }
+.pf-gt-list { display: grid; gap: 4px; max-height: 340px; overflow: auto; margin: 8px 0 12px; padding: 6px; border: 1px solid var(--line); border-radius: 14px; }
+.pf-gt-g { margin: 8px 4px 2px; font-size: 13px; color: var(--muted); }
+.pf-gt-t { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; cursor: pointer; }
+.pf-gt-t:hover { background: hsl(0 0% calc(var(--tl0) + var(--tlk) * 100%) / 0.06); }
+.pf-gt-t input { width: 18px; height: 18px; flex: none; }
+.pf-gt-t span { flex: 1; } .pf-gt-t small { color: var(--muted); white-space: nowrap; }
+.pf-gt .pf-list li { align-items: center; gap: 10px; }
+.pf-gt .pf-row a { text-decoration: none; }

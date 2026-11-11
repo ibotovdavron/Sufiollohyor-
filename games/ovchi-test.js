@@ -7,15 +7,20 @@
   const norm = (s) => String(s || "").toLowerCase().replace(/[‘’ʻʼ'`´]/g, "").replace(/а/g, "a").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
   const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
-  const N = 5, PASS = 4, SEC = 30;
+  let N = 5, PASS = 4; const SEC = 30;
 
   function quarterOf(d = new Date()) { const m = d.getMonth() + 1; return m >= 9 && m <= 10 ? 0 : m >= 11 ? 1 : m <= 3 ? 2 : 3; }
   const QNAMES = ["I chorak", "II chorak", "III chorak", "IV chorak"];
 
   /** Sinf uchun mavzular va savollar */
-  function pickTopics(cls) {
+  function pickTopics(cls, cfg) {
     const key = String(parseInt(cls) || 6);
     const bank = (window.SofiOvchiBank || {})[key] || [];
+    // Ustoz tanlagan mavzular (profil → “O‘yinga kirish testi”)
+    if (cfg && cfg.mode === "topics" && (cfg.topics || []).length) {
+      const sel = bank.filter((b) => cfg.topics.includes(b.t));
+      if (sel.length) return { topics: sel, source: "Ustoz tanlagan mavzular", key };
+    }
     const plan = (window.SofiOvchiPlan || {})[key];
     let topics = [], source = "";
     if (plan) {
@@ -35,8 +40,10 @@
     if (!topics.length) topics = bank.slice(0, 6);
     return { topics, source, key };
   }
-  function makeTest(cls) {
-    const { topics, source, key } = pickTopics(cls);
+  function makeTest(cls, cfg) {
+    N = Math.max(3, Math.min(10, (cfg && cfg.n) || 5));
+    PASS = Math.max(1, Math.ceil(N * ((cfg && cfg.pass) || 80) / 100));
+    const { topics, source, key } = pickTopics(cls, cfg);
     const pool = [];
     topics.forEach((t) => t.q.forEach(([q, o, e]) => { if (q.length < 24 && !/\d/.test(q)) return; pool.push({ q, o, e, t: t.t, s: t.s }); }));
     const qs = shuffle(pool).slice(0, N).map((x) => { const right = x.o[0]; return { ...x, right, opts: shuffle(x.o.slice(0, 4)) }; });
@@ -48,9 +55,9 @@
   const giveLicense = (name) => { try { localStorage.setItem(LK, JSON.stringify({ name, day: today() })); } catch (e) {} };
 
   /** Testni ko'rsatish. Natija: Promise<boolean> (o'tdimi) */
-  function run(host, person) {
+  function run(host, person, cfg) {
     return new Promise((resolve) => {
-      const T = makeTest(person.cls);
+      const T = makeTest(person.cls, cfg);
       let i = 0, ok = 0, timer = 0, left = SEC, locked = false;
       const el = document.createElement("div");
       el.className = "ov-test";
@@ -96,11 +103,11 @@
         if (a === "go") show();
         else if (a === "hunt") finish(true);
         else if (a === "exit") finish(false);
-        else if (a === "retry") { const n = makeTest(person.cls); T.qs = n.qs; i = 0; ok = 0; show(); }
+        else if (a === "retry") { const n = makeTest(person.cls, cfg); T.qs = n.qs; i = 0; ok = 0; show(); }
       });
       intro();
     });
   }
 
-  window.SofiOvchiTest = { run, hasLicense, makeTest };
+  window.SofiOvchiTest = { run, hasLicense, makeTest, topicsOf: (cls) => ((window.SofiOvchiBank || {})[String(parseInt(cls) || 6)] || []).map((b) => ({ t: b.t, s: b.s, sec: b.sec, n: b.q.length })) };
 })();

@@ -10,7 +10,7 @@
   const loadTest = () => testLibs || (testLibs = (async () => {
     if (!window.SofiOvchiBank) await loadScript("games/ovchi-bank.js?v=1");
     if (!window.SofiOvchiPlan) await loadScript("games/ovchi-plan.js?v=1");
-    if (!window.SofiOvchiTest) await loadScript("games/ovchi-test.js?v=1");
+    if (!window.SofiOvchiTest) await loadScript("games/ovchi-test.js?v=2");
   })().catch((e) => { testLibs = null; throw e; }));
   const loadLibs = () => libs || (libs = (async () => {
     if (!window.THREE) await loadScript("lib/three.min.js?v=149");
@@ -159,10 +159,18 @@
     m.innerHTML = `<div class="ov-loading"><span>🎯</span><b>Test tayyorlanmoqda…</b><i></i></div>`;
     try { await loadTest(); } catch (e) { m.innerHTML = `<div class="ov-loading"><b>😕 Yuklab bo‘lmadi.</b></div>`; setTimeout(close, 2000); return; }
     const T = window.SofiOvchiTest;
-    if (T.hasLicense(who())) return drawMode();
+    // Ustoz sozlamasi (profil → “O‘yinga kirish testi”): sinf bo'yicha o'chirish, mavzular, savollar soni
+    let cfg = null;
+    try { if (!window.SofiGameSettings) await loadScript("game-settings.js?v=1"); const all = await window.SofiGameSettings.get("ovchi_test"); cfg = all && all[String(parseInt(G.session.cls) || 6)]; } catch (e) {}
+    if (!root) return;
+    if (cfg && cfg.mode === "off") return drawMode();
+    const lic = (() => { try { return JSON.parse(localStorage.getItem("sofi_ovchi_lic") || "{}"); } catch (e) { return {}; } })();
+    const ver = cfg ? JSON.stringify([cfg.mode, cfg.topics, cfg.n, cfg.pass]) : "";
+    if (T.hasLicense(who()) && (lic.v || "") === ver) return drawMode();
     m.innerHTML = "";
     const person = { name: who(), cls: parseInt(G.session.cls) ? G.session.cls : "6-sinf" };
-    const ok = await T.run(m, person);
+    const ok = await T.run(m, person, cfg);
+    if (ok) try { const l = JSON.parse(localStorage.getItem("sofi_ovchi_lic") || "{}"); l.v = ver; localStorage.setItem("sofi_ovchi_lic", JSON.stringify(l)); } catch (e) {}
     if (!root) return;
     if (ok) drawMode(); else close();
   }
