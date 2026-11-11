@@ -9,8 +9,9 @@
   let libs = null, testLibs = null;
   const loadTest = () => testLibs || (testLibs = (async () => {
     if (!window.SofiOvchiBank) await loadScript("games/ovchi-bank.js?v=1");
+    if (!window.SofiOvchiKimyo) { await loadScript("games/ovchi-bank-kimyo.js?v=1"); window.SofiOvchiKimyo = true; }
     if (!window.SofiOvchiPlan) await loadScript("games/ovchi-plan.js?v=1");
-    if (!window.SofiOvchiTest) await loadScript("games/ovchi-test.js?v=2");
+    if (!window.SofiOvchiTest) await loadScript("games/ovchi-test.js?v=3");
   })().catch((e) => { testLibs = null; throw e; }));
   const loadLibs = () => libs || (libs = (async () => {
     if (!window.THREE) await loadScript("lib/three.min.js?v=149");

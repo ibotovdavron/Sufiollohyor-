@@ -34,7 +34,7 @@
       // reja bo'yicha chorak hali boshlanmagan bo'lsa (masalan, 2-chorak darslari keyinroq) — oldingi chorak
       if (plan && plan.length && plan[0][0] > today()) q = Math.max(0, q - 1);
       for (let k = q; k >= 0 && !topics.length; k--) topics = bank.filter((b) => b.sec === QNAMES[k]);
-      topics = topics.slice(-6);
+      { const bySub = {}; topics.forEach((b) => (bySub[b.s] = bySub[b.s] || []).push(b)); topics = [].concat(...Object.values(bySub).map((l) => l.slice(-3))); } // har bir fandan oxirgi 3 mavzu (kimyo ham)
       source = `${QNAMES[q]} mavzulari`;
     }
     if (!topics.length) topics = bank.slice(0, 6);
@@ -45,7 +45,7 @@
     PASS = Math.max(1, Math.ceil(N * ((cfg && cfg.pass) || 80) / 100));
     const { topics, source, key } = pickTopics(cls, cfg);
     const pool = [];
-    topics.forEach((t) => t.q.forEach(([q, o, e]) => { if (q.length < 24 && !/\d/.test(q)) return; pool.push({ q, o, e, t: t.t, s: t.s }); }));
+    topics.forEach((t) => t.q.forEach(([q, o, e]) => { if (t.s !== "Kimyo" && q.length < 24 && !/\d/.test(q)) return; pool.push({ q, o, e, t: t.t, s: t.s }); }));
     const qs = shuffle(pool).slice(0, N).map((x) => { const right = x.o[0]; return { ...x, right, opts: shuffle(x.o.slice(0, 4)) }; });
     return { qs, source, key, titles: [...new Set(qs.map((x) => x.t))] };
   }

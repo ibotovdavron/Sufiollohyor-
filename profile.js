@@ -335,6 +335,7 @@
     try {
       if (!window.SofiGameSettings) await loadJS("game-settings.js?v=1");
       if (!window.SofiOvchiBank) await loadJS("games/ovchi-bank.js?v=1");
+      if (!window.SofiOvchiKimyo) { await loadJS("games/ovchi-bank-kimyo.js?v=1"); window.SofiOvchiKimyo = true; }
     } catch (e) { box.querySelector("p").textContent = "Yuklab bo‘lmadi. Internetni tekshiring."; return; }
     const GS = window.SofiGameSettings, BANK = window.SofiOvchiBank || {};
     let all = (await GS.get("ovchi_test")) || {};
