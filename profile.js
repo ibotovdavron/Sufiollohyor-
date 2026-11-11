@@ -333,7 +333,7 @@
   async function gameTestPanel(me) {
     const box = $("#pfGT"); if (!box) return;
     try {
-      if (!window.SofiGameSettings) await loadJS("game-settings.js?v=1");
+      if (!window.SofiGameSettings) await loadJS("game-settings.js?v=2");
       if (!window.SofiOvchiBank) await loadJS("games/ovchi-bank.js?v=1");
       if (!window.SofiOvchiKimyo) { await loadJS("games/ovchi-bank-kimyo.js?v=1"); window.SofiOvchiKimyo = true; }
     } catch (e) { box.querySelector("p").textContent = "Yuklab bo‘lmadi. Internetni tekshiring."; return; }
@@ -347,7 +347,7 @@
       const c = cur(), bank = BANK[cls] || [];
       const groups = {}; bank.forEach((b) => { const g = (b.s || "") + " · " + (b.sec || ""); (groups[g] = groups[g] || []).push(b); });
       box.innerHTML = `<h2>🎮 O‘yinga kirish testi <small>“Ovchi” o‘yini</small></h2>
-        <p class="pf-muted" style="margin:0 0 10px">O‘quvchi ovga chiqishdan oldin shu sozlama bo‘yicha test topshiradi. ${GS.shared ? "Sozlama internetda saqlanadi — hamma o‘quvchiga ta’sir qiladi." : "⚠️ Hozircha faqat shu qurilmada saqlanadi: Supabase’da <b>game-settings.sql</b> ishga tushirilmagan."}</p>
+        <p class="pf-muted" style="margin:0 0 10px">O‘quvchi ovga chiqishdan oldin shu sozlama bo‘yicha test topshiradi. ${GS.shared ? "✅ Sozlama internet bazasida saqlanadi — hamma o‘quvchiga ta’sir qiladi." : "<b style='color:#f87171'>⛔ Supabase’da game-settings.sql ishga tushirilmagan — sozlama o‘quvchilarga yetib bormaydi. Avval SQL’ni ishga tushiring.</b>"}</p>
         <div class="pf-tabs" data-gt="cls">${CLS.map((k) => `<button type="button" data-k="${k}" class="${k === cls ? "on" : ""}">${k}-sinf${all[k] && all[k].mode === "off" ? " 🚫" : all[k] && all[k].mode === "topics" ? " ✏️" : ""}</button>`).join("")}</div>
         <h3>Test</h3>
         <div class="pf-tabs" data-gt="mode">${[["auto", "🤖 Avtomatik (dars rejasi / chorak)"], ["topics", "✏️ Mavzularni o‘zim tanlayman"], ["off", "🚫 Testsiz kirish"]].map(([m, t]) => `<button type="button" data-m="${m}" class="${c.mode === m ? "on" : ""}">${t}</button>`).join("")}</div>

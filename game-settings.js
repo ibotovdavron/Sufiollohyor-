@@ -43,6 +43,8 @@
         const { error } = await c.rpc("gs_set", { p_pin: pin, p_teacher: teacher, p_key: key, p_value: clean });
         if (!error) { this.shared = true; return true; }
         if (!missing(error)) throw new Error(/Parol/.test(error.message) ? "Parol noto‘g‘ri" : error.message);
+        // Internet bazasi bor, lekin jadval yaratilmagan: mahalliy saqlash o'quvchilarga ta'sir qilmaydi — aniq aytamiz
+        throw new Error("Saqlanmadi: Supabase’da game-settings.sql hali ishga tushirilmagan. Shusiz sozlama o‘quvchilarga yetib bormaydi.");
       }
       // mahalliy zaxira: parolni shu yerda tekshiramiz
       const D = window.CENTER_DATA || {}, h = await sha(String(pin || "").trim());

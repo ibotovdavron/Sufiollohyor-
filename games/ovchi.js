@@ -162,7 +162,7 @@
     const T = window.SofiOvchiTest;
     // Ustoz sozlamasi (profil → “O‘yinga kirish testi”): sinf bo'yicha o'chirish, mavzular, savollar soni
     let cfg = null;
-    try { if (!window.SofiGameSettings) await loadScript("game-settings.js?v=1"); const all = await window.SofiGameSettings.get("ovchi_test"); cfg = all && all[String(parseInt(G.session.cls) || 6)]; } catch (e) {}
+    try { if (!window.SofiGameSettings) await loadScript("game-settings.js?v=2"); const all = await window.SofiGameSettings.get("ovchi_test"); cfg = all && all[String(parseInt(G.session.cls) || 6)]; } catch (e) {}
     if (!root) return;
     if (cfg && cfg.mode === "off") return drawMode();
     const lic = (() => { try { return JSON.parse(localStorage.getItem("sofi_ovchi_lic") || "{}"); } catch (e) { return {}; } })();
