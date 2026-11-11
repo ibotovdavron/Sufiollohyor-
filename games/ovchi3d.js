@@ -267,7 +267,7 @@
     const send = (m) => { if (net) try { net.send(m); } catch (e) {} };
     const renderer = new T.WebGLRenderer({ antialias: !MOBILE && !LOW, powerPreference: "high-performance" });
     renderer.setPixelRatio(LOW ? 0.5 : Math.min(devicePixelRatio || 1, MOBILE ? 1.4 : 2));
-    renderer.outputEncoding = T.sRGBEncoding; renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+    renderer.outputEncoding = T.sRGBEncoding; renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
     renderer.shadowMap.enabled = !LOW; renderer.shadowMap.type = T.PCFSoftShadowMap; renderer.autoClear = false;
     renderer.domElement.className = "ov-canvas";
     container.appendChild(renderer.domElement);
@@ -277,16 +277,27 @@
 
     /* ---------- Osmon va yorug'lik ---------- */
     const sunDir = new T.Vector3(0.55, 0.42, 0.25).normalize();
-    const skyMat = new T.ShaderMaterial({ side: T.BackSide, depthWrite: false, fog: false, uniforms: { uSun: { value: sunDir } },
+    // Bulutli kuz osmoni (markaz direktori yuborgan suratlar kabi)
+    const skyMat = new T.ShaderMaterial({ side: T.BackSide, depthWrite: false, fog: false, uniforms: { uSun: { value: sunDir }, uTime: { value: 0 } },
       vertexShader: "varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
-      fragmentShader: `varying vec3 vD; uniform vec3 uSun; void main(){ float h = max(vD.y, 0.0);
-        vec3 c = mix(vec3(0.96,0.83,0.62), vec3(0.32,0.55,0.86), pow(h, 0.5)); if (vD.y < 0.0) c = vec3(0.7,0.66,0.55);
-        float s = max(dot(vD, uSun), 0.0); c += vec3(1.0,0.85,0.6) * (pow(s, 700.0) * 5.0 + pow(s, 9.0) * 0.35); gl_FragColor = vec4(c, 1.0); }` });
+      fragmentShader: `varying vec3 vD; uniform vec3 uSun; uniform float uTime;
+        float h2(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }
+        float n2(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f); return mix(mix(h2(i), h2(i+vec2(1,0)), f.x), mix(h2(i+vec2(0,1)), h2(i+vec2(1,1)), f.x), f.y); }
+        float fb(vec2 p){ float v = 0.0, a = 0.55; for (int k = 0; k < 5; k++){ v += a * n2(p); p *= 2.03; a *= 0.5; } return v; }
+        void main(){ float h = max(vD.y, 0.0);
+          vec3 c = mix(vec3(0.80,0.81,0.83), vec3(0.58,0.62,0.68), pow(h, 0.6));
+          if (vD.y < 0.0) c = vec3(0.62,0.60,0.56);
+          vec2 uv = vD.xz / (vD.y + 0.18) * 1.6 + vec2(uTime * 0.004, uTime * 0.002);
+          float cl = smoothstep(0.38, 0.85, fb(uv));
+          vec3 cloud = mix(vec3(0.90,0.91,0.92), vec3(0.55,0.57,0.61), smoothstep(0.55, 1.0, fb(uv * 1.7 + 3.0)));
+          c = mix(c, cloud, cl * smoothstep(0.0, 0.25, h) * 0.9);
+          float s = max(dot(vD, uSun), 0.0); c += vec3(1.0,0.96,0.88) * pow(s, 18.0) * 0.18 * (1.0 - cl);
+          gl_FragColor = vec4(c, 1.0); }` });
     scene.add(new T.Mesh(new T.SphereGeometry(600, 32, 16), skyMat));
-    scene.fog = new T.Fog(0xd8cdb0, 70, LOW ? 220 : 330);
+    scene.fog = new T.Fog(0xc4c7cb, 55, LOW ? 210 : 310);
     { const pm = new T.PMREMGenerator(renderer); const es = new T.Scene(); es.add(new T.Mesh(new T.SphereGeometry(10, 32, 16), skyMat)); scene.environment = pm.fromScene(es, 0.04).texture; pm.dispose(); }
-    scene.add(new T.HemisphereLight(0xdbe8ff, 0x6a5a3a, 0.75));
-    const sun = new T.DirectionalLight(0xffe2b8, 2.1); sun.castShadow = !LOW;
+    scene.add(new T.HemisphereLight(0xd9dee6, 0x6b5a44, 1.25));
+    const sun = new T.DirectionalLight(0xf3eee6, 1.05); sun.castShadow = !LOW;
     sun.shadow.mapSize.set(MOBILE ? 1024 : 2048, MOBILE ? 1024 : 2048);
     Object.assign(sun.shadow.camera, { left: -45, right: 45, top: 45, bottom: -45, near: 10, far: 220 }); sun.shadow.bias = -0.0008; sun.shadow.normalBias = 0.05;
     scene.add(sun); scene.add(sun.target);
@@ -295,7 +306,7 @@
     const SEG = LOW ? 150 : MOBILE ? 220 : 300;
     const tg = new T.PlaneGeometry(HALF * 2, HALF * 2, SEG, SEG); tg.rotateX(-Math.PI / 2);
     const tp = tg.attributes.position, tc = new Float32Array(tp.count * 3), tmp = new T.Color(), MC = new T.Color();
-    const C = { grass: new T.Color(0x5b7d2e), grass2: new T.Color(0x7a8f3a), forest: new T.Color(0x2f4a22), soil: new T.Color(0x5a4630), sand: new T.Color(0xd2b783), sand2: new T.Color(0xc29d68), rock: new T.Color(0x8b8478), dry: new T.Color(0x9a8158), dry2: new T.Color(0x7d6f48) };
+    const C = { grass: new T.Color(0x8a8148), grass2: new T.Color(0xa5965c), forest: new T.Color(0x4a4a2c), soil: new T.Color(0x5a4630), sand: new T.Color(0xd2b783), sand2: new T.Color(0xc29d68), rock: new T.Color(0x8b8478), dry: new T.Color(0x9a8158), dry2: new T.Color(0x7d6f48) };
     for (let i = 0; i < tp.count; i++) {
       const x = tp.getX(i), z = tp.getZ(i), y = heightAt(x, z); tp.setY(i, y);
       const b = biome(x, z), n = fbm(x * 0.08, z * 0.08);
@@ -304,7 +315,7 @@
       tmp.lerp(tmp.clone().copy(C.sand).lerp(C.sand2, n), b.desert);
       const edge = Math.max(Math.abs(x), Math.abs(z)); tmp.lerp(C.rock, sstep(150 * K, 180 * K, edge) * 0.85);
       const mc = mapColor(x, z);
-      if (mc) { MC.setRGB(mc[0] * 0.78 + 0.13, mc[1] * 0.78 + 0.14, mc[2] * 0.7 + 0.08).convertSRGBToLinear().multiplyScalar(1.6); MC.r = Math.min(1, MC.r); MC.g = Math.min(1, MC.g); MC.b = Math.min(1, MC.b); tmp.lerp(MC, mc[3]); }
+      if (mc) { MC.setRGB(mc[0] * 0.55 + 0.3, mc[1] * 0.5 + 0.27, mc[2] * 0.45 + 0.15).convertSRGBToLinear().multiplyScalar(1.35); MC.r = Math.min(1, MC.r); MC.g = Math.min(1, MC.g); MC.b = Math.min(1, MC.b); tmp.lerp(MC, mc[3]); }
       else { const vg = villageAt(x, z); if (vg > 0) tmp.lerp(tmp.clone().copy(C.dry).lerp(C.dry2, fbm(x * 0.05 + 3, z * 0.05)), vg * 0.75); }
       if (Math.hypot(x - CAMP.x, z - CAMP.z) < 12) tmp.lerp(C.soil, 0.6);
       tc[i * 3] = tmp.r; tc[i * 3 + 1] = tmp.g; tc[i * 3 + 2] = tmp.b;
@@ -326,8 +337,8 @@
     }
     const vmat = new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.9 });
     const pineGeo = merge([[new T.CylinderGeometry(0.18, 0.28, 3, 7).translate(0, 1.5, 0), 0x4a3424], [new T.ConeGeometry(2.2, 3.6, 9).translate(0, 3.4, 0), 0x264a26], [new T.ConeGeometry(1.7, 3, 9).translate(0, 5.1, 0), 0x2c5528], [new T.ConeGeometry(1.1, 2.4, 9).translate(0, 6.6, 0), 0x336030]]);
-    const oakGeo = merge([[new T.CylinderGeometry(0.22, 0.34, 3.2, 7).translate(0, 1.6, 0), 0x5a4128], [new T.IcosahedronGeometry(2.3, 1).translate(0, 4.4, 0), 0x4f7a2a], [new T.IcosahedronGeometry(1.7, 1).translate(1.2, 3.8, 0.4), 0x5d8a31], [new T.IcosahedronGeometry(1.6, 1).translate(-1.1, 4, -0.5), 0x46702a]]);
-    const bushGeo = merge([[new T.IcosahedronGeometry(0.9, 1).scale(1, 0.7, 1).translate(0, 0.5, 0), 0x4a6e28], [new T.IcosahedronGeometry(0.6, 1).translate(0.6, 0.45, 0.2), 0x557a2c]]);
+    const oakGeo = merge([[new T.CylinderGeometry(0.22, 0.34, 3.2, 7).translate(0, 1.6, 0), 0x5a4128], [new T.IcosahedronGeometry(2.3, 1).translate(0, 4.4, 0), 0xb08a3a], [new T.IcosahedronGeometry(1.7, 1).translate(1.2, 3.8, 0.4), 0xc77a32], [new T.IcosahedronGeometry(1.6, 1).translate(-1.1, 4, -0.5), 0x8f8a3a]]);
+    const bushGeo = merge([[new T.IcosahedronGeometry(0.9, 1).scale(1, 0.7, 1).translate(0, 0.5, 0), 0xa0572c], [new T.IcosahedronGeometry(0.6, 1).translate(0.6, 0.45, 0.2), 0xb88a36]]);
     const cactusGeo = merge([[new T.CylinderGeometry(0.28, 0.32, 3.2, 8).translate(0, 1.6, 0), 0x4f7a3a], [new T.CylinderGeometry(0.17, 0.19, 1.2, 7).translate(0.55, 1.9, 0), 0x557f3e], [new T.CylinderGeometry(0.17, 0.17, 0.5, 7).rotateZ(Math.PI / 2).translate(0.32, 1.35, 0), 0x557f3e], [new T.CylinderGeometry(0.15, 0.17, 0.9, 7).translate(-0.5, 2.2, 0), 0x557f3e], [new T.CylinderGeometry(0.15, 0.15, 0.45, 7).rotateZ(Math.PI / 2).translate(-0.28, 1.8, 0), 0x557f3e]]);
     const shrubGeo = merge([[new T.IcosahedronGeometry(0.55, 0).scale(1, 0.6, 1).translate(0, 0.3, 0), 0x8f7d4a]]);
     const rockGeo = (() => { const g = new T.IcosahedronGeometry(1, 1); const p = g.attributes.position; for (let i = 0; i < p.count; i++) { const v = new T.Vector3().fromBufferAttribute(p, i); v.multiplyScalar(1 + (fbm(v.x * 2 + 5, v.z * 2 + v.y) - 0.5) * 0.5); v.y *= 0.65; p.setXYZ(i, v.x, v.y, v.z); } return merge([[g, 0x8e877c]]); })();
@@ -353,6 +364,10 @@
     { // uylar: yo'l bo'ylab ikki tomonda
       const tryHouse = (x, z, ang, w, d, force, roof) => { if (!force && (nearHouse(x, z, Math.max(w, d) * 0.4) || Math.abs(x) > EDGE - 10 || Math.abs(z) > EDGE - 10)) return false;
         const h = { x, z, ang, w, d, roof, r: Math.max(w, d) * 0.55 }; houses.push(h); const k = hKey(x, z); if (!hGrid.has(k)) hGrid.set(k, []); hGrid.get(k).push(h); return true; };
+      // 68-maktab binosi (markaz joylashgan) — direktor yuborgan koordinata: 38.309659, 67.632648
+      const SCHOOL = { x: CAMP.x + 33.6, z: CAMP.z - 3, w: 18, d: 7 };
+      { let best = 1e9; for (let k = 0; k < 24; k++) { const a = k / 24 * Math.PI * 2, rd = roadDist(SCHOOL.x + Math.sin(a) * 11, SCHOOL.z + Math.cos(a) * 11); if (rd < best) { best = rd; SCHOOL.ang = a; } }
+        const hk = hKey(SCHOOL.x, SCHOOL.z); if (!hGrid.has(hk)) hGrid.set(hk, []); hGrid.get(hk).push({ x: SCHOOL.x, z: SCHOOL.z, r: 9 }); }
       const V = window.SofiOvchiVillage;
       if (V && V.houses) {
         // o'zimizning uy: lagerga eng yaqin uy (bo'lmasa — yangisi)
@@ -366,38 +381,138 @@
             const hx = x + Math.cos(ang) * off * side, hz = z - Math.sin(ang) * off * side; if (roadDist(hx, hz) > Math.max(w, d) / 2 + 2.5) tryHouse(hx, hz, ang + (side > 0 ? 0 : Math.PI), w, d); } } } });
       }
       const N = houses.length, box = new T.BoxGeometry(1, 1, 1).translate(0, 0.5, 0);
-      const roofG = (() => { const g = new T.BufferGeometry(); const v = [-0.5, 0, -0.5, 0.5, 0, -0.5, 0, 1, -0.5, -0.5, 0, 0.5, 0.5, 0, 0.5, 0, 1, 0.5]; const ix = [0, 2, 1, 3, 4, 5, 0, 3, 5, 0, 5, 2, 1, 2, 5, 1, 5, 4, 0, 1, 4, 0, 4, 3]; const pos = []; ix.forEach((k) => pos.push(v[k * 3], v[k * 3 + 1], v[k * 3 + 2])); g.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); return g; })();
-      const walls = new T.InstancedMesh(box, new T.MeshStandardMaterial({ roughness: 0.92 }), N), roofs = new T.InstancedMesh(roofG, new T.MeshStandardMaterial({ roughness: 0.55, metalness: 0.25, side: T.DoubleSide }), N);
-      const doors = new T.InstancedMesh(new T.BoxGeometry(1, 1, 1).translate(0, 0.5, 0), new T.MeshStandardMaterial({ color: 0x4a3322, roughness: 0.8 }), N * 3);
-      const WALL = [0xe9e2d2, 0xdcd0b8, 0xd2c6ad, 0xece9e1, 0xc9b99a], ROOF = [0xc9ccd0, 0xb3b9be, 0xe4e6e8, 0x8e9aa6, 0x6f86a0, 0xa04a3a, 0x7c8c5c], col = new T.Color();
-      const m4 = new T.Matrix4(), qq = new T.Quaternion(), ss = new T.Vector3(), pp = new T.Vector3(), YY = new T.Vector3(0, 1, 0), off = new T.Vector3(); let di = 0;
+      // Tunuka tom: ikki nishabli prizma, UV — to'lqinli chiziqlar uchun
+      const roofG = (() => { const g = new T.BufferGeometry(); const v = [-0.5, 0, -0.5, 0.5, 0, -0.5, 0, 1, -0.5, -0.5, 0, 0.5, 0.5, 0, 0.5, 0, 1, 0.5]; const ix = [0, 2, 1, 3, 4, 5, 0, 3, 5, 0, 5, 2, 1, 2, 5, 1, 5, 4, 0, 1, 4, 0, 4, 3]; const pos = [], uv = []; ix.forEach((k) => { pos.push(v[k * 3], v[k * 3 + 1], v[k * 3 + 2]); uv.push(v[k * 3 + 2] + 0.5, v[k * 3 + 1] + Math.abs(v[k * 3])); }); g.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); g.setAttribute("uv", new T.Float32BufferAttribute(uv, 2)); g.computeVertexNormals(); return g; })();
+      const tinTex = canvasTex(64, (g, S) => { for (let x = 0; x < S; x++) { const k = 0.5 + 0.5 * Math.cos((x / S) * Math.PI * 2 * 4); const c = Math.round(150 + k * 105); g.fillStyle = `rgb(${c},${c},${c})`; g.fillRect(x, 0, 1, S); } }, 1);
+      tinTex.repeat.set(10, 1);
+      const plasterTex = canvasTex(128, (g, S) => { g.fillStyle = "#e8e2d8"; g.fillRect(0, 0, S, S); for (let k = 0; k < 2600; k++) { g.globalAlpha = rr(0.05, 0.22); g.fillStyle = Math.random() < 0.5 ? "#9c9280" : "#ffffff"; g.fillRect(Math.random() * S, Math.random() * S, rr(1, 2.4), rr(1, 2.4)); } }, 1);
+      const boxUV = (() => { const b2 = new T.BoxGeometry(1, 1, 1).translate(0, 0.5, 0); const uv = b2.attributes.uv; for (let k = 0; k < uv.count; k++) uv.setXY(k, uv.getX(k) * 3, uv.getY(k) * 2); return b2; })();
+      const walls = new T.InstancedMesh(boxUV, new T.MeshStandardMaterial({ map: plasterTex, roughness: 0.95 }), N);
+      const roofs = new T.InstancedMesh(roofG, new T.MeshStandardMaterial({ map: tinTex, roughness: 0.42, metalness: 0.45, side: T.DoubleSide }), N);
+      const WIN = N * 8;
+      const frames = new T.InstancedMesh(box, new T.MeshStandardMaterial({ color: 0xf4f4f2, roughness: 0.4 }), WIN), glass = new T.InstancedMesh(box, new T.MeshStandardMaterial({ color: 0x3b4a58, roughness: 0.12, metalness: 0.6 }), WIN);
+      const WALL = [0xc8ad8c, 0xbfa17f, 0xd3bea1, 0xb99b79, 0xa29d94, 0x99958e, 0xb2aca2, 0xa98b69, 0xe6e3dc, 0xdedbd2, 0xc9c6bd], RED = 0x9a3029, col = new T.Color();
+      const m4 = new T.Matrix4(), qq = new T.Quaternion(), ss = new T.Vector3(), pp = new T.Vector3(), YY = new T.Vector3(0, 1, 0), off = new T.Vector3(); let wi = 0;
+      const fenceSpots = [], gateSpots = [];
+      const win = (h, y, side, along, oy, ww, hh, door) => { // side: 1 old, -1 orqa; along — devor bo'ylab
+        off.set(along, 0, side * (h.d / 2 + 0.02)).applyQuaternion(qq); pp.set(h.x + off.x, y + oy, h.z + off.z);
+        ss.set(ww + 0.16, hh + 0.16, 0.07); m4.compose(pp, qq, ss); frames.setMatrixAt(wi, m4);
+        off.set(along, 0, side * (h.d / 2 + 0.07)).applyQuaternion(qq); pp.set(h.x + off.x, y + oy + 0.08, h.z + off.z);
+        ss.set(ww - 0.12, hh - 0.08, 0.04); m4.compose(pp, qq, ss); glass.setMatrixAt(wi, m4); glass.setColorAt(wi, col.setHex(door ? 0xe9e7e2 : 0x3b4a58)); wi++;
+      };
       houses.forEach((h, i) => {
-        const y = Math.min(heightAt(h.x - h.w / 2, h.z), heightAt(h.x + h.w / 2, h.z), heightAt(h.x, h.z - h.d / 2), heightAt(h.x, h.z + h.d / 2)) - 0.3, H = sr(2.8, 3.4) + (i === 0 ? 0.4 : 0);
-        qq.setFromAxisAngle(YY, h.ang); pp.set(h.x, y, h.z); ss.set(h.w, H + 0.3, h.d); m4.compose(pp, qq, ss); walls.setMatrixAt(i, m4); walls.setColorAt(i, col.setHex(WALL[(srnd() * WALL.length) | 0]));
-        pp.set(h.x, y + H + 0.3, h.z); ss.set(h.w + 0.7, sr(0.9, 1.5), h.d + 0.7); m4.compose(pp, qq, ss); roofs.setMatrixAt(i, m4); roofs.setColorAt(i, i === 0 ? col.setHex(0x2f6f9f) : h.roof !== undefined ? col.setHex(h.roof).multiplyScalar(0.8) : col.setHex(ROOF[(srnd() * ROOF.length) | 0]));
-        // eshik va ikki deraza (yo'l tomonda)
-        [[0, 0.3, 2.1, 1.0], [-h.w * 0.3, 1.1, 1.1, 1.2], [h.w * 0.3, 1.1, 1.1, 1.2]].forEach(([ox, oy, hh, ww], k) => { off.set(ox, 0, h.d / 2 + 0.03).applyQuaternion(qq); pp.set(h.x + off.x, y + 0.3 + oy, h.z + off.z); ss.set(ww, hh, 0.08); m4.compose(pp, qq, ss); doors.setMatrixAt(di, m4); doors.setColorAt(di++, col.setHex(k ? 0x2b3d4f : 0x5a3a22)); });
-        // to'qnashuv: uy bo'ylab ikki doira
+        const base = Math.min(heightAt(h.x - h.w / 2, h.z), heightAt(h.x + h.w / 2, h.z), heightAt(h.x, h.z - h.d / 2), heightAt(h.x, h.z + h.d / 2)) - 0.3;
+        const big = h.w * h.d > 38, two = big && srnd() < 0.45, shed = !big && srnd() < 0.35;
+        const H = two ? sr(5.4, 6) : shed ? sr(2.2, 2.6) : sr(2.8, 3.3);
+        qq.setFromAxisAngle(YY, h.ang); pp.set(h.x, base, h.z); ss.set(h.w, H + 0.3, h.d); m4.compose(pp, qq, ss); walls.setMatrixAt(i, m4);
+        walls.setColorAt(i, col.setHex(shed ? 0xa88a66 : WALL[(srnd() * WALL.length) | 0]));
+        pp.set(h.x, base + H + 0.3, h.z); ss.set(h.w + 0.9, shed ? sr(0.4, 0.6) : sr(0.9, 1.4), h.d + 0.9); m4.compose(pp, qq, ss); roofs.setMatrixAt(i, m4);
+        const rc = i === 0 ? 0x2f6f9f : srnd() < 0.16 ? RED : h.roof !== undefined ? h.roof : 0xb3b7bb;
+        roofs.setColorAt(i, col.setHex(rc).multiplyScalar(i === 0 || rc === RED ? 1 : 0.95));
+        // derazalar va eshik (old tomonda), 2 qavatlida — yuqorida ham
+        if (wi < WIN - 8) {
+          const nW = Math.max(1, Math.min(3, Math.floor(h.w / 3.2)));
+          win(h, base + 0.3, 1, 0, 0, 0.95, 2.05, true);
+          for (let k = 0; k < nW && wi < WIN - 4; k++) { const a = ((k + 0.5) / nW - 0.5) * (h.w - 1.4); if (Math.abs(a) < 0.9) continue; win(h, base + 0.3, 1, a, 0.95, 1.05, 1.25); }
+          if (two) for (let k = 0; k < 2 && wi < WIN - 2; k++) win(h, base + 0.3, 1, (k ? 1 : -1) * h.w * 0.25, 3.35, 0.8, 1.5, true);
+        }
+        if (!shed && srnd() < 0.45 && i) fenceSpots.push(h); else if (!shed && big && i) gateSpots.push(h);
         const ex = Math.sin(h.ang + Math.PI / 2), ez = Math.cos(h.ang + Math.PI / 2), r = Math.min(h.w, h.d) / 2 + 0.2;
         [-1, 0, 1].forEach((k) => addTrunk(h.x + ex * k * (h.w / 2 - r), h.z + ez * k * (h.w / 2 - r), r));
       });
-      doors.count = di;
-      [walls, roofs].forEach((m) => { m.castShadow = true; m.receiveShadow = true; scene.add(m); }); scene.add(doors);
-      // bog'lar: uylar ortida mevali daraxt qatorlari
-      const fruitGeo = merge([[new T.CylinderGeometry(0.1, 0.16, 1.4, 6).translate(0, 0.7, 0), 0x5a4128], [new T.IcosahedronGeometry(1.15, 1).scale(1, 0.85, 1).translate(0, 2.1, 0), 0x5c8a30], [new T.IcosahedronGeometry(0.7, 0).translate(0.6, 2.4, 0.3), 0x6b9a38]]);
-      const popGeo = merge([[new T.CylinderGeometry(0.12, 0.2, 2, 6).translate(0, 1, 0), 0x6b5a44], [new T.ConeGeometry(0.95, 9, 8).translate(0, 6, 0), 0x4c7a2e], [new T.ConeGeometry(0.7, 4, 8).translate(0, 10, 0), 0x56862f]]);
-      const fruits = [], pops = [];
+      frames.count = glass.count = wi;
+      [walls, roofs].forEach((m) => { m.castShadow = true; m.receiveShadow = true; scene.add(m); }); scene.add(frames); scene.add(glass);
+      // Naqshli temir panjaralar (uy oldida)
+      if (fenceSpots.length) {
+        const fTex = canvasTex(128, (g, S) => { g.clearRect(0, 0, S, S); g.strokeStyle = "#fff"; g.lineWidth = 5; g.strokeRect(2, 6, S - 4, S - 10); g.lineWidth = 3;
+          for (let k = 0; k < 4; k++) { const cx = 16 + k * 32; g.beginPath(); g.moveTo(cx, 8); g.lineTo(cx, S - 6); g.stroke(); g.beginPath(); g.ellipse(cx, S * 0.42, 9, 16, 0, 0, 6.28); g.stroke(); g.beginPath(); g.arc(cx, S * 0.75, 7, 0, 6.28); g.stroke(); } }, 1, false);
+        fTex.encoding = T.LinearEncoding;
+        const fm = new T.MeshStandardMaterial({ color: 0x4a2f22, alphaMap: fTex, alphaTest: 0.5, transparent: false, side: T.DoubleSide, roughness: 0.6, metalness: 0.4 });
+        const fg = new T.PlaneGeometry(1, 1).translate(0, 0.5, 0); const fUV = fg.attributes.uv;
+        const fences = new T.InstancedMesh(fg, fm, fenceSpots.length);
+        fenceSpots.forEach((h, k) => { const L = h.w + 1.5; off.set(0, 0, h.d / 2 + 1.8).applyQuaternion(qq.setFromAxisAngle(YY, h.ang)); const fx = h.x + off.x, fz = h.z + off.z;
+          pp.set(fx, heightAt(fx, fz) - 0.05, fz); ss.set(L, 1.15, 1); m4.compose(pp, qq, ss); fences.setMatrixAt(k, m4); });
+        fm.onBeforeCompile = (sh) => { sh.vertexShader = sh.vertexShader.replace("#include <uv_vertex>", "#include <uv_vertex>\n#ifdef USE_UV\n vUv.x *= length(instanceMatrix[0].xyz) / 1.1;\n#endif"); };
+        fTex.wrapS = T.RepeatWrapping; fences.castShadow = true; scene.add(fences);
+      }
+      // Maktab: oq 2 qavatli bino, rangli deraza ramkalari, tomda quyosh panellari, rang-barang panjara
+      { const S = SCHOOL, g = new T.Group(), y0 = Math.min(heightAt(S.x - 8, S.z), heightAt(S.x + 8, S.z), heightAt(S.x, S.z - 4), heightAt(S.x, S.z + 4)) - 0.3;
+        g.position.set(S.x, y0, S.z); g.rotation.y = S.ang; scene.add(g);
+        const M = (c, o) => new T.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.8 }, o || {}));
+        const add = (geo, m, x, y, z) => { const o = new T.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = true; o.receiveShadow = true; g.add(o); return o; };
+        add(new T.BoxGeometry(S.w, 6.2, S.d), M(0xf2f1ec), 0, 3.1, 0);
+        add(new T.BoxGeometry(S.w + 0.4, 0.5, S.d + 0.4), M(0x9c3f36), 0, 0.25, 0); // pastki qizil g'isht qator
+        const roof = add(new T.BoxGeometry(S.w + 1.2, 0.5, S.d + 1.2), M(0x4a5260, { metalness: 0.4, roughness: 0.4 }), 0, 6.45, 0);
+        const FR = [0x2b9fd8, 0xc8402f, 0x9bd23c, 0x2bb3a6, 0x7aa6e0, 0x2d5fd0];
+        const glassM = M(0x3b4a58, { metalness: 0.6, roughness: 0.15 });
+        for (const fl of [1.3, 4.1]) for (let k = 0; k < 8; k++) { const x = -S.w / 2 + 1.5 + k * ((S.w - 3) / 7); for (const sd of [1, -1]) {
+          add(new T.BoxGeometry(1.1, 1.35, 0.12), M(FR[(k + (fl > 3 ? 2 : 0)) % FR.length]), x, fl + 0.7, sd * (S.d / 2 + 0.03));
+          add(new T.BoxGeometry(0.75, 1.0, 0.12), glassM, x, fl + 0.7, sd * (S.d / 2 + 0.07)); } }
+        add(new T.BoxGeometry(1.8, 2.4, 0.15), M(0x6f86a0), 0, 1.4, S.d / 2 + 0.05); // kirish
+        // quyosh panellari
+        const pm = M(0x1c2430, { metalness: 0.7, roughness: 0.25 });
+        for (let k = 0; k < 8; k++) { const pnl = add(new T.BoxGeometry(2.2, 0.08, 1.4), pm, -S.w / 2 + 2 + k * ((S.w - 4) / 7), 7.2, 0); pnl.rotation.x = -0.5; }
+        // rang-barang panjara (old tomonda)
+        const FC = [0x23408c, 0xf1c40f, 0x1f6b45, 0x2a2a2a, 0x6b5a3a];
+        for (let k = 0; k < 11; k++) { const x = -S.w / 2 - 1 + k * ((S.w + 2) / 10); add(new T.BoxGeometry((S.w + 2) / 10 - 0.05, 1.5, 0.08), M(FC[k % FC.length], { metalness: 0.5, roughness: 0.5 }), x + (S.w + 2) / 20, 1.05, S.d / 2 + 3.5); }
+        add(new T.BoxGeometry(S.w + 3, 0.35, 0.35), M(0xbdbab3), 0, 0.15, S.d / 2 + 3.5);
+        // transformator
+        add(new T.BoxGeometry(1.1, 1.5, 0.9), M(0x8f98a4, { metalness: 0.5 }), S.w / 2 + 2.2, 0.75, S.d / 2 + 2.2);
+        const ex = Math.sin(S.ang + Math.PI / 2), ez = Math.cos(S.ang + Math.PI / 2); for (let k = -3; k <= 3; k++) addTrunk(S.x + ex * k * 3, S.z + ez * k * 3, 4.2);
+        const tag = new T.Sprite(new T.SpriteMaterial({ map: canvasTex(256, (c) => { c.font = "800 34px system-ui"; c.textAlign = "center"; c.fillStyle = "rgba(0,0,0,.5)"; c.fillRect(18, 100, 220, 56); c.fillStyle = "#fde68a"; c.fillText("🏫 68-maktab", 128, 140); }, 1), transparent: true, depthWrite: false }));
+        tag.position.set(S.x, y0 + 10, S.z); tag.scale.set(9, 9, 1); scene.add(tag); }
+      // Katta temir darvozalar (kulrang-ko'k)
+      if (gateSpots.length) { const gm = new T.InstancedMesh(box, new T.MeshStandardMaterial({ roughness: 0.45, metalness: 0.6 }), gateSpots.length);
+        gateSpots.forEach((h, k) => { qq.setFromAxisAngle(YY, h.ang); off.set(h.w * 0.3, 0, h.d / 2 + 0.06).applyQuaternion(qq); const gx = h.x + off.x, gz = h.z + off.z; pp.set(gx, heightAt(gx, gz) - 0.1, gz); ss.set(2.6, 2.5, 0.12); m4.compose(pp, qq, ss); gm.setMatrixAt(k, m4); gm.setColorAt(k, col.setHex(srnd() < 0.5 ? 0x4d5a6e : 0x5a3424)); });
+        gm.castShadow = true; scene.add(gm); }
+      // Tosh devorlar (quruq terilgan toshlar) — ko'cha chetida, bog'lar oldida
+      { const pts = []; ROADS.forEach((r) => { for (let i2 = 1; i2 < r.length; i2++) { const [ax, az] = r[i2 - 1], [bx, bz] = r[i2], L = Math.hypot(bx - ax, bz - az), nx = -(bz - az) / L, nz = (bx - ax) / L, ang = Math.atan2(bx - ax, bz - az);
+          let run = srnd() < 0.35; for (let t = 1; t < L; t += 1.1) { if (srnd() < 0.04) run = !run; if (!run) continue; const sd = (i2 % 2 ? 1 : -1) * 2.9, x = lerp(ax, bx, t / L) + nx * sd, z = lerp(az, bz, t / L) + nz * sd, rd = roadDist(x, z);
+            if (rd > 2 && rd < 4 && !nearHouse(x, z, 0.8)) pts.push([x, z, ang]); } } });
+        const sg = new T.DodecahedronGeometry(0.5, 0); const sw = new T.InstancedMesh(sg, new T.MeshStandardMaterial({ roughness: 0.95, flatShading: true }), pts.length * 3); let k = 0;
+        pts.forEach(([x, z, ang]) => { const y = heightAt(x, z); for (let l = 0; l < 3; l++) { qq.setFromEuler(new T.Euler(srnd() * 3, ang + srnd(), srnd() * 3)); pp.set(x + sr(-0.2, 0.2), y + 0.2 + l * 0.38, z + sr(-0.2, 0.2)); const sc2 = sr(0.55, 0.85); ss.set(sc2 * 1.2, sc2 * 0.8, sc2); m4.compose(pp, qq, ss); sw.setMatrixAt(k, m4); const g0 = sr(0.42, 0.62); sw.setColorAt(k++, col.setRGB(g0, g0 * 0.97, g0 * 0.93)); } });
+        sw.count = k; sw.castShadow = true; sw.receiveShadow = true; scene.add(sw); }
+      // Elektr ustunlari va simlar — ko'chalar bo'ylab
+      { const pts = []; ROADS.forEach((r) => { let acc = 0, prev = null; for (let i2 = 1; i2 < r.length; i2++) { const [ax, az] = r[i2 - 1], [bx, bz] = r[i2], L = Math.hypot(bx - ax, bz - az), nx = -(bz - az) / L, nz = (bx - ax) / L;
+            for (let t = 0; t < L; t += 2) { acc += 2; if (acc < 22) continue; let x = lerp(ax, bx, t / L), z = lerp(az, bz, t / L); let ok = false;
+              for (const sd of [3.6, -3.6, 5, -5]) { const px = x + nx * sd, pz = z + nz * sd, rd = roadDist(px, pz); if (rd > 1.6 && rd < 6 && !nearHouse(px, pz, 0.8)) { x = px; z = pz; ok = true; break; } }
+              if (!ok) continue; acc = 0; const cur = [x, z, prev]; pts.push(cur); prev = cur; } } });
+        const poleG = merge([[new T.CylinderGeometry(0.09, 0.15, 8, 6).translate(0, 4, 0), 0xbdbab3], [new T.BoxGeometry(1.5, 0.1, 0.1).translate(0, 7.4, 0), 0x8f8a80]]);
+        const poles = new T.InstancedMesh(poleG, vmat, pts.length);
+        const wire = [];
+        pts.forEach((p, k) => { const y = heightAt(p[0], p[1]); pp.set(p[0], y - 0.2, p[1]); qq.setFromAxisAngle(YY, srnd() * 0.3); ss.set(1, 1, 1); m4.compose(pp, qq, ss); poles.setMatrixAt(k, m4); p.y = y + 7.2; addTrunk(p[0], p[1], 0.25);
+          const q = p[2]; if (q && Math.hypot(q[0] - p[0], q[1] - p[1]) < 40) for (const o of [-0.6, 0.6]) { // simlar biroz osilib turadi
+            let lx = q[0] + o * 0.3, ly = q.y + 0.1, lz = q[1]; for (let s2 = 1; s2 <= 6; s2++) { const u = s2 / 6, x2 = lerp(q[0], p[0], u) + o * 0.3, z2 = lerp(q[1], p[1], u), y2 = lerp(q.y, p.y, u) + 0.1 - Math.sin(u * Math.PI) * 0.7; wire.push(lx, ly, lz, x2, y2, z2); lx = x2; ly = y2; lz = z2; } } });
+        poles.castShadow = true; scene.add(poles);
+        const wg = new T.BufferGeometry(); wg.setAttribute("position", new T.Float32BufferAttribute(wire, 3));
+        scene.add(new T.LineSegments(wg, new T.LineBasicMaterial({ color: 0x2b2b2b, transparent: true, opacity: 0.75 }))); }
+      // Kuzgi daraxtlar: baland teraklar (barg to'kilgan), mevali daraxtlar, do'lana butalari
+      const popVariant = (seedK) => { const parts = [[new T.CylinderGeometry(0.1, 0.24, 13, 6).translate(0, 6.5, 0), 0xd9d6cc]];
+        for (let k = 0; k < 9; k++) { const hy = 4 + k * 1.05, a = k * 2.4 + seedK, len = 2.6 - k * 0.18, br = new T.CylinderGeometry(0.03, 0.06, len, 4); br.translate(0, len / 2, 0); br.rotateZ(0.35); br.rotateY(a); br.translate(0, hy, 0); parts.push([br, 0xc9c4b8]); }
+        for (let k = 0; k < 5; k++) parts.push([new T.IcosahedronGeometry(0.55 + (k % 2) * 0.2, 0).translate(Math.sin(k * 2.1 + seedK) * 0.7, 7 + k * 1.3, Math.cos(k * 2.1 + seedK) * 0.7), k % 3 ? 0xd2a63a : 0xb9922e]);
+        return merge(parts); };
+      const fruitGeo = merge([[new T.CylinderGeometry(0.1, 0.16, 1.4, 6).translate(0, 0.7, 0), 0x6b5236], [new T.IcosahedronGeometry(1.15, 1).scale(1, 0.8, 1).translate(0, 2.05, 0), 0xffffff], [new T.IcosahedronGeometry(0.75, 0).translate(0.6, 2.4, 0.3), 0xf2f2f2], [new T.IcosahedronGeometry(0.6, 0).translate(-0.55, 2.2, -0.35), 0xe6e6e6]]);
+      const bushV = merge([[new T.IcosahedronGeometry(0.95, 1).scale(1.2, 0.85, 1).translate(0, 0.7, 0), 0xffffff], [new T.IcosahedronGeometry(0.7, 0).translate(0.7, 0.9, 0.2), 0xeeeeee], [new T.IcosahedronGeometry(0.6, 0).translate(-0.6, 0.8, -0.3), 0xdddddd]]);
+      const AUT = [0xd8b23c, 0xe0a43a, 0xd27a2c, 0xb94a2c, 0x9ca13e, 0x7f8a3a, 0xc9a24a, 0xa8683a], BUSH = [0xb9442c, 0xc8622e, 0xa63a2a, 0xd08a34, 0x8a3a28];
+      const fruits = [], pops = [], bushes = [];
       if (vgrid()) { // xaritada daraxt bor joylarga
         const G = vgrid(), cw = 1 / G.sx, chh = 1 / G.sz;
         for (let j = 0; j < G.h; j++) for (let i = 0; i < G.w; i++) { const t = G.tree[j * G.w + i] / 255; if (t < 0.12) continue; const n = t > 0.55 ? 2 : 1;
-          for (let k = 0; k < n; k++) { if (srnd() > t * 1.6) continue; const x = G.x0 + (i + srnd()) * cw, z = G.z0 + (j + srnd()) * chh; if (roadDist(x, z) > 2.8 && !nearHouse(x, z, 1.2) && Math.hypot(x - CAMP.x, z - CAMP.z) > 13) (srnd() < 0.08 ? pops : fruits).push([x, z]); } }
-      } else houses.forEach((h) => { if (srnd() < 0.35) return; const rows = 2 + ((srnd() * 3) | 0), cols = 3 + ((srnd() * 4) | 0), back = h.d / 2 + 5, sp = 4.2, fx = Math.sin(h.ang), fz = Math.cos(h.ang), rx = Math.cos(h.ang), rz = -Math.sin(h.ang);
-        for (let a = 0; a < rows; a++) for (let b = 0; b < cols; b++) { const along = -(back + a * sp), side = (b - (cols - 1) / 2) * sp, x = h.x + fx * along + rx * side + sr(-0.5, 0.5), z = h.z + fz * along + rz * side + sr(-0.5, 0.5);
-          if (roadDist(x, z) > 3.5 && !nearHouse(x, z, 1.2)) fruits.push([x, z]); } });
-      if (!vgrid()) ROADS.forEach((r, ri) => { if (ri % 3) return; for (let i = 1; i < r.length; i++) { const [ax, az] = r[i - 1], [bx, bz] = r[i], L = Math.hypot(bx - ax, bz - az); for (let t = 3; t < L; t += 6) { if (srnd() < 0.55) continue; const x = lerp(ax, bx, t / L) + (bz - az) / L * 4.2, z = lerp(az, bz, t / L) - (bx - ax) / L * 4.2; if (!nearHouse(x, z, 1) && roadDist(x, z) > 2.5) pops.push([x, z]); } } });
-      if (!vgrid()) for (let i = 0; i < RAVINE.length - 1; i++) for (let k = 0; k < 14; k++) { const t = srnd(), x = lerp(RAVINE[i][0], RAVINE[i + 1][0], t) + sr(-5, 5), z = lerp(RAVINE[i][1], RAVINE[i + 1][1], t) + sr(-5, 5); (srnd() < 0.3 ? pops : fruits).push([x, z]); }
-      const fr = inst(fruitGeo, vmat, fruits, () => rr(0.8, 1.2), 0.25), pp2 = inst(popGeo, vmat, pops, () => rr(0.85, 1.25), 0.25);
-      [fr, pp2].forEach((m) => (m.userData.village = true));
+          for (let k = 0; k < n; k++) { if (srnd() > t * 1.6) continue; const x = G.x0 + (i + srnd()) * cw, z = G.z0 + (j + srnd()) * chh; if (roadDist(x, z) > 2.8 && !nearHouse(x, z, 1.2) && Math.hypot(x - CAMP.x, z - CAMP.z) > 13) { const r0 = srnd(); (r0 < 0.18 ? pops : r0 < 0.32 ? bushes : fruits).push([x, z]); } } }
+        // ko'cha chetlarida teraklar qatori va butalar
+        ROADS.forEach((r) => { for (let i2 = 1; i2 < r.length; i2++) { const [ax, az] = r[i2 - 1], [bx, bz] = r[i2], L = Math.hypot(bx - ax, bz - az), nx = -(bz - az) / L, nz = (bx - ax) / L;
+          for (let t = 2; t < L; t += 4.5) { if (srnd() < 0.45) continue; const sd = (srnd() < 0.5 ? 1 : -1) * sr(3.2, 4.6), x = lerp(ax, bx, t / L) + nx * sd, z = lerp(az, bz, t / L) + nz * sd, rd = roadDist(x, z);
+            if (rd > 2.2 && rd < 7 && !nearHouse(x, z, 1.2)) (srnd() < 0.6 ? pops : bushes).push([x, z]); } } });
+      }
+      const vmatC = vmat.clone(); // alohida material: r149 da umumiy materialda instanceColor e'tiborga olinmaydi
+      const instC = (geo, list, scl, pal, trunkR) => { const m = inst(geo, vmatC, list, scl, trunkR); list.forEach((_, k) => m.setColorAt(k, col.setHex(pal[(srnd() * pal.length) | 0]))); if (m.instanceColor) m.instanceColor.needsUpdate = true; m.userData.village = true; return m; };
+      instC(fruitGeo, fruits, () => rr(0.75, 1.25), AUT, 0.25);
+      instC(bushV, bushes, () => rr(0.7, 1.3), BUSH, 0);
+      const pv = [[], [], []]; pops.forEach((p, k) => pv[k % 3].push(p));
+      pv.forEach((list, k) => { if (list.length) { const m = inst(popVariant(k * 1.3), vmat, list, () => rr(0.8, 1.25), 0.22); m.userData.village = true; } });
+      // Yo'l chetidagi toshlar
+      { const st = []; for (let k = 0; k < 900 && st.length < 420; k++) { const x = VB.x0 + srnd() * VB.n * VB.c, z = VB.z0 + srnd() * VB.n * VB.c, rd = roadDist(x, z); if (rd > 1.4 && rd < 4.5 && !nearHouse(x, z, 0.6)) st.push([x, z]); }
+        const sm = inst(rockGeo, vmat, st, () => rr(0.12, 0.45), 0); sm.castShadow = false; }
     }
     inst(pineGeo, vmat, scatter(1200 * D, (x, z, b) => b.forest > 0.45 && Math.random() < b.forest), () => rr(0.8, 1.35), 0.35);
     inst(oakGeo, vmat, scatter(160 * D, (x, z, b) => b.field > 0.6 && Math.random() < 0.5 || (b.forest > 0.15 && b.forest < 0.5)), () => rr(0.8, 1.3), 0.4);
@@ -406,7 +521,7 @@
     inst(shrubGeo, vmat, scatter(260 * D, (x, z, b) => b.desert > 0.4), () => rr(0.6, 1.4), 0);
     inst(rockGeo, vmat, scatter(320 * D, (x, z, b) => Math.random() < 0.3 + b.desert * 0.5), () => rr(0.4, 1.8), 0);
     // O't: o'yinchi atrofida (siljib turadi)
-    const bladeTex = (() => { const c = document.createElement("canvas"); c.width = 64; c.height = 128; const g = c.getContext("2d"); for (let i = 0; i < 9; i++) { const x = 8 + i * 6 + rr(-2, 2), lean = rr(-10, 10); const gr = g.createLinearGradient(0, 128, 0, 0); gr.addColorStop(0, "#3a5a1c"); gr.addColorStop(1, Math.random() < 0.5 ? "#b4c66a" : "#93b04e"); g.fillStyle = gr; g.beginPath(); g.moveTo(x - 3, 128); g.quadraticCurveTo(x + lean * 0.3, 60, x + lean, rr(6, 40)); g.quadraticCurveTo(x + lean * 0.3 + 2, 60, x + 3, 128); g.fill(); } const t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; return t; })();
+    const bladeTex = (() => { const c = document.createElement("canvas"); c.width = 64; c.height = 128; const g = c.getContext("2d"); for (let i = 0; i < 9; i++) { const x = 8 + i * 6 + rr(-2, 2), lean = rr(-10, 10); const gr = g.createLinearGradient(0, 128, 0, 0); gr.addColorStop(0, "#5d5530"); const r0 = Math.random(); gr.addColorStop(1, r0 < 0.45 ? "#d6c27a" : r0 < 0.8 ? "#bfa45e" : "#9aa45a"); g.fillStyle = gr; g.beginPath(); g.moveTo(x - 3, 128); g.quadraticCurveTo(x + lean * 0.3, 60, x + lean, rr(6, 40)); g.quadraticCurveTo(x + lean * 0.3 + 2, 60, x + 3, 128); g.fill(); } const t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; return t; })();
     const bladeGeo = (() => { const a = new T.PlaneGeometry(0.9, 0.7); a.translate(0, 0.33, 0); const b = a.clone(); b.rotateY(Math.PI / 2); const g = new T.BufferGeometry(); const pa = [...a.toNonIndexed().attributes.position.array, ...b.toNonIndexed().attributes.position.array], ua = [...a.toNonIndexed().attributes.uv.array, ...b.toNonIndexed().attributes.uv.array]; g.setAttribute("position", new T.Float32BufferAttribute(pa, 3)); g.setAttribute("uv", new T.Float32BufferAttribute(ua, 2)); g.computeVertexNormals(); return g; })();
     const grassMat = new T.MeshStandardMaterial({ map: bladeTex, alphaTest: 0.45, side: T.DoubleSide, roughness: 1 });
     grassMat.onBeforeCompile = (sh) => { sh.uniforms.uTime = uTime; sh.vertexShader = "uniform float uTime;\n" + sh.vertexShader.replace("#include <begin_vertex>", `#include <begin_vertex>
@@ -1101,7 +1216,7 @@
       if (!alive) return;
       raf = requestAnimationFrame(frame);
       const now = performance.now(), raw = (now - last) / 1000, dt = Math.min(0.05, raw); last = now;
-      const t = now / 1000; uTime.value = t;
+      const t = now / 1000; uTime.value = t; skyMat.uniforms.uTime.value = t;
       if (st.started && !st.paused) { pr.n++; pr.acc += Math.min(raw, 0.5); if (pr.acc > 3) { const fps = pr.n / pr.acc; pr.n = 0; pr.acc = 0; if (fps < 26 && pr.r > 0.55) { pr.r *= 0.78; renderer.setPixelRatio(pr.r); resize(); } } }
       const live = st.started && !st.paused && !st.dead;
       if (live && !st.shop) {
