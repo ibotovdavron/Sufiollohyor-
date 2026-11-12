@@ -1,0 +1,69 @@
+/* So‘fi Ollohyor musobaqasi — turnir.css (tn-*) ustiga */
+.sm-card { border-color: rgba(96, 165, 250, .5);
+  background: radial-gradient(circle at 90% 0%, rgba(96, 165, 250, .22), transparent 42%), radial-gradient(circle at 0% 100%, rgba(52, 211, 153, .14), transparent 45%), linear-gradient(150deg, #071a3a, #050b1c 55%, #0a1d33); color: #eef4ff; }
+.sm-card .tn-glow { background: radial-gradient(circle, rgba(96, 165, 250, .3), transparent 70%); }
+.sm-card .tn-kick { color: #93c5fd; }
+.sm-card .tn-facts b, .sm-card .tn-cd b, .sm-card .tn-count b { color: #93c5fd; }
+.sm-card .tn-cd div { border-color: rgba(96, 165, 250, .35); }
+.sm-card .tn-cd small, .sm-card .tn-hint, .sm-card .tn-empty, .sm-card .tn-pl .c { color: #9fb3d6; }
+.sm-card .tn-date, .sm-card .tn-count { color: #dbe7ff; }
+.sm-card .tn-btn { background: linear-gradient(135deg, #60a5fa, #2563eb 60%, #1d4ed8); color: #fff; }
+.sm-card .tn-btn.sm-alt { background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .25); box-shadow: none; }
+.sm-card .tn-pl .n { background: rgba(96, 165, 250, .2); color: #93c5fd; }
+.sm-card .tn-pl.me { outline-color: #60a5fa; }
+
+.sm-subj { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 4px 0 12px; }
+.sm-subj div { display: grid; justify-items: center; gap: 1px; padding: 10px 4px; border-radius: 16px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .1); text-align: center; }
+.sm-subj span { font-size: 24px; } .sm-subj b { font-size: 22px; color: #fff; } .sm-subj small { font-size: 12px; color: #9fb3d6; }
+
+.sm-levels { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+.sm-levels > div { display: grid; justify-items: center; gap: 2px; padding: 10px 6px; border-radius: 16px; text-align: center; border: 1px solid rgba(255, 255, 255, .12); background: rgba(255, 255, 255, .05); }
+.sm-levels em { font-style: normal; font-weight: 900; font-size: 26px; line-height: 1; }
+.sm-levels b { font-size: 17px; } .sm-levels small { font-size: 11px; color: #9fb3d6; }
+.sm-levels .lv-Ap { border-color: rgba(253, 224, 71, .6); background: rgba(253, 224, 71, .12); } .sm-levels .lv-Ap em { color: #fde047; }
+.sm-levels .lv-A em { color: #6ee7b7; } .sm-levels .lv-A { border-color: rgba(110, 231, 183, .45); }
+.sm-levels .lv-Bp em { color: #93c5fd; } .sm-levels .lv-Bp { border-color: rgba(147, 197, 253, .45); }
+.sm-levels .sm-nost { align-content: center; opacity: .75; } .sm-levels .sm-nost em { font-size: 15px; color: #cbd5e1; }
+
+.sm-row { display: flex; flex-wrap: wrap; gap: 8px; } .sm-row > * { flex: 1 1 200px; }
+.sm-guest { position: relative; display: grid; gap: 10px; margin: 14px 0 6px; padding: 14px; border-radius: 16px; background: rgba(0, 0, 0, .3); border: 1px solid rgba(96, 165, 250, .4); }
+.sm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; }
+.sm-guest label, .sm-grid label { display: grid; gap: 4px; font-size: 13px; color: #9fb3d6; }
+.sm-guest input, .sm-guest select { padding: 11px 12px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, .2); background: rgba(0, 0, 0, .4); color: #fff; font: inherit; font-size: 16px; min-width: 0; }
+.sm-back { padding: 13px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, .2); background: rgba(255, 255, 255, .06); color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+
+.sm-tabs { position: relative; display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 8px; }
+.sm-tabs button { padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .18); background: rgba(255, 255, 255, .05); color: #dbe7ff; font: inherit; font-weight: 800; cursor: pointer; }
+.sm-tabs button small { margin-left: 4px; padding: 1px 7px; border-radius: 999px; background: rgba(255, 255, 255, .12); font-size: 11px; }
+.sm-tabs button.on { background: #60a5fa; border-color: #60a5fa; color: #04112a; }
+
+.sm-res { position: relative; display: grid; gap: 4px; overflow-x: auto; }
+.sm-rh, .sm-r { display: grid; grid-template-columns: 34px minmax(0, 1fr) 54px 64px; align-items: center; gap: 6px; padding: 7px 8px; border-radius: 12px; font-size: 14px; text-align: center; }
+.sm-r .sc { display: flex; flex-wrap: wrap; gap: 2px 8px; margin-top: 2px; color: #9fb3d6; font-weight: 600; } .sm-r .sc i { font-style: normal; white-space: nowrap; }
+.sm-r small.of { display: inline; color: #9fb3d6; }
+.sm-rh { font-size: 13px; color: #9fb3d6; background: none; }
+.sm-r { background: rgba(255, 255, 255, .05); animation: gRise .4s both; }
+.sm-r .nm, .sm-rh span:nth-child(2) { text-align: left; min-width: 0; font-weight: 700; overflow-wrap: anywhere; }
+.sm-r.me { outline: 2px solid #60a5fa; } .sm-r.off { opacity: .5; }
+.sm-r b { font-size: 16px; } .sm-r small { display: block; font-size: 11px; color: #fde68a; }
+.sm-r .nm small.sc { font-size: 12px; }
+.sm-na { grid-column: 3 / -1; font-size: 12px; color: #9fb3d6; }
+.sm-lv { display: inline-block; min-width: 30px; padding: 2px 6px; border-radius: 8px; font-style: normal; font-weight: 900; font-size: 13px; background: rgba(255, 255, 255, .1); color: #cbd5e1; }
+.sm-lv.lv-Ap { background: #fde047; color: #2a2100; } .sm-lv.lv-A { background: #34d399; color: #022c1c; } .sm-lv.lv-Bp { background: #60a5fa; color: #04112a; }
+
+.sm-adm-head { margin-top: 6px; font-weight: 900; color: #e7dcb5; } .sm-adm-head small { color: #b9ae88; font-weight: 600; }
+.sm-score { display: grid; gap: 4px; overflow-x: auto; }
+.sm-sh, .sm-s { display: grid; grid-template-columns: minmax(120px, 1fr) repeat(4, 58px) 78px 44px; align-items: center; gap: 4px; min-width: 470px; }
+.sm-sh { font-size: 11px; color: #c9bf9a; text-align: center; } .sm-sh span:first-child { text-align: left; } .sm-sh small { display: block; opacity: .7; }
+.sm-s { padding: 4px 6px; border-radius: 10px; background: rgba(255, 255, 255, .04); }
+.sm-s.dirty { background: rgba(253, 224, 71, .1); }
+.sm-s .nm { font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tn-adm .sm-s input { width: 100%; padding: 8px 4px; text-align: center; font-size: 15px; box-sizing: border-box; }
+.sm-s .tot { font-size: 13px; text-align: center; }
+.tn-adm .sm-s button { padding: 8px 0; }
+@media (max-width: 640px) {
+  .sm-subj, .sm-levels { grid-template-columns: repeat(2, 1fr); }
+  .sm-sh { display: none; }
+  .sm-s { grid-template-columns: repeat(4, minmax(0, 1fr)) 64px 40px; min-width: 0; padding: 6px; }
+  .sm-s .nm { grid-column: 1 / -1; white-space: normal; }
+}

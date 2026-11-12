@@ -81,7 +81,7 @@
       <div class="tn-card tn-${ev.status}">
         <div class="tn-glow" aria-hidden="true"></div>
         <div class="tn-top">
-          <div class="tn-title"><span class="tn-ico">♟️</span><div><span class="tn-kick">ASOSIY MUSOBAQA</span><h3>${esc(ev.title || "Shaxmat turniri")}</h3></div></div>
+          <div class="tn-title"><span class="tn-ico">♟️</span><div><span class="tn-kick">SHAXMAT MUSOBAQASI</span><h3>${esc(ev.title || "Shaxmat turniri")}</h3></div></div>
           <span class="tn-status ${ev.status}">${status}</span>
         </div>
         <div class="tn-facts">
@@ -148,7 +148,7 @@
 
   async function refresh() {
     try { st = await API.load(); render(); }
-    catch (e) { box.innerHTML = `<div class="tn-card"><div class="tn-top"><div class="tn-title"><span class="tn-ico">♟️</span><div><span class="tn-kick">ASOSIY MUSOBAQA</span><h3>Shaxmat turniri</h3></div></div></div><p class="tn-err">⚠️ ${esc(e.message)}</p></div>`; }
+    catch (e) { box.innerHTML = `<div class="tn-card"><div class="tn-top"><div class="tn-title"><span class="tn-ico">♟️</span><div><span class="tn-kick">SHAXMAT MUSOBAQASI</span><h3>Shaxmat turniri</h3></div></div></div><p class="tn-err">⚠️ ${esc(e.message)}</p></div>`; }
   }
   const msg = (t, ok) => { const el = box.querySelector('[data-a="msg"]'); if (el) { el.textContent = t; el.className = "tn-msg " + (ok ? "ok" : "bad"); } };
   const toast = (t) => { const el = document.createElement("div"); el.className = "tn-toast"; el.textContent = t; document.body.append(el); setTimeout(() => el.remove(), 3500); };
