@@ -16,6 +16,7 @@
     question: '<circle cx="12" cy="12" r="9.5"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6"/><circle cx="12" cy="17.2" r=".6" fill="currentColor"/>',
     flask: '<path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/><path d="M7.5 15h9"/>',
     phone: '<path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2Z"/>',
+    flame: '<path d="M12 3c1.5 3 5 5.2 5 9.5A5 5 0 0 1 7 12.5c0-2 1-3.5 2.2-4.6.2 1.9 1.2 3 2.3 3.1C11.2 8.6 10.8 5.6 12 3Z"/><path d="M9 21h6"/>',
     user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>'
   };
   const icon = (name) =>
@@ -25,7 +26,7 @@
   const pages = [
     ["index.html", "home", "Bosh sahifa", "Asosiy"],
     ["competitions.html", "trophy", "Musobaqalar", "Tanlov"],
-    ["teachers.html", "cap", "Ustozlar", "Ustozlar"],
+    ["jadidlar.html", "flame", "Jadidlar", "Jadidlar"],
     ["ranking.html", "chart", "Reyting", "Reyting"],
     ["games.html", "game", "O‘yinlar", "O‘yinlar"],
     ["kurslar.html", "book", "Kurslar", "Kurslar"],
@@ -107,10 +108,10 @@
       "O‘quvchilar natijalari"
     ],
     [
-      "teachers.html",
-      "🧑‍🏫",
-      "Ustozlar",
-      "Tajribali va malakali"
+      "jadidlar.html",
+      "🕯️",
+      "Jadidlar",
+      "Vatan poydevoridagi jonlar"
     ],
     [
       "bilmasvoy.html",

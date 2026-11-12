@@ -1,0 +1,74 @@
+/* Jadidlar sahifasi — xotira zali */
+.jd-page { --jd-gold: #e8c47e; --jd-ink: #f7efe0; }
+.jd-hero { position: relative; overflow: hidden; margin: 14px 0 22px; border-radius: 26px; min-height: 460px; display: flex; align-items: flex-end; border: 1px solid rgba(232, 196, 126, .35); box-shadow: 0 24px 70px rgba(0, 0, 0, .45); background: #0b1026; }
+.jd-hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 40%; }
+.jd-hero-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11, 16, 38, .2) 0%, rgba(11, 16, 38, .05) 35%, rgba(10, 7, 6, .82) 78%, rgba(10, 7, 6, .95) 100%); }
+.jd-hero-copy { position: relative; padding: clamp(18px, 4vw, 40px); color: var(--jd-ink); max-width: 760px; }
+.jd-kicker { font-size: 11px; font-weight: 900; letter-spacing: .24em; color: var(--jd-gold); }
+.jd-hero h1 { margin: 6px 0 10px; font-family: "Playfair Display", Georgia, serif; font-size: clamp(1.9rem, 6vw, 3.3rem); line-height: 1.08; text-shadow: 0 4px 24px rgba(0, 0, 0, .6); }
+.jd-hero h1 em { font-style: normal; color: var(--jd-gold); }
+.jd-hero p { margin: 0 0 12px; font-size: clamp(.95rem, 2.4vw, 1.08rem); line-height: 1.6; color: #efe4cf; }
+.jd-hero-quote { margin: 0; padding: 10px 14px; border-left: 3px solid var(--jd-gold); background: rgba(0, 0, 0, .35); border-radius: 0 12px 12px 0; }
+.jd-hero-quote blockquote { margin: 0; font-style: italic; color: #fff3da; }
+.jd-hero-quote figcaption { margin-top: 4px; font-size: .85rem; color: var(--jd-gold); }
+
+.jd-section { margin: 26px 0; }
+.jd-section h2, .jd-memorial h2 { margin: 0 0 10px; font-family: "Playfair Display", Georgia, serif; font-size: clamp(1.35rem, 4vw, 1.9rem); }
+.jd-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 14px; }
+.jd-head span { color: var(--muted); font-size: .9rem; }
+.jd-what { margin: 0 0 14px; line-height: 1.7; color: var(--white); }
+.jd-time { list-style: none; margin: 0; padding: 0 0 0 14px; border-left: 2px solid rgba(232, 196, 126, .45); display: grid; gap: 10px; }
+.jd-time li { position: relative; display: grid; grid-template-columns: 96px 1fr; gap: 10px; line-height: 1.5; }
+.jd-time li::before { content: ""; position: absolute; left: -21px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: var(--jd-gold); box-shadow: 0 0 10px var(--jd-gold); }
+.jd-time b { color: var(--jd-gold); }
+
+.jd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+.jd-card { display: grid; gap: 4px; padding: 0 0 12px; border-radius: 18px; overflow: hidden; border: 1px solid rgba(232, 196, 126, .28); background: linear-gradient(180deg, rgba(255, 255, 255, .05), rgba(0, 0, 0, .2)); color: var(--white); text-align: center; font: inherit; cursor: pointer; animation: jdIn .6s both; animation-delay: var(--d); transition: transform .25s, box-shadow .25s, border-color .25s; }
+.jd-card:hover, .jd-card:focus-visible { transform: translateY(-4px); border-color: var(--jd-gold); box-shadow: 0 14px 34px rgba(0, 0, 0, .4), 0 0 0 1px var(--jd-gold); outline: none; }
+.jd-card b { padding: 0 8px; font-size: .98rem; line-height: 1.25; }
+.jd-card small { color: var(--jd-gold); font-weight: 700; font-size: .82rem; }
+@keyframes jdIn { from { opacity: 0; transform: translateY(16px); } }
+.jd-ph, .jd-big { position: relative; aspect-ratio: 4 / 5; background: radial-gradient(circle at 50% 35%, #4a3b2a, #1a130d); overflow: hidden; }
+.jd-ph img, .jd-big img { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: cover; object-position: center 20%; filter: sepia(.35) contrast(1.05); transition: filter .3s, transform .4s; }
+.jd-card:hover .jd-ph img { filter: sepia(0) contrast(1.05); transform: scale(1.04); }
+.jd-ini { position: absolute; inset: 0; display: grid; place-items: center; font: 800 2.4rem "Playfair Display", Georgia, serif; color: rgba(232, 196, 126, .75); letter-spacing: .05em; }
+.jd-ph:not(.noimg) .jd-ini, .jd-big:not(.noimg) .jd-ini { visibility: hidden; }
+
+.jd-memorial { position: relative; margin: 30px 0 14px; padding: 22px clamp(16px, 4vw, 30px); border-radius: 22px; background: linear-gradient(160deg, #1d1712, #0d0a08); border: 1px solid rgba(232, 196, 126, .3); color: var(--jd-ink); text-align: center; }
+.jd-memorial p { margin: 0; line-height: 1.7; color: #e9dcc4; }
+.jd-candle { display: block; width: 14px; height: 40px; margin: 0 auto 12px; border-radius: 3px; background: linear-gradient(#f5e9d0, #c9b48c); position: relative; }
+.jd-candle::before { content: ""; position: absolute; left: 50%; top: -22px; width: 12px; height: 20px; margin-left: -6px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; background: radial-gradient(circle at 50% 70%, #fff7d6, #ffb84a 60%, rgba(255, 140, 40, 0)); animation: jdFlick 1.8s ease-in-out infinite alternate; filter: drop-shadow(0 0 10px #ffb84a); }
+@keyframes jdFlick { 0% { transform: scale(1) rotate(-2deg); } 50% { transform: scale(1.08, .95) rotate(2deg); } 100% { transform: scale(.95, 1.06) rotate(-1deg); } }
+.jd-credits { margin: 8px 0 24px; font-size: .78rem; color: var(--muted); text-align: center; }
+
+.jd-lock { overflow: hidden; }
+.jd-modal { position: fixed; inset: 0; z-index: 3000; display: grid; place-items: center; padding: 12px; background: rgba(5, 4, 3, .78); backdrop-filter: blur(6px); animation: jdFade .25s; }
+.jd-modal[hidden] { display: none; }
+@keyframes jdFade { from { opacity: 0; } }
+.jd-sheet { position: relative; width: min(760px, 100%); max-height: calc(100vh - 24px); overflow: auto; padding: clamp(16px, 4vw, 28px); border-radius: 22px; background: linear-gradient(170deg, #241c15, #120e0b); border: 1px solid rgba(232, 196, 126, .4); color: var(--jd-ink); line-height: 1.7; box-shadow: 0 30px 90px rgba(0, 0, 0, .6); animation: jdUp .35s cubic-bezier(.2, .9, .3, 1); }
+@keyframes jdUp { from { transform: translateY(26px); opacity: 0; } }
+.jd-x { position: sticky; top: 0; float: right; z-index: 2; width: 38px; height: 38px; border-radius: 50%; border: 1px solid rgba(232, 196, 126, .4); background: rgba(0, 0, 0, .5); color: #fff; font-size: 16px; cursor: pointer; }
+.jd-top { display: grid; grid-template-columns: 150px 1fr; gap: 16px; align-items: end; margin-bottom: 10px; }
+.jd-big { border-radius: 14px; border: 2px solid rgba(232, 196, 126, .5); }
+.jd-kick { font-size: 11px; font-weight: 900; letter-spacing: .2em; color: var(--jd-gold); text-transform: uppercase; }
+.jd-top h2 { margin: 2px 0; font-family: "Playfair Display", Georgia, serif; font-size: clamp(1.4rem, 4.5vw, 2rem); line-height: 1.15; }
+.jd-yr { font-weight: 800; color: var(--jd-gold); }
+.jd-role { margin: 4px 0 0; color: #d9caa9; font-size: .92rem; }
+.jd-q { margin: 12px 0; padding: 10px 14px; border-left: 3px solid var(--jd-gold); background: rgba(232, 196, 126, .08); border-radius: 0 12px 12px 0; font-style: italic; }
+.jd-sheet h3 { margin: 16px 0 6px; font-size: 1.05rem; color: var(--jd-gold); }
+.jd-sheet p { margin: 0 0 10px; }
+.jd-works { margin: 0; padding-left: 20px; }
+.jd-death { margin-top: 14px; padding: 4px 16px 6px; border-radius: 14px; background: rgba(120, 30, 20, .22); border: 1px solid rgba(220, 90, 70, .35); }
+.jd-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 16px; }
+.jd-nav button { flex: 1 1 200px; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(232, 196, 126, .35); background: rgba(255, 255, 255, .04); color: var(--jd-ink); font: inherit; font-weight: 700; font-size: .88rem; cursor: pointer; }
+.jd-nav button:last-child { text-align: right; }
+@media (max-width: 560px) {
+  .jd-hero { min-height: 0; display: block; }
+  .jd-hero-img { position: relative; display: block; height: 250px; }
+  .jd-hero-shade { top: auto; height: 120px; bottom: auto; transform: translateY(130px); background: linear-gradient(180deg, rgba(10, 7, 6, 0), #0e0a08); }
+  .jd-hero-copy { background: #0e0a08; padding-top: 6px; }
+  .jd-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .jd-top { grid-template-columns: 110px 1fr; }
+  .jd-time li { grid-template-columns: 1fr; gap: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .jd-card, .jd-candle::before, .jd-sheet, .jd-modal { animation: none; } }

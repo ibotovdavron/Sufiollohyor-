@@ -1,9 +1,9 @@
 /* So‘fi Ollohyor ilovasi: oflayn ishlash uchun kesh.
    Sahifalar — avval internetdan (yangi bo‘lsin), bo‘lmasa keshdan.
    Rasm, CSS, JS — keshdan tez beriladi va orqada yangilanadi. */
-const CACHE = "sofi-v64";
+const CACHE = "sofi-v65";
 const CORE = [
-  "./", "index.html", "kurslar.html", "competitions.html", "teachers.html", "ranking.html",
+  "./", "index.html", "kurslar.html", "competitions.html", "jadidlar.html", "ranking.html",
   "games.html", "shop.html", "amaliy.html", "contact.html",
   "style.css?v=15", "data.js?v=12", "app.js?v=9", "assets/markaz-logo.png", "assets/icons/icon-192.png"
 ];
