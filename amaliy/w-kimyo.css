@@ -127,4 +127,14 @@
 .kq-corr > div { display: grid; justify-items: center; gap: 2px; text-align: center; font-size: .74rem; }
 .kq-corr svg { width: 50px; height: 100px; color: var(--white); }
 .kq-corr small { color: var(--muted); min-height: 2.4em; }
+.kb-snd { padding: 8px 12px; }
+.kb-testb { margin-bottom: 4px; }
+.kb-fl { transform-box: fill-box; transform-origin: center bottom; animation: kfFlick .15s ease-in-out infinite alternate; }
+.kb-fl.big { animation: kbFlare .5s ease-out both, kfFlick .15s .5s ease-in-out infinite alternate; }
+@keyframes kbFlare { from { transform: scale(.3); } to { transform: scale(1); } }
+.kb-boom { transform-box: fill-box; transform-origin: center; animation: kbBoom .5s ease-out forwards; }
+@keyframes kbBoom { from { transform: scale(.2); opacity: 1; } to { transform: scale(3.2); opacity: 0; } }
+.kb-smoke { animation: ksSteam 1.6s ease-out infinite; }
+.kb-splint { animation: kbIn .35s ease-out; }
+@keyframes kbIn { from { transform: translate(40px, -20px); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .kb-bub, .kb-puff, .ka-orbit, .kf-flame, .kc-ion, .ks-stir, .ks-drip, .ks-steam, .kb-swim { animation: none !important; } }

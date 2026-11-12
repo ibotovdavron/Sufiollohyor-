@@ -5,7 +5,7 @@
   "use strict";
   const { h, s, svg, num, slider, buttons, button, frame, W } = window.AK;
   const K = window.KIM;
-  const { BY, parse, mr, fml, balance, eqHTML, esc, beakerScene, wait } = K;
+  const { BY, parse, mr, fml, balance, eqHTML, esc, beakerScene, wait, SND } = K;
 
   /** Canvas animatsiyasi: faqat ko'rinib turganda ishlaydi (batareyani tejash) */
   function animCanvas(stage, w, hgt, step) {
@@ -181,7 +181,7 @@
         <div class="big-num">Q = I·t = ${I}·${t * 60} = ${num(q)} Kl → ${catGas ? `V(${E.cat[0]}) = ${num(V, 3)} l` : `m(${E.cat[0]}) = ${num(m, 3)} g`}</div>
         <div class="muted">Faradey qonuni: m = M·I·t / (z·F), F = 96 500 Kl/mol. ${E.fade ? "Eritma rangi xiralashadi — Cu²⁺ ionlari kamaymoqda." : ""}</div>`;
     }
-    controls.append(buttons(ELY.map((e) => e.n), (i) => { ei = i; draw(); }, 0),
+    controls.append(buttons(ELY.map((e) => e.n), (i) => { ei = i; draw(); SND.buzz(0.6); SND.bubbles(0.35, 2.5); }, 0),
       slider({ label: "Tok kuchi", min: 0.5, max: 10, step: 0.5, value: I, fmt: (v) => `${num(v)} A`, onInput: (v) => { I = v; draw(); } }),
       slider({ label: "Vaqt", min: 1, max: 120, value: t, fmt: (v) => `${v} daq`, onInput: (v) => { t = v; draw(); } }));
     draw();
@@ -296,8 +296,9 @@
       drip: `<circle cx="110" cy="150" r="44" fill="#bfdbfe" opacity=".2" stroke="currentColor" stroke-width="2.5"/>${dots(80, 140, 170, 185, "#ffffff", 20)}<rect x="104" y="80" width="12" height="30" fill="none" stroke="currentColor" stroke-width="2.5"/><line x1="116" y1="88" x2="250" y2="140" stroke="#38bdf8" stroke-width="10" opacity=".45"/><line x1="252" y1="146" x2="252" y2="170" stroke="#93c5fd" stroke-width="3" class="ks-drip"/><path d="M230 175 L230 214 Q230 222 238 222 L266 222 Q274 222 274 214 L274 175" fill="none" stroke="currentColor" stroke-width="2.5"/><rect x="233" y="200" width="38" height="20" fill="#bfdbfe" opacity=".5"/>`,
     };
     function dots(x1, x2, y1, y2, c, n) { let o = ""; for (let i = 0; i < n; i++) o += `<circle cx="${x1 + Math.random() * (x2 - x1)}" cy="${y1 + Math.random() * (y2 - y1)}" r="2.6" fill="${c}"/>`; return o; }
-    const nextB = button("Keyingi bosqich →", () => { const S = SEPS[keys[mi]]; st = (st + 1) % S.steps.length; draw(); });
-    controls.append(buttons(keys.map((k) => SEPS[k].n), (i) => { mi = i; st = 0; draw(); }, 0), nextB);
+    const SFX = { dissolve: () => SND.stir(), filter: () => SND.drip(5), evap: () => SND.boil(3), mix: () => SND.powder(), magnet: () => SND.clink(true), layers: () => SND.pour(0.8), drain: () => SND.pour(1.4), boil: () => SND.boil(3), drip: () => SND.drip(4) };
+    const nextB = button("Keyingi bosqich →", () => { const S = SEPS[keys[mi]]; st = (st + 1) % S.steps.length; draw(); const a = S.steps[st][2]; SFX[a] && SFX[a](); });
+    controls.append(buttons(keys.map((k) => SEPS[k].n), (i) => { mi = i; st = 0; draw(); const a = SEPS[keys[i]].steps[0][2]; SFX[a] && SFX[a](); }, 0), nextB, SND.toggle());
     function draw() {
       const S = SEPS[keys[mi]], [t, d, a] = S.steps[st];
       g.innerHTML = art[a];
@@ -407,7 +408,7 @@
     const ss = h("select", { class: "kb-select" }, ...SOLS.map((x, i) => h("option", { value: i }, `${x[1]} (${x[0]})`))); ss.value = si;
     ms.onchange = () => { mi = +ms.value; prep(); }; ss.onchange = () => { si = +ss.value; prep(); };
     const go = button("🧪 Metallni tushirish", () => run());
-    controls.append(h("label", { class: "ctl" }, h("span", {}, "Metall"), ms), h("label", { class: "ctl" }, h("span", {}, "Eritma"), ss), go);
+    controls.append(h("label", { class: "ctl" }, h("span", {}, "Metall"), ms), h("label", { class: "ctl" }, h("span", {}, "Eritma"), ss), go, SND.toggle());
     function prep() {
       const S = SOLS[si];
       sc.reset(); sc.solid(null); sc.liquid(S[5], 80, S[5] === "#cfe6ff" ? 0.35 : 0.6); sc.label(`${S[1]}`, "");
@@ -418,12 +419,12 @@
     async function run() {
       go.disabled = true;
       const m = metals[mi], S = SOLS[si], other = S[2] || "H", yes = ACT.indexOf(m) < ACT.indexOf(other) && m !== other;
-      sc.solid("metal", MCOL[m] || "#9ca3af"); await wait(400);
+      sc.solid("metal", MCOL[m] || "#9ca3af"); SND.clink(); await wait(400);
       if (!yes) { out.innerHTML = `❌ <b>Reaksiya bormaydi.</b> ${m} faollik qatorida ${other} dan ${m === other ? "farq qilmaydi" : "o‘ngda"} — uni ${S[2] ? "tuzidan" : "kislotadan"} siqib chiqara olmaydi.`; return; }
       const salt = saltOf(m, S[3], S[4]);
       const L = [m, S[0]], R = S[2] ? [salt, S[2]] : [salt, "H2"];
       let k = null; try { k = balance(L, R); } catch (e) { /* bo'sh */ }
-      if (!S[2]) { sc.bubbles(30, "#fff", "solid"); sc.shrinkSolid(0.5); }
+      if (!S[2]) { sc.bubbles(30, "#fff", "solid"); sc.shrinkSolid(0.5); SND.bubbles(0.45, 3); }
       else { setTimeout(() => sc.solidColor(MCOL[S[2]] || "#b45309"), 400); if (S[5] !== "#cfe6ff") setTimeout(() => sc.color("#cfe6ff", 0.35), 600); }
       await wait(1200);
       out.innerHTML = `✅ <b>Reaksiya boradi!</b> ${S[2] ? `Metall sirtida <b>${BY[S[2]].name.toLowerCase()}</b> qatlami hosil bo‘ladi.` : "Vodorod gazi ajraladi."}<div class="kb-eq">${eqHTML(L, R, k)}${S[2] ? "" : " ↑"}</div>`;

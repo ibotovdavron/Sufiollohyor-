@@ -123,6 +123,156 @@
   window.KIM = { EL, BY, CAT, place, config, shells, cfgHTML, parse, mr, fml, balance, eqHTML, esc };
 
   // ===================================================================
+  // Tovushlar (Web Audio): quyish, shisha jarangi, pufakchalar, vishillash, “pa!”, alanga, tomchi...
+  // Fayl yuklanmaydi — har bir tovush shu yerning o'zida fizik modelga yaqin qilib yaratiladi.
+  // ===================================================================
+  const SND = (() => {
+    const KEY = "sofi_kim_snd";
+    let on = true; try { on = localStorage.getItem(KEY) !== "0"; } catch (e) { /* bo'sh */ }
+    let ctx = null, out = null, nbuf = null;
+    const btns = new Set();
+    function ac() {
+      if (!on) return null;
+      if (!ctx) {
+        const C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
+        ctx = new C(); out = ctx.createGain(); out.gain.value = 0.9;
+        const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 4;
+        out.connect(comp); comp.connect(ctx.destination);
+      }
+      if (ctx.state === "suspended") ctx.resume();
+      return ctx;
+    }
+    const noise = (c) => {
+      if (!nbuf) { nbuf = c.createBuffer(1, c.sampleRate * 2, c.sampleRate); const d = nbuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+      const s = c.createBufferSource(); s.buffer = nbuf; s.loop = true; s.loopStart = Math.random(); return s;
+    };
+    const gain = (c, v = 0) => { const g = c.createGain(); g.gain.value = v; return g; };
+    const filt = (c, type, f, q = 0.7) => { const x = c.createBiquadFilter(); x.type = type; x.frequency.value = f; x.Q.value = q; return x; };
+    const chain = (...n) => { for (let i = 0; i < n.length - 1; i++) n[i].connect(n[i + 1]); return n[n.length - 1]; };
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    /** Bitta pufakcha: kichik sinusoida, chastotasi yuqoriga “sirpanadi” (pufakcha rezonansi) */
+    function bubble(c, t, f0, amp, dec = 0.06) {
+      const o = c.createOscillator(), g = gain(c);
+      o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f0 * rnd(1.6, 2.4), t + dec);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(amp, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+      chain(o, g, out); o.start(t); o.stop(t + dec + 0.02);
+    }
+    /** Shovqin bo'lagi: filtr + qo'ng'iroqsimon konvert */
+    function noiseHit(c, t, { type = "bandpass", f = 1000, q = 0.8, a = 0.005, d = 0.2, amp = 0.3, sweep } = {}) {
+      const n = noise(c), fl = filt(c, type, f, q), g = gain(c);
+      if (sweep) { fl.frequency.setValueAtTime(sweep[0], t); fl.frequency.exponentialRampToValueAtTime(sweep[1], t + a + d); }
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(amp, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + a + d);
+      chain(n, fl, g, out); n.start(t); n.stop(t + a + d + 0.05);
+    }
+    const api = {
+      get on() { return on; },
+      set(v) { on = v; try { localStorage.setItem(KEY, v ? "1" : "0"); } catch (e) { /* bo'sh */ } btns.forEach((b) => (b.textContent = v ? "🔊" : "🔇")); if (!v && ctx) ctx.suspend(); if (v) ac(); },
+      /** Ovozni yoqish/o'chirish tugmasi */
+      toggle() {
+        const b = h("button", { type: "button", class: "dbtn ghost kb-snd", title: "Ovoz", "aria-label": "Ovozni yoqish yoki o‘chirish" }, on ? "🔊" : "🔇");
+        b.onclick = () => api.set(!on); btns.add(b); return b;
+      },
+      /** Shisha stakanga metall/bo'lak tushishi — jaranglagan shisha */
+      clink(heavy = false) {
+        const c = ac(); if (!c) return; const t = c.currentTime;
+        [[2350, 0.22, 1.1], [3600, 0.12, 0.8], [5200, 0.07, 0.6], [7400, 0.04, 0.4]].forEach(([f, a, d]) => {
+          const o = c.createOscillator(), g = gain(c); o.frequency.value = f * (heavy ? 0.8 : 1) * rnd(0.98, 1.02);
+          g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(a * (heavy ? 0.7 : 1), t + 0.002); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+          chain(o, g, out); o.start(t); o.stop(t + d + 0.05);
+        });
+        noiseHit(c, t, { type: "lowpass", f: heavy ? 400 : 900, d: 0.07, amp: heavy ? 0.5 : 0.25 });
+        if (heavy) noiseHit(c, t + 0.09, { type: "bandpass", f: 2500, d: 0.05, amp: 0.08 });
+      },
+      /** Kukun sepish — shitirlash */
+      powder() { const c = ac(); if (!c) return; const t = c.currentTime; for (let i = 0; i < 6; i++) noiseHit(c, t + i * 0.06, { f: rnd(3000, 6000), q: 1.2, d: 0.08, amp: 0.16 }); },
+      /** Suyuqlik quyish: oqim shovqini + “g'ul-g'ul” */
+      pour(dur = 1.1) {
+        const c = ac(); if (!c) return; const t = c.currentTime;
+        const n = noise(c), bp = filt(c, "bandpass", 900, 0.9), g = gain(c);
+        for (let k = 0; k < dur; k += 0.04) bp.frequency.setValueAtTime(rnd(650, 1700), t + k);
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.22, t + 0.12); g.gain.setValueAtTime(0.2, t + dur - 0.2); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        chain(n, bp, g, out); n.start(t); n.stop(t + dur + 0.05);
+        noiseHit(c, t + 0.05, { type: "highpass", f: 2500, d: 0.15, amp: 0.12 });
+        for (let k = 0.1; k < dur; k += rnd(0.07, 0.16)) bubble(c, t + k, rnd(180, 420), 0.18, rnd(0.05, 0.09));
+      },
+      /** Gaz pufakchalari (intensivlik 0..1) */
+      bubbles(x = 0.5, dur = 3, low = false) {
+        const c = ac(); if (!c) return; const t = c.currentTime, rate = 6 + 70 * x;
+        for (let k = 0; k < dur; k += 1 / rate * rnd(0.3, 1.7)) {
+          const fade = 1 - k / dur * 0.7;
+          bubble(c, t + k, low ? rnd(140, 420) : rnd(500, 1800) * (1 - x * 0.3), rnd(0.05, 0.14) * fade * (low ? 1.8 : 1), rnd(0.03, 0.08));
+        }
+      },
+      /** Vishillash (gazlangan suv kabi): yuqori chastotali shovqin + chirsillash */
+      fizz(x = 0.5, dur = 3) {
+        const c = ac(); if (!c) return; const t = c.currentTime;
+        const n = noise(c), hp = filt(c, "highpass", 3800, 0.5), g = gain(c);
+        g.gain.setValueAtTime(0.0001, t);
+        for (let k = 0; k < dur; k += 0.012) g.gain.setValueAtTime(Math.random() < 0.35 ? rnd(0.02, 0.12) * x * (1 - k / dur * 0.6) : 0.004, t + k);
+        g.gain.setValueAtTime(0.0001, t + dur);
+        chain(n, hp, g, out); n.start(t); n.stop(t + dur + 0.05);
+      },
+      /** Natriy suvda — chirsillab vishillash */
+      sizzle(dur = 3) {
+        const c = ac(); if (!c) return; const t = c.currentTime;
+        const n = noise(c), hp = filt(c, "highpass", 2200, 0.6), g = gain(c);
+        for (let k = 0; k < dur; k += 0.01) g.gain.setValueAtTime((Math.random() < 0.5 ? rnd(0.05, 0.3) : 0.02) * (1 - k / dur * 0.7), t + k);
+        g.gain.setValueAtTime(0.0001, t + dur);
+        chain(n, hp, g, out); n.start(t); n.stop(t + dur + 0.05);
+        for (let k = 0; k < dur; k += rnd(0.12, 0.4)) noiseHit(c, t + k, { type: "bandpass", f: rnd(800, 2000), d: 0.03, amp: 0.25 });
+      },
+      /** Qaynash — past pufakchalar va g'uvullash */
+      boil(dur = 3) {
+        const c = ac(); if (!c) return; const t = c.currentTime;
+        const n = noise(c), lp = filt(c, "lowpass", 380, 0.7), g = gain(c);
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12, t + 0.6); g.gain.setValueAtTime(0.12, t + dur - 0.5); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        chain(n, lp, g, out); n.start(t); n.stop(t + dur + 0.05);
+        api.bubbles(0.45, dur, true);
+      },
+      /** Vodorod: yonib turgan cho'p yaqinlashtirilganda “pa!” */
+      pop() {
+        const c = ac(); if (!c) return; const t = c.currentTime;
+        noiseHit(c, t, { type: "lowpass", f: 2400, a: 0.002, d: 0.09, amp: 0.9 });
+        const o = c.createOscillator(), g = gain(c); o.frequency.setValueAtTime(160, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.18);
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.8, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+        chain(o, g, out); o.start(t); o.stop(t + 0.25);
+      },
+      /** Alanga gurillab yonishi */
+      whoosh(dur = 0.9, bright = false) {
+        const c = ac(); if (!c) return; const t = c.currentTime;
+        noiseHit(c, t, { type: "bandpass", q: 0.6, a: dur * 0.35, d: dur * 0.65, amp: bright ? 0.45 : 0.3, sweep: bright ? [400, 3200] : [250, 1400] });
+        noiseHit(c, t, { type: "lowpass", f: 200, a: dur * 0.3, d: dur * 0.7, amp: 0.35 });
+      },
+      /** Cho'p o'chishi (CO₂) — “pss” */
+      fizzleOut() { const c = ac(); if (!c) return; noiseHit(c, c.currentTime, { type: "highpass", f: 3000, a: 0.02, d: 0.5, amp: 0.25, sweep: [5000, 1500] }); },
+      /** Tomchi */
+      drip(n = 1) {
+        const c = ac(); if (!c) return; const t0 = c.currentTime;
+        for (let i = 0; i < n; i++) {
+          const t = t0 + i * 0.14, o = c.createOscillator(), g = gain(c), f = rnd(900, 1300);
+          o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 0.45, t + 0.07);
+          g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.35, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+          chain(o, g, out); o.start(t); o.stop(t + 0.1);
+          bubble(c, t + 0.05, rnd(500, 800), 0.08, 0.05);
+        }
+      },
+      /** Elektr: kalit “chiq” va lampochka/tok g'uvullashi */
+      buzz(level = 1) {
+        const c = ac(); if (!c) return; const t = c.currentTime;
+        noiseHit(c, t, { type: "highpass", f: 3000, a: 0.001, d: 0.03, amp: 0.3 });
+        if (!level) return;
+        const o = c.createOscillator(), lp = filt(c, "lowpass", 700), g = gain(c); o.type = "sawtooth"; o.frequency.value = 100;
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.05 * level, t + 0.05); g.gain.setValueAtTime(0.05 * level, t + 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+        chain(o, lp, g, out); o.start(t); o.stop(t + 1);
+      },
+      /** Aralashtirish (shisha tayoqcha) */
+      stir() { const c = ac(); if (!c) return; const t = c.currentTime; for (let i = 0; i < 4; i++) { noiseHit(c, t + i * 0.25, { type: "bandpass", f: 1200, q: 1.5, a: 0.08, d: 0.15, amp: 0.12 }); if (i % 2) api.clink(); } },
+    };
+    return api;
+  })();
+  window.KIM.SND = SND;
+
+  // ===================================================================
   // Laboratoriya idishi (SVG): stakan, suyuqlik, qattiq modda, pufakchalar, cho'kma
   // ===================================================================
   let uid = 0;
@@ -226,6 +376,12 @@
         stream.setAttribute("opacity", 0); stream.setAttribute("height", 0);
         tube.setAttribute("transform", "translate(250 30)"); q(".kb-tube-liq").style.display = "none";
         await wait(300);
+      },
+      /** Gazni tekshirish: cho'p idish og'ziga keltiriladi */
+      flash(gas) {
+        const sp = s("g", { class: "kb-splint" }, g);
+        sp.innerHTML = `<line x1="300" y1="20" x2="200" y2="74" stroke="#a16207" stroke-width="5" stroke-linecap="round"/>${gas === "O2" ? `<circle cx="200" cy="74" r="5" fill="#f97316"/><path d="M200 74 q-14 -18 0 -40 q14 22 0 40" fill="#fbbf24" class="kb-fl big"/>` : gas === "CO2" ? `<circle cx="200" cy="74" r="4" fill="#57534e"/><path d="M198 70 q-6 -10 2 -22 q-4 10 4 18" stroke="#9ca3af" fill="none" class="kb-smoke"/>` : `<path d="M200 74 q-8 -12 0 -24 q8 12 0 24" fill="#fbbf24" class="kb-fl"/>`}${gas === "H2" ? `<circle cx="170" cy="86" r="10" fill="#fde68a" class="kb-boom"/>` : ""}`;
+        setTimeout(() => sp.remove(), 2600);
       },
       reset() { ppt.innerHTML = ""; bubs.innerHTML = ""; cloud.innerHTML = ""; S.pptH = 0; api.mirror(false); q(".kb-layer").setAttribute("opacity", 0); api.temp(null); q(".kb-tube-liq").style.display = ""; tube.setAttribute("transform", "translate(250 30)"); },
     };
@@ -361,7 +517,7 @@
     list.forEach((k, i) => pick.append(h("button", { type: "button", class: i === 0 ? "on" : "", onclick: () => { if (busy) return; cur = i; pick.querySelectorAll("button").forEach((b, j) => b.classList.toggle("on", j === i)); setup(); } }, X[k].t)));
     const go = button("🧪 Quyish", () => run());
     const again = button("↺ Qaytadan", () => setup(), "ghost");
-    controls.append(...(list.length > 1 ? [pick] : []), h("div", { class: "kb-row" }, go, again));
+    controls.append(...(list.length > 1 ? [pick] : []), h("div", { class: "kb-row" }, go, again, SND.toggle()));
 
     function setup() {
       busy = false; go.disabled = false;
@@ -379,10 +535,16 @@
       const r = X[list[cur]], A = R[r.a], B = R[r.b], fx = r.fx;
       if ("mnpcw".includes(B[3])) {
         const kind = { m: "metal", n: "nail", w: "wire", p: "powder", c: "chunk" }[B[3]];
-        sc.solid(kind, B[2]); await wait(500);
+        sc.solid(kind, B[2]); if (B[3] === "p") SND.powder(); else SND.clink(B[3] === "c"); await wait(500);
       } else if (B[3] === "g") {
-        sc.solid("wire", "rgba(255,255,255,.55)"); sc.bubbles(14, "#fff", "tube"); await wait(800);
-      } else await sc.pour(B[2], 30, B[2] === CLR ? 0.35 : 0.6);
+        sc.solid("wire", "rgba(255,255,255,.55)"); sc.bubbles(14, "#fff", "tube"); SND.bubbles(0.35, 1.6, true); await wait(800);
+      } else { SND.pour(1.15); await sc.pour(B[2], 30, B[2] === CLR ? 0.35 : 0.6); }
+      // tovushlar: gaz ajralishi, vishillash, qaynash
+      const gx = fx.bub ? Math.min(1, fx.bub / 70) : 0;
+      if (fx.swim) SND.sizzle(3.2);
+      else if (gx && fx.heat >= 85) SND.boil(3.5);
+      else if (gx) { SND.bubbles(gx, 3.6, B[3] === "g"); if (fx.bubOrigin === "all" || gx > 0.5) SND.fizz(gx, 3.6); }
+      else if (fx.heat >= 60) SND.boil(2.5);
       if (fx.swim) sc.swim(true);
       if (fx.bub) sc.bubbles(fx.bub, fx.bubC || "#fff", fx.bubOrigin || (B[3] === "g" ? "tube" : "mnpcw".includes(B[3]) ? "solid" : "all"));
       if (fx.heat) { let t = 20; const id = setInterval(() => { t += Math.max(1, (fx.heat - t) / 6); sc.temp(Math.round(Math.min(t, fx.heat))); if (t >= fx.heat - 1) clearInterval(id); }, 120); }
@@ -399,7 +561,13 @@
       await wait(1800);
       let eqs = "";
       if (r.eq) { const k = balance(r.eq[0], r.eq[1]); eqs = `<div class="kb-eq">${eqHTML(r.eq[0], r.eq[1], k, r.arrow || "→")}${r.gas ? " ↑" : ""}</div>`; }
-      out.innerHTML = `<div class="kb-obs">👁 <b>Kuzatish:</b> ${r.obs}</div>${eqs}${r.ion ? `<div class="kb-ion">Qisqa ionli tenglama: <b>${r.ion}</b></div>` : ""}${r.test ? `<div class="kb-test">🔥 <b>Gazni tekshirish:</b> ${r.test}</div>` : ""}`;
+      out.innerHTML = `<div class="kb-obs">👁 <b>Kuzatish:</b> ${r.obs}</div>${eqs}${r.ion ? `<div class="kb-ion">Qisqa ionli tenglama: <b>${r.ion}</b></div>` : ""}${r.test ? `<div class="kb-test"><button type="button" class="dbtn kb-testb">🔥 Gazni tekshirish</button><span hidden>🔥 <b>Gazni tekshirish:</b> ${r.test}</span></div>` : ""}`;
+      const tb = out.querySelector(".kb-testb");
+      if (tb) tb.onclick = () => {
+        tb.hidden = true; tb.nextElementSibling.hidden = false;
+        if (r.gas === "H2") SND.pop(); else if (r.gas === "O2") SND.whoosh(0.8, true); else if (r.gas === "CO2") SND.fizzleOut(); else SND.whoosh(0.4);
+        sc.flash(r.gas);
+      };
       if (fx.bub && !fx.keep) setTimeout(() => sc.bubbles(Math.round(fx.bub / 4), fx.bubC || "#fff", fx.bubOrigin || "solid"), 2500);
       if (fx.swim) setTimeout(() => sc.swim(false), 3500);
     }
@@ -443,10 +611,11 @@
     }
     const list = p.ions ? FLAMES.filter((f) => p.ions.includes(f[0])) : FLAMES;
     controls.append(buttons(["🔵 Toza alanga", ...list.map((f) => `${f[0]} — ${f[1]}`)], (i) => {
-      if (!i) { wire.setAttribute("opacity", 0); paint(null); out.innerHTML = "Gaz gorelkasining toza alangasi — deyarli rangsiz-zangori."; return; }
-      const f = list[i - 1]; wire.setAttribute("opacity", 1); setTimeout(() => paint(f[2]), 250);
+      if (!i) { wire.setAttribute("opacity", 0); paint(null); SND.whoosh(0.6); out.innerHTML = "Gaz gorelkasining toza alangasi — deyarli rangsiz-zangori."; return; }
+      const f = list[i - 1]; wire.setAttribute("opacity", 1); setTimeout(() => { paint(f[2]); SND.whoosh(0.7, true); }, 250);
       out.innerHTML = `Platina sim <b>${f[1]}</b> tuziga botirib alangaga kiritildi: <span class="kf-chip" style="background:${f[2]}"></span> <b>${f[3]}</b>. <div class="muted">Pirotexnikada (salyut) aynan shu tuzlar ishlatiladi.</div>`;
     }));
+    controls.append(SND.toggle());
     out.innerHTML = "Metall tuzini tanlang — alanga rangi o‘zgaradi. Bu usul bilan ionlarni aniqlash mumkin.";
   };
 
@@ -513,8 +682,8 @@
       out.innerHTML = `Qo‘shildi: <b>${num(Vb, 1)} ml</b> NaOH · pH = <b>${num(v, 2)}</b> ${Math.abs(Vb - 20) < 0.05 ? "— 🎯 <b>ekvivalent nuqta!</b> Kislota to‘liq neytrallandi: n(HCl) = n(NaOH)." : v > 8.2 ? "— eritma pushti: ishqor ortiqcha." : "— hali kislota ko‘p, fenolftalein rangsiz."}
         <div class="muted">HCl + NaOH → NaCl + H₂O. Ekvivalent nuqtada pH keskin 4 dan 10 ga “sakraydi” — bitta tomchi rangni o‘zgartiradi.</div>`;
     }
-    const add = (d) => { Vb = Math.max(0, Math.min(40, Math.round((Vb + d) * 10) / 10)); draw(); };
-    controls.append(h("div", { class: "kb-row" }, button("💧 +0,1 ml", () => add(0.1), "ghost"), button("💧 +1 ml", () => add(1)), button("💧💧 +5 ml", () => add(5)), button("↺", () => { Vb = 0; pts.length = 0; draw(); }, "ghost")));
+    const add = (d) => { Vb = Math.max(0, Math.min(40, Math.round((Vb + d) * 10) / 10)); SND.drip(d >= 5 ? 4 : d >= 1 ? 2 : 1); draw(); };
+    controls.append(h("div", { class: "kb-row" }, button("💧 +0,1 ml", () => add(0.1), "ghost"), button("💧 +1 ml", () => add(1)), button("💧💧 +5 ml", () => add(5)), button("↺", () => { Vb = 0; pts.length = 0; draw(); }, "ghost"), SND.toggle()));
     draw();
   };
 
@@ -538,6 +707,7 @@
     const list = p.items ? COND.filter((c) => p.items.includes(c[0])) : COND;
     controls.append(buttons(list.map((c) => c[0]), (i) => {
       const [n, lv, why] = list[i];
+      SND.buzz([0, 0.4, 0, 1][lv]);
       g.querySelector(".kc-glow").setAttribute("opacity", [0, 0.25, 0, 0.85][lv]);
       g.querySelector(".kc-glow").setAttribute("r", [0, 18, 0, 34][lv]);
       const io = g.querySelector(".kc-ions"); io.innerHTML = "";
@@ -546,6 +716,7 @@
       g.querySelector(".kc-liq").setAttribute("opacity", /Qattiq/.test(n) ? 0 : 0.35);
       out.innerHTML = `<b>${n}</b>: ${lv === 3 ? "💡 lampochka <b>yorqin</b> yonadi — kuchli elektrolit" : lv === 1 ? "🔅 lampochka <b>xira</b> yonadi — kuchsiz elektrolit" : "⚫ lampochka <b>yonmaydi</b> — tok o‘tmaydi"}.<div class="muted">Sababi: ${why}.</div>`;
     }, -1));
+    controls.append(SND.toggle());
     out.innerHTML = "Elektrodlarni turli moddalarga tushirib ko‘ring. Tokni faqat <b>erkin harakatlanuvchi ionlar</b> o‘tkazadi.";
   };
 })();
