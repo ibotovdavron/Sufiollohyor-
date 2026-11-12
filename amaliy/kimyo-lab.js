@@ -1,0 +1,262 @@
+/* Kimyo mavzulariga jonli tajribalarni biriktirish (7–11-sinflar). Vidjetlar: w-kimyo.js, w-kimyo2.js, w-kimyo3.js.
+   Har bir mavzuda “🔬 Jonli tajriba” bo'limi chiqadi. */
+(() => {
+  "use strict";
+  const f = (x) => window.KIM.fml(x);
+  const lab = (...set) => ({ type: "lab", set });
+  const lab1 = (title, ...set) => ({ type: "lab", set, title });
+  const sort = (title, cats, items) => ({ type: "sort", title, cats, items });
+  const atom = (z) => ({ type: "atom", z });
+  const P = { type: "periodic" }, ST = { type: "states" }, RATE = { type: "rate" }, EQ = { type: "equil" }, ELY = { type: "electrolysis" }, COND = { type: "conduct" }, CRY = { type: "crystal" }, ACT = { type: "activity" }, COR = { type: "corrosion" }, EQUIP = { type: "equip" }, TIT = { type: "titration" }, GAS = { type: "gas" }, BOND = { type: "bond" }, OX = (fx) => ({ type: "oxstate", f: fx });
+  const molar = (presets, extra) => ({ type: "molar", presets, f: presets && presets[0], ...extra });
+  const bal = (eqs) => ({ type: "balance", eqs });
+  const comp = (...sets) => ({ type: "composition", sets });
+  const sep = (...methods) => ({ type: "separate", methods });
+  const org = (series, n) => ({ type: "organic", series, n });
+  const sol = (mode) => ({ type: "solution", mode });
+  const ph = { type: "ph" }, phSalt = { type: "ph", salts: true, title: "🌈 Tuzlar gidrolizi — eritma muhitini aniqlang" };
+  const flame = (ions) => ({ type: "flame", ions }), zones = { type: "flame", mode: "zones" };
+  const decay = { type: "decay" };
+
+  // ---------- saralash o'yinlari ----------
+  const SORT_JISM = sort("🗂 Jism yoki modda?", ["Jism", "Modda"], [["Qoshiq", 0], ["Temir", 1], ["Stakan", 0], ["Shisha", 1], ["Mix", 0], ["Suv", 1], ["Daftar", 0], ["Qog‘oz", 1], ["Tanga", 0], ["Mis", 1], ["Sim", 0], ["Alyuminiy", 1], ["Shakar", 1], ["Muz bo‘lagi", 0]]);
+  const SORT_RULES = sort("🦺 Xavfsizlik qoidasi to‘g‘rimi?", ["To‘g‘ri ✅", "Xato ❌"], [["Hidlash uchun bug‘ni qo‘l bilan o‘zingiz tomon yelpish", 0], ["Moddaning ta’mini tatib ko‘rish", 1], ["Kislotani suvga ingichka oqim bilan quyish", 0], ["Suvni konsentrlangan kislotaga quyish", 1], ["Spirt lampani qopqog‘i bilan o‘chirish", 0], ["Spirt lampani puflab o‘chirish", 1], ["Himoya ko‘zoynagi va xalat kiyish", 0], ["Qizdirayotgan probirka og‘zini qo‘shniga qaratish", 1], ["Ortib qolgan reaktivni qaytib idishiga solish", 1], ["Ish joyini toza va tartibli tutish", 0], ["Noma’lum moddalarni “qiziqish uchun” aralashtirish", 1], ["Teriga kislota tushsa — darhol ko‘p suv bilan yuvish", 0], ["Laboratoriyada ovqatlanish", 1], ["Tajribadan so‘ng qo‘lni sovunlab yuvish", 0]]);
+  const SORT_SOF = sort("🗂 Sof modda yoki aralashma?", ["Sof modda", "Aralashma"], [["Distillangan suv", 0], ["Havo", 1], ["Osh tuzi", 0], ["Dengiz suvi", 1], ["Kislorod", 0], ["Sut", 1], ["Shakar", 0], ["Choy", 1], ["Mis", 0], ["Tuproq", 1], ["Granit", 1], ["Neft", 1], ["Karbonat angidrid", 0], ["Bronza (qotishma)", 1]]);
+  const SORT_HOD = sort("🗂 Fizik yoki kimyoviy hodisa?", ["Fizik hodisa", "Kimyoviy hodisa"], [["Muzning erishi", 0], ["Temirning zanglashi", 1], ["Shakarning suvda erishi", 0], ["Gugurtning yonishi", 1], ["Suvning qaynashi", 0], ["Sutning achishi", 1], ["Shishaning sinishi", 0], ["Nonning kuyishi", 1], ["Simni egish", 0], ["Ovqatning hazm bo‘lishi", 1], ["Atir hidining tarqalishi", 0], ["Ohakni so‘ndirish", 1], ["Spirtning bug‘lanishi", 0], ["Olmaning qorayishi", 1]]);
+  const SORT_ODDIY = sort("🗂 Oddiy yoki murakkab modda?", ["Oddiy modda", "Murakkab modda"], [["O2", 0], ["H2O", 1], ["Fe", 0], ["NaCl", 1], ["N2", 0], ["CO2", 1], ["O3", 0], ["H2SO4", 1], ["Cu", 0], ["CaCO3", 1], ["S", 0], ["NH3", 1], ["Cl2", 0], ["C6H12O6", 1]].map(([t, c]) => [f(t), c]));
+  const SORT_OKSID = sort("🗂 Oksidlarni turlarga ajrating", ["Asosli", "Kislotali", "Amfoter", "Befarq"], [["Na2O", 0], ["CaO", 0], ["CuO", 0], ["MgO", 0], ["FeO", 0], ["CO2", 1], ["SO3", 1], ["P2O5", 1], ["SiO2", 1], ["N2O5", 1], ["Mn2O7", 1], ["ZnO", 2], ["Al2O3", 2], ["BeO", 2], ["Cr2O3", 2], ["CO", 3], ["NO", 3], ["N2O", 3]].map(([t, c]) => [f(t), c]));
+  const SORT_SINF = sort("🗂 Noorganik birikmalar sinflari", ["Oksid", "Asos", "Kislota", "Tuz"], [["CaO", 0], ["NaOH", 1], ["HCl", 2], ["NaCl", 3], ["SO2", 0], ["Ca(OH)2", 1], ["H2SO4", 2], ["CuSO4", 3], ["Fe2O3", 0], ["KOH", 1], ["HNO3", 2], ["CaCO3", 3], ["Cu(OH)2", 1], ["H3PO4", 2], ["KNO3", 3], ["P2O5", 0]].map(([t, c]) => [f(t), c]));
+  const SORT_ORG = sort("🗂 Organik birikmalar sinflari", ["Uglevodorod", "Spirt", "Aldegid / keton", "Karbon kislota", "Murakkab efir"], [["CH4", 0], ["C2H4", 0], ["C2H2", 0], ["C6H6", 0], ["C2H5OH", 1], ["CH3OH", 1], ["C3H5(OH)3", 1], ["HCHO", 2], ["CH3CHO", 2], ["CH3COCH3", 2], ["HCOOH", 3], ["CH3COOH", 3], ["CH3COOC2H5", 4], ["HCOOCH3", 4]].map(([t, c]) => [f(t), c]));
+  const SORT_ELY = sort("🗂 Elektrolit yoki noelektrolit?", ["Kuchli elektrolit", "Kuchsiz elektrolit", "Noelektrolit"], [["NaCl", 0], ["HCl", 0], ["NaOH", 0], ["H2SO4", 0], ["KNO3", 0], ["CH3COOH", 1], ["NH4OH", 1], ["H2S", 1], ["H2CO3", 1], ["C12H22O11", 2], ["C2H5OH", 2], ["O2", 2], ["C6H12O6", 2]].map(([t, c]) => [f(t), c]));
+
+  // ---------- tenglamalar to'plamlari ----------
+  const REDOX = [[["Cu", "HNO3"], ["Cu(NO3)2", "NO", "H2O"]], [["KMnO4", "HCl"], ["KCl", "MnCl2", "Cl2", "H2O"]], [["MnO2", "HCl"], ["MnCl2", "Cl2", "H2O"]], [["Zn", "H2SO4"], ["ZnSO4", "H2S", "H2O"]], [["NH3", "O2"], ["NO", "H2O"]], [["Al", "CuCl2"], ["AlCl3", "Cu"]], [["H2S", "O2"], ["SO2", "H2O"]], [["Fe2O3", "H2"], ["Fe", "H2O"]], [["KClO3", "S"], ["KCl", "SO2"]]];
+  const METAL = [[["Fe2O3", "CO"], ["Fe", "CO2"]], [["Fe3O4", "CO"], ["Fe", "CO2"]], [["FeO", "C"], ["Fe", "CO"]], [["C", "O2"], ["CO2"]], [["CO2", "C"], ["CO"]], [["Fe2O3", "Al"], ["Al2O3", "Fe"]], [["FeS2", "O2"], ["Fe2O3", "SO2"]]];
+  const ORGB = [[["CH4", "O2"], ["CO2", "H2O"]], [["C2H6", "O2"], ["CO2", "H2O"]], [["C2H4", "O2"], ["CO2", "H2O"]], [["C2H2", "O2"], ["CO2", "H2O"]], [["C6H6", "O2"], ["CO2", "H2O"]], [["C2H5OH", "O2"], ["CO2", "H2O"]], [["C6H12O6", "O2"], ["CO2", "H2O"]], [["CaC2", "H2O"], ["Ca(OH)2", "C2H2"]]];
+
+  const MAP = {
+    // ======================= 7-sinf =======================
+    "kimyo-fani": [lab1("🧪 Kimyo — bu o‘zgarishlar! Tajribalarni ko‘ring", "mg-hcl", "fe-cuso4", "agcl", "starch-i2", "soda-vinegar", "fe3-scn")],
+    "modda-xossa": [SORT_JISM, ST],
+    "xavfsizlik": [SORT_RULES, zones],
+    "lab-jihoz": [EQUIP, zones],
+    "sof-aralashma": [SORT_SOF, sep("salt", "magnet", "funnel", "distill")],
+    "tuz-tozalash": [sep("salt"), sol(0)],
+    "agregat": [ST],
+    "hodisalar": [SORT_HOD, lab("mg-hcl", "cuoh2", "soda-vinegar", "fe3-scn")],
+    "kundalik-kimyo": [lab("soda-vinegar", "soap-hard", "boil-hard", "starch-i2", "saponif"), ph],
+    "atom-tarix": [atom(1), decay],
+    "atom-tuzilish": [atom(6)],
+    "element-belgi": [P],
+    "ar": [atom(17), molar(["H2O", "CO2", "NaCl", "O2"])],
+    "izotop": [atom(1), decay],
+    "formula-valent": [OX("Fe2O3"), molar(["H2O", "Al2O3", "Fe2O3", "P2O5"])],
+    "molekula-mr": [molar()],
+    "oddiy-murakkab": [SORT_ODDIY],
+    "mol": [molar(["H2O", "CO2", "O2", "NaCl", "C6H12O6"], { m: 18 }), GAS],
+    "valent-mashq": [OX("Al2O3"), bal([[["Al", "O2"], ["Al2O3"]], [["P", "O2"], ["P2O5"]], [["Fe", "Cl2"], ["FeCl3"]], [["N2", "H2"], ["NH3"]], [["Ca", "O2"], ["CaO"]]])],
+    "formula-hisob": [molar(["H2SO4", "CaCO3", "Fe2O3", "CuSO4·5H2O", "NH4NO3"])],
+    "tenglama": [{ type: "balance" }, lab("mg-hcl", "cuoh2", "caco3-hcl")],
+    "tavsif": [P, atom(11)],
+    "oilalar": [P, flame(["Li", "Na", "K"]), lab("na-h2o", "cl2-ki")],
+    "davriy-jadval": [P],
+    "havo": [comp("air"), GAS],
+    "havo-iflos": [comp("air"), ph],
+    "kislorod": [comp("air", "crust", "body"), lab("h2o2-mno2")],
+    "kislorod-fizik": [lab("h2o2-mno2", "h2o2-only"), GAS],
+    "kislorod-kimyo": [lab("h2o2-mno2"), bal([[["C", "O2"], ["CO2"]], [["S", "O2"], ["SO2"]], [["P", "O2"], ["P2O5"]], [["Fe", "O2"], ["Fe3O4"]], [["Mg", "O2"], ["MgO"]], [["CH4", "O2"], ["CO2", "H2O"]]])],
+    "yonish": [zones, lab("h2o2-mno2", "caco3-hcl")],
+    "alanga": [zones, flame()],
+    "ozon": [comp("air"), bal([[["O2"], ["O3"]], [["O3"], ["O2"]]])],
+    "o2-bio": [comp("body", "air")],
+    "oksidlar": [SORT_OKSID, lab("cuo-h2so4", "zno-hcl", "zno-naoh")],
+    "vodorod": [lab("zn-hcl", "mg-hcl", "fe-hcl", "cu-hcl"), ACT],
+    "vodorod-xossa": [lab("zn-hcl"), GAS, bal([[["H2", "O2"], ["H2O"]], [["CuO", "H2"], ["Cu", "H2O"]], [["N2", "H2"], ["NH3"]], [["H2", "Cl2"], ["HCl"]]])],
+    "kislotalar": [ph, lab("php-hcl", "zn-hcl", "caco3-hcl", "cuo-h2so4")],
+    "kislota-amaliy": [lab("zn-hcl", "mg-hcl", "fe-hcl", "cu-hcl", "cuo-h2so4", "php-hcl"), ACT],
+    "kislotali-yomgir": [ph, lab("caco3-hcl", "fe-hcl")],
+    "suv-tarkib": [{ type: "electrolysis", title: "💧 Suvning elektrolizi — Na₂SO₄ eritmasini tanlang" }, molar(["H2O", "H2O2"])],
+    "suv-aylanish": [ST],
+    "suv-kimyo": [lab("na-h2o", "ca-h2o", "cuo-h2so4")],
+    "neytrallanish": [TIT, lab("neutral", "php-naoh", "cuoh2-hcl")],
+    "suv-tozalash": [sep("salt", "distill"), lab("soap-hard", "boil-hard")],
+    "organizm-element": [comp("body")],
+    "oqsil-yog": [lab("biuret", "xanto", "starch-i2", "saponif"), comp("food")],
+    "vitamin": [comp("food", "body"), ph],
+    "mineral": [comp("crust", "sea", "body")],
+    "geologik": [comp("crust"), lab("caco3-hcl", "h2sio3")],
+    "qazilma": [comp("crust"), ACT],
+    "ekologiya": [comp("air"), ph, COR],
+    // ======================= 8-sinf =======================
+    "dastlabki": [{ type: "balance" }, molar()],
+    "sinflar": [SORT_SINF, ph],
+    "lab-zn-oh": [lab1("🧪 Rux gidroksid: olish va amfoterligi (ketma-ket bajaring)", "znoh2", "znoh2-hcl", "znoh2-naoh")],
+    "toifalanish": [P, SORT_OKSID],
+    "oilalar8": [P, flame(["Li", "Na", "K", "Ca", "Sr", "Ba"]), lab("cl2-ki", "br2-ki")],
+    "davriy-qonun": [P],
+    "davriy-sistema": [P, atom(19)],
+    "yadro8": [atom(8), decay],
+    "elektron-qavat": [atom(11)],
+    "pogonacha": [atom(26)],
+    "davr-atom": [atom(24), P],
+    "tavsiflash": [P, atom(16)],
+    "elektromanfiylik": [BOND, P],
+    "kovalent": [BOND],
+    "ion-bog": [BOND, CRY],
+    "kristall": [CRY, BOND],
+    "oks-daraja": [OX("KMnO4")],
+    "okq": [OX("KMnO4"), lab("fe-cuso4", "kmno4-acid", "cl2-ki")],
+    "okq-tenglash": [bal(REDOX), lab("kmno4-acid", "kmno4-neut", "kmno4-base")],
+    "metallmas": [P, BOND],
+    "galogen": [P, lab("cl2-ki", "br2-ki", "cl2-nabr", "i2-nabr")],
+    "xlor": [lab("cl2-ki", "cl2-nabr", "agcl"), bal([[["MnO2", "HCl"], ["MnCl2", "Cl2", "H2O"]], [["H2", "Cl2"], ["HCl"]], [["Fe", "Cl2"], ["FeCl3"]], [["NaCl", "H2SO4"], ["Na2SO4", "HCl"]]])],
+    "avogadro": [GAS],
+    "zichlik": [GAS],
+    "ekvivalent": [molar(["H2SO4", "NaOH", "Al2(SO4)3", "Ca(OH)2", "H3PO4"])],
+    "xlorid-kislota": [lab("zn-hcl", "agcl", "caco3-hcl", "cu-hcl", "neutral")],
+    "lab-sifat": [lab1("🧪 Galogenid ionlariga sifat reaksiyalari", "agcl", "agbr", "agi", "starch-i2")],
+    "lab-galogen": [lab1("🧪 Galogenlarning bir-birini siqib chiqarishi", "cl2-ki", "br2-ki", "cl2-nabr", "i2-nabr", "starch-i2")],
+    "galogen-bio": [comp("sea", "body")],
+    "oltingugurt": [lab("pbs"), bal([[["S", "O2"], ["SO2"]], [["Fe", "S"], ["FeS"]], [["H2", "S"], ["H2S"]], [["S", "HNO3"], ["H2SO4", "NO2", "H2O"]]])],
+    "h2s": [lab("pbs"), bal([[["H2S", "O2"], ["SO2", "H2O"]], [["H2S", "O2"], ["S", "H2O"]], [["FeS", "HCl"], ["FeCl2", "H2S"]]])],
+    "so2-so3": [ph, lab("cu-h2so4k"), { type: "equil" }],
+    "sulfat-kislota": [lab("baso4", "baso4-acid", "zn-h2so4", "cu-h2so4k", "cuo-h2so4")],
+    "tezlik8": [RATE, lab("h2o2-mno2", "h2o2-only", "mg-hcl", "fe-hcl")],
+    "muvozanat8": [EQ],
+    "sulfat-sanoat": [EQ, bal([[["FeS2", "O2"], ["Fe2O3", "SO2"]], [["SO2", "O2"], ["SO3"]], [["SO3", "H2O"], ["H2SO4"]]])],
+    "azot": [comp("air"), EQ],
+    "ammiak": [lab("nh4-naoh"), EQ],
+    "azot-oksid": [lab("cu-hno3"), EQ],
+    "nitrat-kislota": [lab("cu-hno3", "xanto"), bal([[["Cu", "HNO3"], ["Cu(NO3)2", "NO2", "H2O"]], [["Cu", "HNO3"], ["Cu(NO3)2", "NO", "H2O"]], [["NO2", "O2", "H2O"], ["HNO3"]]])],
+    "fosfor": [molar(["P2O5", "H3PO4", "Ca3(PO4)2", "PH3", "P4"]), bal([[["P", "O2"], ["P2O5"]], [["Ca3(PO4)2", "SiO2", "C"], ["CaSiO3", "P", "CO"]]])],
+    "fosfor-oksid": [ph, molar(["P2O5", "H3PO4", "Ca3(PO4)2"])],
+    "ogit": [molar(["NH4NO3", "(NH4)2SO4", "CO(NH2)2", "KCl", "Ca(H2PO4)2", "NH4H2PO4", "KNO3"]), lab("nh4-naoh")],
+    "biogen": [comp("body"), lab("nh4-naoh"), flame(["K", "Na", "Ca"])],
+    // ======================= 9-sinf =======================
+    "davriy9": [P],
+    "boglanish9": [BOND, CRY],
+    "elektrolit": [COND, SORT_ELY],
+    "dissotsiatsiya": [COND, ph],
+    "kuchli-kuchsiz": [COND, SORT_ELY],
+    "ion-almashinish": [lab1("🧪 Ion almashinish: cho‘kma, gaz yoki suv hosil bo‘lsa — reaksiya boradi", "agcl", "baso4", "cuoh2", "feoh3", "na2co3-hcl", "neutral", "cu-znso4")],
+    "gidroliz9": [phSalt],
+    "uglerod-guruh": [P, CRY],
+    "uglerod": [CRY, bal([[["C", "O2"], ["CO2"]], [["C", "O2"], ["CO"]], [["CuO", "C"], ["Cu", "CO2"]], [["C", "H2"], ["CH4"]]])],
+    "uglerod-birikma": [lab("limewater", "caco3-hcl"), GAS],
+    "karbonat": [lab1("🧪 Karbonatlar: gaz va cho‘kma", "caco3-hcl", "na2co3-hcl", "limewater", "caco3-ppt", "soda-vinegar")],
+    "kremniy": [CRY, lab("h2sio3")],
+    "kremniy-birikma": [lab("h2sio3"), molar(["SiO2", "Na2SiO3", "H2SiO3", "CaSiO3"])],
+    "silikat": [comp("crust"), lab("h2sio3")],
+    "metall-tabiat": [ACT, comp("crust")],
+    "qotishma": [CRY, molar(["CuZn", "Fe3C", "Cu3Sn"])],
+    "metall-xossa": [ACT, CRY, lab("zn-hcl", "fe-cuso4", "cu-agno3")],
+    "korroziya": [COR],
+    "elektroliz9": [ELY],
+    "ishqoriy": [flame(["Li", "Na", "K"]), lab("na-h2o"), P],
+    "na-k": [flame(["Na", "K"]), lab("na-h2o", "php-naoh")],
+    "soda": [lab("na2co3-hcl", "soda-vinegar", "caco3-ppt"), bal([[["NaCl", "NH3", "CO2", "H2O"], ["NaHCO3", "NH4Cl"]], [["NaHCO3"], ["Na2CO3", "CO2", "H2O"]]])],
+    "ca-mg": [lab("ca-h2o", "mg-hcl", "limewater"), flame(["Ca", "Sr", "Ba"])],
+    "qattiqlik": [lab("soap-hard", "boil-hard", "caco3-ppt")],
+    "alyuminiy": [lab("al-hcl", "al-naoh"), ACT],
+    "al-xossa": [lab("al-hcl", "al-naoh"), bal([[["Al", "O2"], ["Al2O3"]], [["Fe2O3", "Al"], ["Al2O3", "Fe"]], [["Al", "HCl"], ["AlCl3", "H2"]]])],
+    "al-birikma": [lab1("🧪 Alyuminiy gidroksidning amfoterligi", "aloh3", "aloh3-hcl", "aloh3-naoh")],
+    "mis": [lab("cuoh2", "cuoh2-hcl", "fe-cuso4", "cu-agno3", "cu-hno3"), flame(["Cu"])],
+    "ag-au": [lab("cu-agno3", "agcl", "silver-mirror"), ACT],
+    "iib": [lab("znoh2", "znoh2-naoh", "zn-cuso4"), ACT],
+    "xrom": [lab("cr2o7", "cro4-acid"), atom(24)],
+    "xrom-birikma": [lab("cr2o7", "cro4-acid"), OX("K2Cr2O7")],
+    "marganes": [lab("kmno4-acid", "kmno4-neut", "kmno4-base", "h2o2-mno2"), atom(25)],
+    "mn-birikma": [lab("kmno4-acid", "kmno4-neut", "kmno4-base"), OX("KMnO4")],
+    "temir": [lab("fe-hcl", "fe-cuso4", "feoh2", "feoh3"), COR],
+    "temir-birikma": [lab1("🧪 Fe²⁺ va Fe³⁺ ionlarini aniqlash", "feoh2", "feoh3", "fe3-scn", "fe3-k4", "fe2-k3")],
+    "metallurgiya": [bal(METAL), comp("crust")],
+    "polat": [bal(METAL), CRY],
+    "himoya": [comp("air"), ph, COR],
+    "davriy-ahamiyat": [P],
+    "reaksiya-sanoat": [RATE, EQ],
+    // ======================= 10-sinf =======================
+    "organik-tarix": [org(null, 1), SORT_ORG],
+    "tuzilish-nazariya": [org(null, 4)],
+    "c-valent": [org(null, 3), OX("CH4")],
+    "izomeriya": [org(null, 4)],
+    "sinflanish": [SORT_ORG, org(null, 2)],
+    "reaksiya-turi": [lab("br2-c2h4", "ester", "silver-mirror"), bal(ORGB)],
+    "nomenklatura": [org(null, 5)],
+    "org-tahlil": [molar(["CH4", "C2H5OH", "C6H12O6", "C12H22O11", "CH3COOH", "C3H5(OH)3"]), bal(ORGB)],
+    "alkanlar": [org(["alkan"], 1)],
+    "alkan-izomer": [org(["alkan"], 4)],
+    "alkan-olinish": [org(["alkan"], 3), ST],
+    "alkan-kimyo": [org(["alkan"], 1), bal(ORGB)],
+    "sikloalkan": [org(["siklo"], 6)],
+    "sikloalkan-xossa": [org(["siklo", "alken"], 6)],
+    "alkenlar": [org(["alken"], 2)],
+    "alken-xossa": [lab("br2-c2h4", "kmno4-c2h4"), org(["alken"], 2)],
+    "alkadiyen": [org(["alken"], 4)],
+    "alkadiyen-xossa": [lab("br2-c2h4", "kmno4-c2h4")],
+    "kauchuk": [lab("br2-c2h4"), org(["alken"], 4)],
+    "alkin": [org(["alkin"], 2)],
+    "alkin-xossa": [org(["alkin"], 2), lab("br2-c2h4", "kmno4-c2h4"), bal([[["CaC2", "H2O"], ["Ca(OH)2", "C2H2"]], [["C2H2", "O2"], ["CO2", "H2O"]], [["C2H2", "H2"], ["C2H6"]]])],
+    "aren": [molar(["C6H6", "C7H8", "C8H10", "C8H8"])],
+    "aren-xossa": [molar(["C6H6", "C6H5NO2", "C6H5Br", "C6H5Cl"]), bal([[["C6H6", "O2"], ["CO2", "H2O"]], [["C6H6", "HNO3"], ["C6H5NO2", "H2O"]], [["C6H6", "Br2"], ["C6H5Br", "HBr"]], [["C6H6", "H2"], ["C6H12"]]])],
+    "stirol": [molar(["C8H8", "C6H6", "C2H4"]), lab("br2-c2h4")],
+    "tabiiy-gaz": [org(["alkan"], 1), GAS],
+    "neft": [org(["alkan"], 8), sep("distill")],
+    "toshkomir": [org(["alkan"], 1), molar(["C6H6", "C10H8", "NH3", "C6H5OH"])],
+    "uv-amaliy": [org(null, 3), molar(["CH4", "C2H4", "C2H2", "C6H6"])],
+    "spirtlar": [org(["spirt"], 2)],
+    "spirt-xossa": [org(["spirt"], 2), bal([[["C2H5OH", "O2"], ["CO2", "H2O"]], [["C2H5OH", "Na"], ["C2H5ONa", "H2"]], [["C2H4", "H2O"], ["C2H5OH"]], [["C6H12O6"], ["C2H5OH", "CO2"]]])],
+    "kop-atomli": [lab("cuoh2-glyc"), molar(["C3H5(OH)3", "C2H4(OH)2"])],
+    "fenol": [lab("phenol-fecl3"), molar(["C6H5OH", "C6H2Br3OH"])],
+    "efir-oddiy": [org(["spirt"], 2), molar(["C2H5OC2H5", "CH3OCH3"])],
+    "aldegid": [lab("silver-mirror", "cuoh2-ald"), org(["aldegid"], 2)],
+    "keton": [org(["aldegid"], 3), molar(["CH3COCH3", "C2H5COCH3"])],
+    "karbon-kislota": [org(["kislota"], 2), lab("soda-vinegar", "ester"), ph],
+    "murakkab-efir": [lab("ester"), molar(["CH3COOC2H5", "HCOOCH3", "CH3COOC5H11"])],
+    "yoglar": [lab("saponif", "soap-hard", "br2-c2h4"), comp("food")],
+    "monosaxarid": [lab("cuoh2-gluc", "silver-mirror"), molar(["C6H12O6", "C5H10O5"])],
+    "disaxarid": [lab("cuoh2-gluc"), molar(["C12H22O11", "C6H12O6"])],
+    "polisaxarid": [lab("starch-i2"), molar(["C6H10O5", "C6H12O6"])],
+    "tola": [lab("xanto", "biuret")],
+    "sifat-org": [lab1("🧪 Organik moddalarni sifat reaksiyalari bilan aniqlash", "br2-c2h4", "kmno4-c2h4", "silver-mirror", "cuoh2-ald", "cuoh2-glyc", "phenol-fecl3", "starch-i2", "biuret")],
+    "org-sanoat": [org(null, 2), RATE],
+    "org-chiqindi": [comp("air"), ph],
+    // ======================= 11-sinf =======================
+    "atom11": [atom(26), P],
+    "davriy11": [P],
+    "yadro11": [decay, atom(19)],
+    "boglanish11": [BOND, CRY],
+    "mol11": [molar(null, { m: 100 })],
+    "avogadro11": [GAS],
+    "ekvivalent11": [molar(["H2SO4", "Al2(SO4)3", "KMnO4", "Ca(OH)2"])],
+    "klapeyron": [GAS],
+    "elektrolit11": [COND, SORT_ELY],
+    "ionli11": [lab("agcl", "baso4", "cuoh2", "na2co3-hcl", "neutral", "nh4-naoh")],
+    "gidroliz11": [phSalt],
+    "eritma": [sol(0), ST],
+    "eruvchanlik": [sol(0), sep("distill")],
+    "foiz": [sol(0)],
+    "foiz-zichlik": [sol(1)],
+    "molyar": [sol(0)],
+    "normal": [sol(0)],
+    "konv-molyar": [sol(0)],
+    "konv-normal": [sol(0)],
+    "eritma-tayyorlash": [sol(0), sol(2), EQUIP],
+    "tezlik11": [RATE],
+    "tezlik-omil": [RATE, lab("h2o2-mno2", "h2o2-only")],
+    "muvozanat11": [EQ],
+    "muvozanat-omil": [EQ],
+    "yarim-reaksiya": [lab("kmno4-acid", "kmno4-neut", "kmno4-base", "cr2o7"), bal(REDOX)],
+    "muhit-okq": [lab1("🧪 KMnO₄ ning turli muhitda qaytarilishi", "kmno4-acid", "kmno4-neut", "kmno4-base")],
+    "okq-ekv": [OX("KMnO4"), molar(["KMnO4", "K2Cr2O7", "H2O2"])],
+    "elektroliz11": [ELY],
+    "faradey": [ELY],
+    "elektroliz-tahlil": [ELY],
+  };
+
+  // Mavzularga biriktirish: mavzuning o'z demolari bo'lsa — ular saqlanadi, kimyo tajribalari qo'shiladi
+  for (const cls of window.AMALIY.classes) for (const sub of cls.subjects) {
+    if (sub.id !== "kimyo") continue;
+    for (const t of sub.topics) { const d = MAP[t.id]; if (d) t.demos = (t.demos || []).concat(d); }
+  }
+  window.KIMYO_LAB_MAP = MAP;
+})();
