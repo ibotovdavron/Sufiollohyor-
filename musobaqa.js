@@ -170,8 +170,14 @@
     const rest = list.filter((p) => p.total == null);
     if (!list.length) return `<p class="tn-empty">Bu sinfda ishtirokchi yo‘q.</p>`;
     const totals = [...new Set(done.map((p) => p.total))]; // bir xil ball — bir xil o'rin
+    // fanlar bo'yicha eng yuqori natijalar (har bir fanda top-3 ball, teng ball olganlar birga)
+    const best = SUBJ.map(([k, t, ic, mx]) => {
+      const sc = [...new Set(done.map((p) => p[k]).filter((v) => v != null))].sort((a, b) => b - a).slice(0, 3);
+      const tops = sc.map((v, i) => ({ v, i, names: done.filter((p) => p[k] === v).map((p) => p.name) }));
+      return `<div class="sm-best-c"><div class="sm-best-h"><span>${ic}</span><b>${t}</b></div>${tops.map(({ v, i, names }) => `<div class="sm-best-r r${i}"><em>${["🥇", "🥈", "🥉"][i]}</em><span>${(names.length > 4 ? names.filter((n, j) => j < 4 || (my && n === my.name)) : names).map((n) => `<b class="${my && n === my.name ? "me" : ""}">${esc(n)}</b>`).join(", ")}${names.length > 4 ? ` <small>va yana ${names.length - names.filter((n, j) => j < 4 || (my && n === my.name)).length} kishi</small>` : ""}</span><i>${v}/${mx}</i></div>`).join("") || `<div class="tn-empty">—</div>`}</div>`;
+    }).join("");
     const anyStar = st.players.some((p) => p.stars > 0);
-    return `${anyStar ? "" : `<div class="sm-banner">⭐ Bu safar hech kim B+ va undan yuqori daraja olmadi — <b>yulduzcha yutuqlari berilmadi</b>. Keyingi musobaqada omad!</div>`}<div class="sm-res">
+    return `${anyStar ? "" : `<div class="sm-banner">⭐ Bu safar hech kim B+ va undan yuqori daraja olmadi — <b>yulduzcha yutuqlari berilmadi</b>. Keyingi musobaqada omad!</div>`}<div class="sm-best"><div class="sm-best-t">🏆 Fanlar bo‘yicha eng yaxshilar</div><div class="sm-best-g">${best}</div></div><div class="sm-res">
       <div class="sm-rh"><span>#</span><span>Ishtirokchi</span><span>Jami</span><span>Daraja</span></div>
       ${done.map((p) => { const rk = totals.indexOf(p.total) + 1; return `<div class="sm-r ${my && p.name === my.name ? "me" : ""}"><span>${["🥇", "🥈", "🥉"][rk - 1] || rk}</span><span class="nm">${esc(p.name)}${p.guest ? " 👤" : ""}<small class="sc">${SUBJ.map(([k, t, ic]) => `<i title="${t}">${ic} ${p[k] ?? "—"}</i>`).join("")}</small></span><span><b>${p.total}</b><small class="of">/50</small></span><span><i class="sm-lv lv-${String(p.level).replace("+", "p")}">${esc(p.level)}</i>${p.stars ? `<small>+${p.stars}⭐</small>` : `<small class="sm-nostar">yulduzcha yo‘q</small>`}</span></div>`; }).join("")}
       ${rest.map((p) => `<div class="sm-r off"><span>—</span><span class="nm">${esc(p.name)}</span><span class="sm-na">qatnashmadi</span></div>`).join("")}
