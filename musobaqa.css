@@ -67,3 +67,6 @@
   .sm-s { grid-template-columns: repeat(4, minmax(0, 1fr)) 64px 40px; min-width: 0; padding: 6px; }
   .sm-s .nm { grid-column: 1 / -1; white-space: normal; }
 }
+.sm-banner { margin: 0 0 10px; padding: 10px 14px; border-radius: 14px; background: rgba(250, 204, 21, .1); border: 1px solid rgba(250, 204, 21, .35); color: #fde68a; font-size: .92rem; line-height: 1.5; }
+.sm-r small.sm-nostar { color: #9fb3d6; font-weight: 600; white-space: nowrap; font-size: 10px; }
+.sm-nowin { display: block; margin-top: 4px; color: #fde68a; }

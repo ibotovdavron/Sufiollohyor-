@@ -1,6 +1,6 @@
 -- “So‘fi Ollohyor musobaqasi” — oflayn test (5, 6, 7-sinflar):
 -- 15 matematika + 15 ona tili + 15 ingliz tili + 5 IQ = 50 ball.
--- Darajalar: A+ (45+), A (40+), B+ (35+), B (30+), C+ (25+), C. Yulduzlar: A+ 100, A 70, B+ 50.
+-- Darajalar: A+ (45+), A (40+), B+ (35+), B (30+), C+ (22+), C. Yulduzlar: A+ 100, A 70, B+ 50.
 -- Supabase → SQL Editor → New query → hammasini joylab “Run” bosing. Qayta ishga tushirish xavfsiz.
 
 create extension if not exists pgcrypto with schema extensions;
@@ -49,7 +49,7 @@ $$;
 create or replace function public.sm_level(t int) returns text
 language sql immutable as $$
   select case when t is null then null when t >= 45 then 'A+' when t >= 40 then 'A' when t >= 35 then 'B+'
-              when t >= 30 then 'B' when t >= 25 then 'C+' else 'C' end;
+              when t >= 30 then 'B' when t >= 22 then 'C+' else 'C' end;
 $$;
 
 -- Yulduzlar teacher_stars jadvaliga yoziladi — 100 ⭐ sig'ishi uchun cheklovni kengaytiramiz

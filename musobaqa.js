@@ -9,7 +9,7 @@
   const short = (n) => { const p = String(n || "").split(" "); return p[1] || p[0] || ""; };
   const D = () => window.CENTER_DATA || {};
   const SUBJ = [["math", "Matematika", "➗", 15], ["ona", "Ona tili", "📖", 15], ["eng", "Ingliz tili", "🇬🇧", 15], ["iq", "IQ test", "🧠", 5]];
-  const LEVELS = [["A+", 45, 100], ["A", 40, 70], ["B+", 35, 50], ["B", 30, 0], ["C+", 25, 0], ["C", 0, 0]];
+  const LEVELS = [["A+", 45, 100], ["A", 40, 70], ["B+", 35, 50], ["B", 30, 0], ["C+", 22, 0], ["C", 0, 0]];
   const level = (t) => (t == null ? null : LEVELS.find(([, min]) => t >= min)[0]);
   const starsOf = (lv) => (LEVELS.find(([l]) => l === lv) || [0, 0, 0])[2];
   const CLASSES = [5, 6, 7];
@@ -137,7 +137,7 @@
           <div class="sm-nost"><em>B · C+ · C</em><small>yulduzsiz</small></div>
         </div>
 
-        ${ev.status === "reg" ? regHTML(my, players) : my ? `<div class="tn-mine">✅ <b>${esc(my.name)}</b> — ${my.cls}-sinf, ro‘yxatda bor.${done && my.level ? ` Darajangiz: <b>${esc(my.level)}</b>${my.stars ? ` · +${my.stars} ⭐` : ""}` : ""}</div>` : ""}
+        ${ev.status === "reg" ? regHTML(my, players) : my ? `<div class="tn-mine">✅ <b>${esc(my.name)}</b> — ${my.cls}-sinf, ro‘yxatda bor.${done && my.level ? ` Darajangiz: <b>${esc(my.level)}</b>${my.stars ? ` · +${my.stars} ⭐` : `. <span class="sm-nowin">Afsus, bu safar yulduzcha yuta olmadingiz — keyingi musobaqada omad! 💪</span>`}` : ""}</div>` : ""}
 
         <div class="sm-tabs">${CLASSES.map((c) => `<button type="button" data-tab="${c}" class="${c === tab ? "on" : ""}">${c}-sinf <small>${byCls(c).length}</small></button>`).join("")}</div>
         ${done ? resultsHTML(byCls(tab), my) : `<div class="tn-list">${byCls(tab).length ? byCls(tab).map((p, i) => `<div class="tn-pl ${my && p.name === my.name ? "me" : ""}"><span class="n">${i + 1}</span><span class="nm">${esc(p.name)}</span><span class="c">${p.guest ? "👤 mehmon" : ""}</span></div>`).join("") : `<p class="tn-empty">${tab}-sinfdan hali hech kim yozilmadi — birinchi bo‘ling! 🚀</p>`}</div>`}
@@ -169,9 +169,11 @@
     const done = list.filter((p) => p.total != null).sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
     const rest = list.filter((p) => p.total == null);
     if (!list.length) return `<p class="tn-empty">Bu sinfda ishtirokchi yo‘q.</p>`;
-    return `<div class="sm-res">
+    const totals = [...new Set(done.map((p) => p.total))]; // bir xil ball — bir xil o'rin
+    const anyStar = st.players.some((p) => p.stars > 0);
+    return `${anyStar ? "" : `<div class="sm-banner">⭐ Bu safar hech kim B+ va undan yuqori daraja olmadi — <b>yulduzcha yutuqlari berilmadi</b>. Keyingi musobaqada omad!</div>`}<div class="sm-res">
       <div class="sm-rh"><span>#</span><span>Ishtirokchi</span><span>Jami</span><span>Daraja</span></div>
-      ${done.map((p, i) => `<div class="sm-r ${my && p.name === my.name ? "me" : ""}"><span>${["🥇", "🥈", "🥉"][i] || i + 1}</span><span class="nm">${esc(p.name)}${p.guest ? " 👤" : ""}<small class="sc">${SUBJ.map(([k, t, ic]) => `<i title="${t}">${ic} ${p[k] ?? "—"}</i>`).join("")}</small></span><span><b>${p.total}</b><small class="of">/50</small></span><span><i class="sm-lv lv-${String(p.level).replace("+", "p")}">${esc(p.level)}</i>${p.stars ? `<small>+${p.stars}⭐</small>` : ""}</span></div>`).join("")}
+      ${done.map((p) => { const rk = totals.indexOf(p.total) + 1; return `<div class="sm-r ${my && p.name === my.name ? "me" : ""}"><span>${["🥇", "🥈", "🥉"][rk - 1] || rk}</span><span class="nm">${esc(p.name)}${p.guest ? " 👤" : ""}<small class="sc">${SUBJ.map(([k, t, ic]) => `<i title="${t}">${ic} ${p[k] ?? "—"}</i>`).join("")}</small></span><span><b>${p.total}</b><small class="of">/50</small></span><span><i class="sm-lv lv-${String(p.level).replace("+", "p")}">${esc(p.level)}</i>${p.stars ? `<small>+${p.stars}⭐</small>` : `<small class="sm-nostar">yulduzcha yo‘q</small>`}</span></div>`; }).join("")}
       ${rest.map((p) => `<div class="sm-r off"><span>—</span><span class="nm">${esc(p.name)}</span><span class="sm-na">qatnashmadi</span></div>`).join("")}
     </div>`;
   }
@@ -201,7 +203,7 @@
           </div>
           ${players.length ? `<div class="tn-adm-row"><select data-a="rm">${players.map((p) => `<option value="${esc(p.name)}">${esc(p.name)} (${p.cls}-sinf)</option>`).join("")}</select><button type="button" data-sm="remove">🗑 Ro‘yxatdan o‘chirish</button></div>` : ""}
           <div class="tn-adm-row"><button type="button" class="go" data-sm="finish">🏁 Natijalarni e’lon qilish va yulduzlarni berish</button></div>` : ""}
-        <p class="tn-hint">Darajalar: A+ — 45–50, A — 40–44, B+ — 35–39, B — 30–34, C+ — 25–29, C — 0–24 ball. Yulduzlar faqat “Natijalarni e’lon qilish” bosilganda, bir marta beriladi.</p>
+        <p class="tn-hint">Darajalar: A+ — 45–50, A — 40–44, B+ — 35–39, B — 30–34, C+ — 22–29, C — 0–21 ball. Yulduzlar faqat “Natijalarni e’lon qilish” bosilganda, bir marta beriladi.</p>
         <div class="tn-msg" data-a="msg"></div>
       </div></details>`;
   }
