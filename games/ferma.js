@@ -14,7 +14,7 @@
   const short = (n) => { const p = String(n || "").split(" "); return p[1] || p[0] || ""; };
   const sum = (n) => Math.round(n).toLocaleString("ru-RU").replace(/,/g, " ") + " so‘m";
   const isGuest = (p) => !!p && (p.role === "guest" || p.cls === "Mehmon");
-  const LEVEL = { "5-sinf": 1, "6-sinf": 2, "6-A sinf": 2, "8-sinf": 3, "Ustoz": 3, "Mehmon": 2 };
+  const LEVEL = { "5-sinf": 1, "5-A sinf": 1, "6-sinf": 2, "6-A sinf": 2, "8-sinf": 3, "Ustoz": 3, "Mehmon": 2 };
 
   // ---------- O'yin qoidalari ----------
   const START_MONEY = 100000;

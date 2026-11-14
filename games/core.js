@@ -11,7 +11,7 @@
   const TEACHER_TAB = "Ustoz";
   const CLASSES = [...new Set(STUDENTS.map((s) => s.cls))].sort((a, b) => parseInt(a) - parseInt(b)).concat(TEACHERS.length ? [TEACHER_TAB] : []);
   const PEOPLE = STUDENTS.concat(TEACHERS);
-  const LEVEL = { "5-sinf": 1, "6-sinf": 2, "6-A sinf": 2, "7-sinf": 2, "8-sinf": 3, "Ustoz": 3, "Mehmon": 2 };
+  const LEVEL = { "5-sinf": 1, "5-A sinf": 1, "6-sinf": 2, "6-A sinf": 2, "7-sinf": 2, "8-sinf": 3, "Ustoz": 3, "Mehmon": 2 };
   // Mehmonlar: ro'yxatda yo'q, parolsiz kiradi, o'ynaydi, lekin yulduz/reyting olmaydi.
   const GUEST_CLS = "Mehmon";
   const GUEST_TAB = "Mehmon";
