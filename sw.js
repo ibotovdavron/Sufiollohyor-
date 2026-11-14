@@ -1,7 +1,7 @@
 /* So‘fi Ollohyor ilovasi: oflayn ishlash uchun kesh.
    Sahifalar — avval internetdan (yangi bo‘lsin), bo‘lmasa keshdan.
    Rasm, CSS, JS — keshdan tez beriladi va orqada yangilanadi. */
-const CACHE = "sofi-v66";
+const CACHE = "sofi-v67";
 const CORE = [
   "./", "index.html", "kurslar.html", "competitions.html", "jadidlar.html", "ranking.html",
   "games.html", "shop.html", "amaliy.html", "contact.html",

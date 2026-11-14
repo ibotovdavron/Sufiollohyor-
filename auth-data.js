@@ -76,21 +76,5 @@ window.SOFI_PW = {
  "Qudratova Munisaxon": "ff4310c9e52532b637eeda7d16778c3fe30061cc620848921a748d3608faca85",
  "Saidmurodov Nurmuhammad": "5526b119f006db9dafcc46828b01409fd1c94a8ab534263e692c2745cd66c593",
  "Sattarov Bekzod": "af6e9c5fe2485f8eeb034beadac2035421af0fb3c512f1b4fcc6bfad5d2f588c",
- "Xoliqova Jasmina": "c2be7f70505a5fe8f64c81d862feda5c495b0e13781ed98891e2e462525d5886",
- "Abdullayev Behruzbek": "01884721fb14f159f5d6dfd9dd2a9230e6d1a664a2a225ad8745797b71edcb89",
- "Abdullayeva Kumushbibi": "4d49e9c81e2c392a00ebca5dbba4d82f2c5358d1886785b861b4ddbf6aa4df5b",
- "Jumanazarov Elnur": "fe62769f20a4df833673c431f0cd7396a93149f3bd624b675da92a80a18fffb0",
- "Karamatova Muslima": "54b0741155ae2f9d0da66741fcc71b199d57694245737a820f8889c4ffda6b20",
- "Mamataliyeva Munisa": "410dcd74ff6279aafb52fed1813d18b61d05241082c67bc1b9011dafe81d5322",
- "Mamataliyeva Ziyoda": "9a6281be0cefa369284b0e9e12f8b5b1bafef9cb42f23f47254406d4ac04048d",
- "Musurmonov Islombek": "468567b517a1ccd9c9d5997ec0bf412503df60a8ea30c09e87f48eae61b775af",
- "Muzaffarova Shabnam": "8b9cc551ae526815856cfa493bbded3a5208b834ff34f7b09acf8de663668d7e",
- "Nasimova Basida": "ad4a6e867ec0f606e24616c717ee383bb59eb316471e1b8a333b47c43031beb3",
- "Normuratova Nodirabegim": "1aabb962ba90d05807c5bbc56863f616c36536c1bd0c63b757f6ac2aeee4a4ba",
- "Nortoshov Og‘abek": "fbe7e0a61265e5c2935181a6b606fd23c6b2d43b0afeca8658787b2ccb58dba4",
- "Nusratillayeva Xulkar": "2858ad8e51e6338bb73e67bc60984d7ca69d192ac294f84db58f9a1fab3dabd7",
- "Toshboyev Farxodjon": "602ee143ca77b98f39c473c6d8d5bda0cf5ca07447df44169c698de90af732d5",
- "Toshboyev Toshtemir": "0f0809caa0dbb080a6cce8c6e3b80dacca26916cab923ad2ed2d487b69f465f6",
- "Xursanov Islombek": "20f7ad241b3a969dcac29ec85ec1c35be88e52cdd401a929c1aa0325a558c241",
- "Choriyeva Mohinur": "5e5a90696dbf607603cd1954e053b6923e28b99e2555e8dd877b011399d795d4"
+ "Xoliqova Jasmina": "c2be7f70505a5fe8f64c81d862feda5c495b0e13781ed98891e2e462525d5886"
 };
