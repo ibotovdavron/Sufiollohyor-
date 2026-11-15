@@ -1,0 +1,22 @@
+/* Ish qurollari: 3D ko'ruvchi, figuralar, hayotdagi misollar, grafiklar */
+.qv-wrap { position: relative; width: 100%; max-width: 440px; }
+.qv-canvas { display: block; width: 100%; height: auto; border-radius: 16px; background: radial-gradient(circle at 50% 40%, rgba(255, 255, 255, .07), transparent 70%); cursor: grab; }
+.qv-canvas:active { cursor: grabbing; }
+.qv-hint { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); padding: 4px 10px; border-radius: 999px; background: rgba(0, 0, 0, .55); color: #fff; font-size: 12px; white-space: nowrap; pointer-events: none; transition: opacity .5s; }
+.qf-svg, .qp-svg { width: 100%; max-width: 420px; height: auto; color: var(--white); }
+.qf-l { font: 800 13px system-ui, sans-serif; paint-order: stroke; stroke: rgba(0, 0, 0, .65); stroke-width: 3px; }
+.qp-t { font: 700 11px system-ui, sans-serif; }
+.qr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; width: 100%; }
+.qr-it { display: grid; justify-items: center; gap: 4px; padding: 12px 6px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255, 255, 255, .04); color: var(--white); font: inherit; font-size: .82rem; cursor: pointer; animation: qrIn .5s both; animation-delay: var(--d); transition: transform .2s, border-color .2s; }
+.qr-it:hover { transform: translateY(-3px); }
+.qr-it.on { border-color: var(--green); background: color-mix(in srgb, var(--green) 14%, transparent); }
+.qr-em { font-size: 2.2rem; line-height: 1; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .35)); }
+@keyframes qrIn { from { opacity: 0; transform: translateY(10px) scale(.95); } }
+.qc-road { position: relative; width: 100%; max-width: 420px; height: 34px; border-radius: 8px; background: repeating-linear-gradient(90deg, #475569 0 22px, #64748b 22px 24px); }
+.qc-car { position: absolute; top: 2px; font-size: 26px; transition: left .08s linear; transform: scaleX(-1); }
+.qc-gauge { width: 160px; color: var(--white); }
+.qb-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+.qb-sheet { width: 150px; }
+.qb-row .qp-svg { flex: 1 1 260px; }
+.qt-tank { width: 110px; color: var(--white); }
+@media (prefers-reduced-motion: reduce) { .qr-it { animation: none; } }
