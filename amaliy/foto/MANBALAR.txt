@@ -1,5 +1,46 @@
 Suratlar manbasi: Wikimedia Commons (commons.wikimedia.org). Fayl — asl nomi · muallif · litsenziya
-- gable.jpg — "Sedlowa_trecha.png" · de:user:Shannon · CC BY-SA 3.0
-- bearing.jpg — "BallBearing.gif" · PlusMinus · CC BY-SA 3.0
+- truss.jpg — "RRTrussBridgeSideView.jpg" · Image by en:User:Leonard G. · Public domain
+- warning.jpg — "-01_Museo_Nazionale_dell'Automobile_di_Torino_segnali_stradali.jpg" · Pava · CC BY-SA 3.0 it
+- chessboard.jpg — "Modern_Fianchetto_Setup._Chess_game_Staunton_No._6.jpg" · Wilfredor · CC0
+- tile.jpg — "Alban_chambon,_decorazione_in_marmo_e_ceramica,_dal_castello_reale_delle_ardenne,_houyet,_1905_ca._02.jpg" · Sailko · CC BY 3.0
+- book.jpg — "Gutenberg_Bible,_Lenox_Copy,_New_York_Public_Library,_2009._Pic_01.jpg" · NYC Wanderer (Kevin Eng) · CC BY-SA 2.0
+- lamp.jpg — "Anglepoise_1227.jpg" · Flickr user "renaissance chambara", cropped by uploader · CC BY 2.0
+- kite.jpg — "Kitesflying.jpg" · Jon Sullivan · Public domain
+- chainlink.jpg — "Centre_Avenue_Bridges;_New_Rochelle,_NY-2.jpg" · DanTD · CC BY-SA 4.0
+- dam.jpg — "Takato_Dam.jpg" · Wiki Commons users Qurren at https://commons.wikimedia.org/w · CC BY-SA 3.0
+- bucket.jpg — "Gotland-Bottarve_Museumshof_07.jpg" · Wolfgang Sauber · CC BY-SA 3.0
+- wheel.jpg — "Bicycle_wheel.jpg" · Dhodges at English Wikipedia · CC BY-SA 3.0
+- clock.jpg — "Braun_ABW41_(silber).jpg" · Phrontis · CC BY-SA 3.0
+- coin.jpg — "Kiloware.JPG" · Michael Sander · CC BY-SA 4.0
+- pizza.jpg — "Pizza-3007395.jpg" · igorovsyannykov · CC0
+- honeycomb.jpg — "Honey_comb.jpg" · Merdal at Turkish Wikipedia · CC BY-SA 3.0
+- football.jpg — "Adidas_Trionda_ball.jpg" · OhanaUnitedTalk page · CC BY-SA 4.0
+- stop.jpg — "STOP_sign.jpg" · Bidgee · CC BY 3.0
+- nut.jpg — "M4_Inbusschraube_focusstacked.jpg" · Afrank99 · CC BY-SA 3.0
+- snowflake.jpg — "Snowflake_(lumehelves).jpg" · Janek Lass · CC BY 4.0
+- dice.jpg — "6sided_dice_(cropped).jpg" · Diacritica · CC BY-SA 3.0
+- rubik.jpg — "Rubiks_cube_solved.jpg" · Mike Gonzalez (TheCoffee) · CC BY-SA 3.0
+- icecube.jpg — "Ice_cubes_openphoto.jpg" · Darren Hester · CC BY-SA 2.5
+- brick.jpg — "Brick.jpg" · Andrewlister · Public domain
+- aquarium.jpg — "Amaterske_akvarium.jpg" · User Aleš Tošovský · Public domain
+- pencil.jpg — "Pencils_hb.jpg" · Original uploader was Dmgerman at en.wikipedia · CC BY 3.0
+- giza.jpg — "Pyramids_of_the_Giza_Necropolis.jpg" · KennyOMG · CC BY-SA 4.0
+- louvre.jpg — "Louvre_Pyramid.jpg" · Hteink.min · CC-BY-SA-3.0
+- can.jpg — "Empty_tin_can2009-01-19.jpg" · Sun Ladder · CC BY-SA 3.0
+- pipe.jpg — "Series_of_tubes_on_top_of_Shibuya_Stream_-89062.jpeg" · Syced · CC0
+- battery.jpg — "AA_matchstick-1.jpg" · Lead holder · CC BY-SA 3.0
+- icecream.jpg — "Strawberry_ice_cream_cone_(5076899310).jpg" · TheCulinaryGeek from Chicago, USA · CC BY 2.0
+- cone.jpg — "Cones.jpg" · Norman Rogers · Public domain
+- volcano.jpg — "View_of_Mount_Fuji_from_Ōwakudani_20211202.jpg" · Suicasmo · CC BY-SA 4.0
+- flowerpot.jpg — ""Meillandine"_Rose_in_clay_pot.jpg" · Arch. Attilio Mileto - attilio.mileto@florero.net · CC BY-SA 3.0
+- lampshade.jpg — "Lampshades.jpg" ·  · CC BY-SA 3.0
+- earth.jpg — "The_Blue_Marble,_AS17-148-22727.jpg" · Harrison Schmitt / Apollo 17 · Public domain
+- bubble.jpg — "Reflection_in_a_soap_bubble_edit.jpg" · Brocken Inaglory. The image was edited by user:Alvesgaspar · CC BY-SA 3.0
+- watermelon.jpg — "Taiwan_2009_Tainan_City_Organic_Farm_Watermelon_FRD_7962.jpg" · Fred Hsu (Wikipedia:User:Fred Hsu on en.wikipedia) · CC BY-SA 3.0
+- speedometer.jpg — "Toyota_Corolla_2016_speedometer.jpg" · Kskhh · CC BY-SA 4.0
+- rocket.jpg — "Soyuz_TMA-9_launch.jpg" · Bill Ingalls · Public domain
+- emeter.jpg — "Yipwm_1b_(7691592010).jpg" · Greg Goebel from Loveland CO, USA · CC BY-SA 2.0
 - wmeter.jpg — "Water_meter_2006.jpg" ·  · CC BY 2.5
-- taximeter.jpg — "North_American_taximeter_(cropped).png" · Ratfor · CC BY 4.0
+- potter.jpg — "Töpferscheibe.jpg" · Oliver Kurmis · Public domain
+- barrel.jpg — "Oak-wine-barrel-at-toneleria-nacional-chile.jpg" · Gerard Prins · CC BY-SA 3.0
+- solar.jpg — "Dji_fly_20230602_13826_PM_27_1719032149374_photo_optimized.jpg" · Wikipedeon · CC BY-SA 4.0
