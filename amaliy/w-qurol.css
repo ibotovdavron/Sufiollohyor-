@@ -19,4 +19,10 @@
 .qb-sheet { width: 150px; }
 .qb-row .qp-svg { flex: 1 1 260px; }
 .qt-tank { width: 110px; color: var(--white); }
+.qr-it.has-ph { padding: 0 0 8px; overflow: hidden; }
+.qr-ph { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; background: rgba(255, 255, 255, .06); }
+.qr-it.has-ph b { padding: 0 6px; }
+.qr-fig { margin: 0 0 10px; }
+.qr-fig img { display: block; width: 100%; max-width: 440px; max-height: 320px; object-fit: cover; border-radius: 14px; }
+.qr-fig figcaption { margin-top: 4px; font-size: 11px; color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { .qr-it { animation: none; } }

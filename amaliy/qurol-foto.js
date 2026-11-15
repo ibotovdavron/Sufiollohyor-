@@ -1,0 +1,1 @@
+window.QUROL_FOTO = {};

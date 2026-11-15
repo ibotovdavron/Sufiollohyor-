@@ -242,9 +242,16 @@
   W.reallife = (root, p) => {
     const { stage, out } = frame(root, p.title || "🌍 Hayotda qayerda uchraydi? — rasmni bosing");
     const grid = h("div", { class: "qr-grid" });
+    const FOTO = window.QUROL_FOTO || {};
     p.items.forEach(([em, t, d], i) => {
-      const b = h("button", { type: "button", class: "qr-it", style: `--d:${i * 50}ms` }, h("span", { class: "qr-em" }, em), h("b", {}, t));
-      b.onclick = () => { grid.querySelectorAll(".on").forEach((x) => x.classList.remove("on")); b.classList.add("on"); out.innerHTML = `<b>${em} ${t}</b> — ${d}`; };
+      const ph = FOTO[t];
+      const pic = ph ? h("img", { class: "qr-ph", src: "amaliy/foto/" + ph[0], alt: t, loading: "lazy" }) : h("span", { class: "qr-em" }, em);
+      if (ph) pic.onerror = () => pic.replaceWith(h("span", { class: "qr-em" }, em));
+      const b = h("button", { type: "button", class: "qr-it" + (ph ? " has-ph" : ""), style: `--d:${i * 50}ms` }, pic, h("b", {}, t));
+      b.onclick = () => {
+        grid.querySelectorAll(".on").forEach((x) => x.classList.remove("on")); b.classList.add("on");
+        out.innerHTML = `${ph ? `<figure class="qr-fig"><img src="amaliy/foto/${ph[0]}" alt=""><figcaption>Surat: ${ph[1].replace(/[<>&]/g, "")} · Wikimedia Commons</figcaption></figure>` : ""}<b>${em} ${t}</b> — ${d}`;
+      };
       grid.append(b);
     });
     stage.append(grid);
