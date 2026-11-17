@@ -166,7 +166,7 @@
 .zk-qcard::before { content: ""; position: absolute; inset: -2px; background: linear-gradient(110deg, transparent 40%, rgba(253, 230, 138, .18) 50%, transparent 60%); transform: translateX(-100%); animation: zkSweep 4s ease-in-out infinite; pointer-events: none; }
 @keyframes zkSweep { 50%, 100% { transform: translateX(100%); } }
 @keyframes zkCardIn { from { opacity: 0; transform: perspective(900px) rotateX(18deg) translateY(30px) scale(.95); } }
-.zk-q { position: relative; margin: 0; font-size: clamp(19px, 3.2vw, 28px); line-height: 1.5; font-weight: 700; color: #fff; min-height: 3em; }
+.zk-q { white-space: pre-line; position: relative; margin: 0; font-size: clamp(19px, 3.2vw, 28px); line-height: 1.5; font-weight: 700; color: #fff; min-height: 3em; }
 .zk-q.typing::after { content: "▍"; color: var(--gold); animation: zkBlink .7s steps(1) infinite; }
 @keyframes zkBlink { 50% { opacity: 0; } }
 
