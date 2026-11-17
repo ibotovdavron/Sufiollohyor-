@@ -1,0 +1,20 @@
+/* Fizika va astronomiya jonli tajribalari */
+.fz-canvas { width: 100%; max-width: 440px; height: auto; display: block; touch-action: pan-y; }
+.fz-plot, .fz-svg { width: 100%; max-width: 440px; height: auto; color: var(--white); }
+.fz-svg text { fill: currentColor; }
+.fz-t { font: 700 11px system-ui, sans-serif; }
+.fz-units { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; width: 100%; }
+.fz-units button { display: grid; gap: 2px; padding: 10px 6px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255, 255, 255, .04); color: var(--white); font: inherit; cursor: pointer; }
+.fz-units button.on { border-color: var(--green); background: color-mix(in srgb, var(--green) 15%, transparent); }
+.fz-units b { font-size: 1rem; word-break: break-all; } .fz-units small { color: var(--muted); }
+.fz-road { position: relative; width: 100%; max-width: 440px; height: 56px; border-radius: 10px; background: repeating-linear-gradient(90deg, #475569 0 26px, #64748b 26px 28px); }
+.fz-car { position: absolute; left: 0; font-size: 24px; transform: scaleX(-1); transition: left .05s linear; }
+.fz-car.a { top: 0; } .fz-car.b { top: 26px; }
+.fz-capcmp { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 440px; }
+.fz-capcmp div { display: grid; gap: 4px; padding: 14px; border-radius: 14px; background: rgba(255, 255, 255, .05); border: 1px solid var(--line); text-align: center; }
+.fz-capcmp em { font-style: normal; font-size: 1.4rem; font-weight: 900; color: var(--green); } .fz-capcmp span { color: var(--muted); font-size: .85rem; }
+.fz-fuel { display: grid; gap: 6px; width: 100%; max-width: 440px; }
+.fz-fuel div { display: grid; grid-template-columns: 110px 1fr 90px; align-items: center; gap: 8px; font-size: .88rem; padding: 4px 6px; border-radius: 8px; }
+.fz-fuel div.on { background: rgba(250, 204, 21, .12); }
+.fz-fuel i { display: block; height: 12px; border-radius: 6px; background: linear-gradient(90deg, #f97316, #ef4444); }
+.fz-star { width: 120px; height: 120px; margin: 0 auto; border-radius: 50%; filter: blur(.5px); transition: background .3s; }
