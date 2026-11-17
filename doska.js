@@ -8,6 +8,12 @@
   const $ = (id) => document.getElementById(id);
   const qs = new URLSearchParams(location.search);
   const LOCAL = qs.get("net") === "local";
+  // Kamera faqat xavfsiz (https) sahifada ishlaydi — http bilan ochilsa, https ga o'tamiz
+  if (location.protocol === "http:" && !/^(localhost|127\.|192\.168\.|10\.)/.test(location.hostname)) {
+    const to = "https://" + location.host + location.pathname + location.search + location.hash;
+    // https haqiqatan ochilishini tekshirib, keyin o'tamiz (sertifikat bo'lmasa sahifa buzilmasin)
+    fetch("https://" + location.host + "/doska.css", { mode: "no-cors", cache: "no-store" }).then(() => location.replace(to)).catch(() => {});
+  }
   if ("serviceWorker" in navigator && location.protocol !== "file:") addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 
   // =====================================================================
@@ -198,10 +204,13 @@
   async function toggleCam() {
     if (localStream) { localStream.getTracks().forEach((t) => t.stop()); localStream = null; setVideo(null, true); return; }
     try {
-      if (!navigator.mediaDevices) throw new Error("Bu brauzerda kamera ishlamaydi (https kerak)");
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { status("📱 Bu doskaning brauzerida kamera yo‘q — telefon kamerasini ulaymiz", 6000); await phoneCam(); mark(); return; }
       localStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
       closePhone(); setVideo(localStream, true); status("📷 Kamera yoqildi. Qo‘l ishoralari uchun “🖐 Ishoralar” ni bosing.");
-    } catch (e) { status("❌ " + (e.name === "NotAllowedError" ? "Kameraga ruxsat berilmadi" : e.message), 6000); }
+    } catch (e) {
+      if (e.name === "NotFoundError" || e.name === "NotReadableError" || e.name === "OverconstrainedError") { status("📱 Doskada kamera topilmadi — telefon kamerasini ulaymiz", 6000); await phoneCam(); mark(); return; }
+      status("❌ " + (e.name === "NotAllowedError" ? "Kameraga ruxsat berilmadi. Brauzer sozlamalaridan ruxsat bering yoki 📱 Telefon tugmasini bosing." : e.message), 7000);
+    }
   }
   function closePhone() { if (pc) { pc.close(); pc = null; } if (room) { room.leave(); room = null; } }
   async function phoneCam() {
@@ -221,7 +230,7 @@
             if (pc && pc.connectionState !== "failed" && pc.connectionState !== "closed") { if (pc.signalingState === "stable" && !pc.remoteDescription) room.send({ t: "ready" }); return; }
             pc = new RTCPeerConnection(ICE);
             pc.onicecandidate = (e) => e.candidate && room.send({ t: "ice", from: "b", c: e.candidate.toJSON() });
-            pc.ontrack = (e) => { if (localStream) { localStream.getTracks().forEach((t) => t.stop()); localStream = null; } setVideo(e.streams[0] || new MediaStream([e.track]), pc._mirror || false); say("✅ Telefon ulandi!"); status("📱 Telefon kamerasi ulandi", 3000); setTimeout(() => (panel.hidden = true), 900); };
+            pc.ontrack = (e) => { if (localStream) { localStream.getTracks().forEach((t) => t.stop()); localStream = null; } setVideo(e.streams[0] || new MediaStream([e.track]), pc._mirror || false); if (S.wantHands && !S.hands) { S.hands = true; mark(); initHands(); } say("✅ Telefon ulandi!"); status("📱 Telefon kamerasi ulandi", 3000); setTimeout(() => (panel.hidden = true), 900); };
             pc.onconnectionstatechange = () => { if (pc && ["failed", "disconnected", "closed"].includes(pc.connectionState)) status("⚠️ Telefon bilan aloqa uzildi", 5000); };
             room.send({ t: "ready" }); say("📶 Telefon topildi, ulanmoqda…");
           } else if (m.t === "offer" && pc && !pc.remoteDescription) { pc._mirror = !!m.mirror; await pc.setRemoteDescription({ type: "offer", sdp: m.sdp }); await flushIce(pc); const a = await pc.createAnswer(); await pc.setLocalDescription(a); room.send({ t: "answer", sdp: a.sdp }); }
@@ -396,7 +405,8 @@
     else if (a === "phone") { if (pc) { closePhone(); setVideo(null, true); status("Telefon uzildi"); } else await phoneCam(); mark(); }
     else if (a === "hands") {
       S.hands = !S.hands; mark();
-      if (S.hands) { if (!video.srcObject) { await toggleCam(); if (!video.srcObject) { S.hands = false; mark(); return; } } await initHands(); }
+      S.wantHands = S.hands;
+      if (S.hands) { if (!video.srcObject) { await toggleCam(); if (!video.srcObject) { S.hands = false; mark(); if (pc || room) status("📱 Telefon ulanishi bilan ishoralar o‘zi yoqiladi", 6000); return; } } await initHands(); }
       else { gh.clearRect(0, 0, W, H); status("Ishoralar o‘chirildi", 1500); }
     }
     else if (a === "mirror") { S.mirror = !S.mirror; root.classList.toggle("mirror", S.mirror); mark(); }
