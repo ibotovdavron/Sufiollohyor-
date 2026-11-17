@@ -376,3 +376,4 @@ b.v { color: #fde047; }
 .am-doska-ic { font-size: 2.2rem; }
 .am-doska b { display: block; font-size: 1.1rem; } .am-doska em { display: block; font-style: normal; font-size: .86rem; color: var(--muted); }
 .am-doska > span:nth-child(2) { flex: 1; min-width: 0; }
+.am-watch { margin-top: -6px; background: linear-gradient(120deg, rgba(248, 113, 113, .18), rgba(99, 102, 241, .14)); border-color: rgba(248, 113, 113, .45); }

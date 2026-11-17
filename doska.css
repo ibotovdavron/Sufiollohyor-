@@ -53,3 +53,20 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b1a14; col
 .dkp video { width: min(420px, 100%); aspect-ratio: 4 / 3; object-fit: cover; border-radius: 16px; background: #000; border: 1px solid rgba(255, 255, 255, .2); }
 .dkp a { color: #86efac; }
 @media (max-width: 600px) { .dk.has-cam:not([data-bg="cam"]) #dkVideo { width: 120px; height: 84px; } }
+
+/* Jonli efir */
+.dk-live { position: absolute; z-index: 9; right: 12px; bottom: calc(14px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; border: 1px solid rgba(248, 113, 113, .55); background: rgba(20, 8, 8, .82); color: #fff; font: 700 13px system-ui, sans-serif; cursor: pointer; }
+.dk-live[hidden] { display: none; }
+.dk-live .red { color: #f87171; animation: dkBlink 1.2s infinite; }
+.dk-live .sep { width: 1px; height: 14px; background: rgba(255, 255, 255, .25); }
+.dk-live i { display: inline-block; width: 40px; height: 6px; border-radius: 3px; background: linear-gradient(90deg, #22c55e calc(var(--l) * 100%), rgba(255, 255, 255, .15) 0); }
+@keyframes dkBlink { 50% { opacity: .35; } }
+.dkl-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.dk-panel button.go.off { background: rgba(255, 255, 255, .12); color: #fff; }
+.dk-panel button.go.rec { background: #f87171; color: #1a0505; }
+.dk-panel button.go.stop { background: #fbbf24; color: #1a1205; }
+.dkp-note { font-size: 13px; }
+.dkw-box { position: relative; width: min(960px, 100%); aspect-ratio: 16 / 9; border-radius: 16px; overflow: hidden; background: #000; border: 1px solid rgba(255, 255, 255, .2); }
+.dkw-box.live { border-color: #f87171; box-shadow: 0 0 0 2px rgba(248, 113, 113, .35); }
+.dkw-box video { width: 100%; height: 100%; object-fit: contain; aspect-ratio: auto; border: 0; border-radius: 0; background: #000; }
+.dkw-box:fullscreen { border-radius: 0; }

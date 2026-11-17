@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b1a14">
   <meta name="description" content="So‘fi Ollohyor — elektron doska: barmoq bilan yozish, jonli kamera va qo‘l ishoralari bilan 3D shakllar">
   <title>Doska | So‘fi Ollohyor</title>
-  <link rel="stylesheet" href="doska.css?v=1">
+  <link rel="stylesheet" href="doska.css?v=2">
 </head>
 <body>
 
@@ -35,6 +35,10 @@
     <button class="dk-b wide" data-act="phone" title="Telefonni kamera qilib ulash">📱 Telefon</button>
     <button class="dk-b wide" data-act="hands" title="Qo‘l ishoralari">🖐 Ishoralar</button>
     <span class="dk-sep"></span>
+    <button class="dk-b wide" data-act="live" title="Jonli efir — o‘quvchilarga ovoz bilan uzatish">📡 Efir</button>
+    <button class="dk-b" data-act="mic" title="Mikrofon (ovoz)">🎙</button>
+    <button class="dk-b" data-act="rec" title="Darsni ovoz bilan video qilib yozib olish">⏺</button>
+    <span class="dk-sep"></span>
     <button class="dk-b" data-act="mirror" title="Ko‘zgu (chap-o‘ng)">↔</button>
     <button class="dk-b" data-act="save" title="Rasm qilib saqlash">💾</button>
     <button class="dk-b" data-act="full" title="To‘liq ekran">⛶</button>
@@ -58,15 +62,27 @@
   <h1>📱 Telefon — doska kamerasi</h1>
   <p>Doskada ko‘rsatilgan 4 xonali kodni kiriting. Telefon kamerasi doskaga jonli uzatiladi.</p>
   <input id="dkpCode" inputmode="numeric" maxlength="4" placeholder="Kod" aria-label="Doska kodi">
-  <div class="dkp-row"><button id="dkpGo">▶ Ulash</button><button id="dkpFlip" class="ghost">🔄 Kamerani almashtirish</button></div>
+  <div class="dkp-row"><button id="dkpGo">▶ Ulash</button><button id="dkpFlip" class="ghost">🔄 Kamerani almashtirish</button><button id="dkpMic">🎙 Ovoz yoqiq</button></div>
+  <p class="dkp-note">🎙 Telefon mikrofoni ustozning ovozini efirga va dars yozuviga uzatadi.</p>
   <div class="dkp-status" id="dkpStatus"></div>
   <video id="dkpVideo" playsinline muted autoplay></video>
   <a href="doska.html">← Doskaga o‘tish</a>
 </div>
 
+<!-- O'quvchi rejimi: jonli darsni ko'rish (doska.html?watch=KOD) -->
+<div class="dkp dkw" id="dkWatch" hidden>
+  <h1>👀 Jonli darsni ko‘rish</h1>
+  <p>Ustoz doskada ko‘rsatgan 4 xonali efir kodini kiriting — doska, ustoz kamerasi va ovozi jonli keladi.</p>
+  <input id="dkwCode" inputmode="numeric" maxlength="4" placeholder="Kod" aria-label="Efir kodi">
+  <div class="dkp-row"><button id="dkwGo">▶ Ko‘rish</button><button id="dkwSound" class="ghost">🔊 Ovozni yoqish</button><button id="dkwFull" class="ghost">⛶ To‘liq ekran</button></div>
+  <div class="dkp-status" id="dkwStatus"></div>
+  <div class="dkw-box" id="dkwBox"><video id="dkwVideo" playsinline autoplay muted></video></div>
+  <a href="amaliy.html">← Amaliy darslar</a>
+</div>
+
 <script src="lib/supabase.js"></script>
 <script src="config.js"></script>
 <script src="lib/three.min.js"></script>
-<script src="doska.js?v=5"></script>
+<script src="doska.js?v=6"></script>
 </body>
 </html>

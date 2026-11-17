@@ -236,7 +236,8 @@
         <span class="am-today-t"><small>${esc(tod.c.name)} · ${esc(tod.s_.name)}</small><b>${esc(tod.t.title)}</b><em>${esc(short(tod.t.life, 140))}</em></span>
         <span class="am-today-go">Ochish →</span></a>` : ""}
 
-      <a class="am-doska" href="doska.html"><span class="am-doska-ic">🖊️</span><span><b>Elektron doska</b><em>Barmoq bilan yozing, telefon kamerasini ulang, qo‘l ishoralari bilan 3D shakllar chiqaring</em></span><span class="am-today-go">Ochish →</span></a>
+      <a class="am-doska" href="doska.html"><span class="am-doska-ic">🖊️</span><span><b>Elektron doska</b><em>Barmoq bilan yozing, telefon kamerasini ulang, 3D shakllar chiqaring, ovozli jonli efir va dars yozuvi</em></span><span class="am-today-go">Ochish →</span></a>
+      <a class="am-doska am-watch" href="doska.html?watch="><span class="am-doska-ic">📡</span><span><b>Jonli darsni ko‘rish</b><em>Ustoz doskada efir boshlasa — kodni kiriting, doska, kamera va ovoz jonli keladi</em></span><span class="am-today-go">Kirish →</span></a>
 
       <h2 class="am-step" id="start"><span>1</span> Sinfingizni tanlang</h2>
       <div class="am-grid classes">

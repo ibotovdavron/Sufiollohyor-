@@ -47,14 +47,19 @@
   if (qs.has("cam")) {
     $("dk").hidden = true; $("dk").style.display = "none"; $("dkPhone").hidden = false;
     const codeIn = $("dkpCode"), st = $("dkpStatus"), vid = $("dkpVideo");
-    let facing = "environment", stream = null, pc = null, room = null, helloT = 0;
+    let facing = "environment", stream = null, pc = null, room = null, helloT = 0, micOn = true;
+    const micBtn = () => { const b = $("dkpMic"), a = stream && stream.getAudioTracks()[0]; b.textContent = !a ? "🔇 Mikrofon yo‘q" : micOn ? "🎙 Ovoz yoqiq" : "🔇 Ovoz o‘chiq"; b.classList.toggle("ghost", !a || !micOn); };
     codeIn.value = (qs.get("cam") || "").replace(/\D/g, "").slice(0, 4);
     const say = (t) => (st.textContent = t);
     async function camera() {
       if (stream) stream.getTracks().forEach((t) => t.stop());
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing, width: { ideal: 960 }, height: { ideal: 540 }, frameRate: { ideal: 30, max: 30 } }, audio: false });
-      vid.srcObject = stream;
-      if (pc) { const s = pc.getSenders().find((x) => x.track && x.track.kind === "video"); if (s) await s.replaceTrack(stream.getVideoTracks()[0]); room && room.send({ t: "mirror", v: facing === "user" }); }
+      const vc = { facingMode: facing, width: { ideal: 960 }, height: { ideal: 540 }, frameRate: { ideal: 30, max: 30 } };
+      // ovoz ham uzatiladi (ustozning ovozi efir va yozuvga tushadi); mikrofon bo'lmasa — faqat video
+      try { stream = await navigator.mediaDevices.getUserMedia({ video: vc, audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); }
+      catch (e) { if (e.name === "NotAllowedError" && !/audio|micro/i.test(e.message)) throw e; stream = await navigator.mediaDevices.getUserMedia({ video: vc, audio: false }); }
+      stream.getAudioTracks().forEach((t) => (t.enabled = micOn));
+      vid.srcObject = stream; micBtn();
+      if (pc) { for (const s of pc.getSenders()) { const nt = s.track && stream.getTracks().find((t) => t.kind === s.track.kind); if (nt) await s.replaceTrack(nt); } room && room.send({ t: "mirror", v: facing === "user" }); }
     }
     async function connect() {
       const code = codeIn.value.trim();
@@ -85,8 +90,62 @@
       } catch (e) { say("❌ " + (e.name === "NotAllowedError" ? "Kameraga ruxsat berilmadi" : e.message)); }
     }
     $("dkpGo").onclick = connect;
+    $("dkpMic").onclick = () => { micOn = !micOn; if (stream) stream.getAudioTracks().forEach((t) => (t.enabled = micOn)); micBtn(); };
     $("dkpFlip").onclick = async () => { facing = facing === "user" ? "environment" : "user"; try { await camera(); } catch (e) { say("❌ " + e.message); } };
     window.DOSKA_PHONE = { connect };
+    return;
+  }
+
+  // =====================================================================
+  // O'QUVCHI REJIMI: jonli darsni ko'rish (doska.html?watch=KOD)
+  // =====================================================================
+  if (qs.has("watch")) {
+    $("dk").hidden = true; $("dk").style.display = "none"; $("dkWatch").hidden = false;
+    const codeIn = $("dkwCode"), st = $("dkwStatus"), vid = $("dkwVideo"), snd = $("dkwSound");
+    const id = Math.random().toString(36).slice(2, 10);
+    let pc = null, room = null, helloT = 0;
+    const say = (t) => (st.textContent = t);
+    codeIn.value = (qs.get("watch") || "").replace(/\D/g, "").slice(0, 4);
+    const hello = () => room && room.send({ t: "v-hello", id });
+    const startHello = () => { clearInterval(helloT); hello(); helloT = setInterval(hello, 1200); };
+    async function watch() {
+      const code = codeIn.value.trim();
+      if (!/^\d{4}$/.test(code)) return say("Ustoz bergan 4 xonali kodni kiriting");
+      try {
+        say("⏳ Dars qidirilmoqda…");
+        if (pc) pc.close(); pc = null; if (room) room.leave();
+        room = await joinRoom("e" + code, async (m) => {
+          try {
+            if (m.to && m.to !== id) return;
+            if (m.t === "v-offer" && !pc) {
+              clearInterval(helloT);
+              pc = new RTCPeerConnection(ICE);
+              pc.onicecandidate = (e) => e.candidate && room.send({ t: "v-ice", id, from: "v", c: e.candidate.toJSON() });
+              pc.ontrack = (e) => { vid.srcObject = e.streams[0] || new MediaStream([e.track]); vid.play().catch(() => {}); };
+              pc.onconnectionstatechange = () => {
+                if (!pc) return;
+                if (pc.connectionState === "connected") { say("🔴 Jonli dars"); $("dkwBox").classList.add("live"); }
+                if (["failed", "disconnected"].includes(pc.connectionState)) { say("⚠️ Aloqa uzildi — qayta ulanmoqda…"); pc.close(); pc = null; startHello(); }
+              };
+              await pc.setRemoteDescription({ type: "offer", sdp: m.sdp }); await flushIce(pc);
+              const a = await pc.createAnswer(); await pc.setLocalDescription(a);
+              room.send({ t: "v-answer", id, sdp: a.sdp }); say("📶 Ulanmoqda…");
+            } else if (m.t === "v-ice" && m.from === "b" && pc) await addIce(pc, m.c);
+            else if (m.t === "v-end") { if (pc) pc.close(); pc = null; vid.srcObject = null; $("dkwBox").classList.remove("live"); say("⏹ Ustoz efirni tugatdi"); }
+            else if (m.t === "v-start" && !pc) startHello();
+          } catch (e) { say("Xato: " + e.message); }
+        });
+        startHello();
+        setTimeout(() => { if (!pc) say("⏳ Ustoz efirni boshlashi kutilmoqda… (kod to‘g‘riligini tekshiring)"); }, 6000);
+        try { if (navigator.wakeLock) await navigator.wakeLock.request("screen"); } catch (e) { /* bo'sh */ }
+      } catch (e) { say("❌ " + e.message); }
+    }
+    const sndBtn = () => (snd.textContent = vid.muted ? "🔊 Ovozni yoqish" : "🔈 Ovoz yoqiq");
+    snd.onclick = () => { vid.muted = !vid.muted; vid.play().catch(() => {}); sndBtn(); };
+    $("dkwGo").onclick = () => { vid.muted = false; sndBtn(); watch(); }; // tugma bosilgani uchun brauzer ovozga ruxsat beradi
+    $("dkwFull").onclick = () => { const el = $("dkwBox"); (el.requestFullscreen || el.webkitRequestFullscreen || (() => {})).call(el); };
+    addEventListener("pagehide", () => room && room.send({ t: "v-bye", id }));
+    if (codeIn.value.length === 4) { say("Kirish uchun “▶ Ko‘rish” ni bosing"); }
     return;
   }
 
@@ -236,7 +295,7 @@
       if (S.wantHands && !S.hands) { S.hands = true; mark(); initHands(); }
     } catch (e) { localStream = null; camHelp(e); }
   }
-  function closePhone() { if (pc) { pc.close(); pc = null; } if (room) { room.leave(); room = null; } }
+  function closePhone() { if (pc) { pc.close(); pc = null; } if (room) { room.leave(); room = null; } if (phoneAudio) { phoneAudio = null; liveAudioSrc(); } }
   async function phoneCam() {
     closePhone();
     const code = String(Math.floor(1000 + Math.random() * 9000));
@@ -254,7 +313,7 @@
             if (pc && pc.connectionState !== "failed" && pc.connectionState !== "closed") { if (pc.signalingState === "stable" && !pc.remoteDescription) room.send({ t: "ready" }); return; }
             pc = new RTCPeerConnection(ICE);
             pc.onicecandidate = (e) => e.candidate && room.send({ t: "ice", from: "b", c: e.candidate.toJSON() });
-            pc.ontrack = (e) => { if (localStream) { localStream.getTracks().forEach((t) => t.stop()); localStream = null; } setVideo(e.streams[0] || new MediaStream([e.track]), pc._mirror || false); if (S.wantHands && !S.hands) { S.hands = true; mark(); initHands(); } say("✅ Telefon ulandi!"); status("📱 Telefon kamerasi ulandi", 3000); setTimeout(() => (panel.hidden = true), 900); };
+            pc.ontrack = (e) => { if (e.track.kind === "audio") { phoneAudio = new MediaStream([e.track]); const au = new Audio(); au.muted = true; au.srcObject = phoneAudio; au.play().catch(() => {}); phoneAudio._el = au; liveAudioSrc(); return; } if (localStream) { localStream.getTracks().forEach((t) => t.stop()); localStream = null; } setVideo(e.streams[0] || new MediaStream([e.track]), pc._mirror || false); if (S.wantHands && !S.hands) { S.hands = true; mark(); initHands(); } say("✅ Telefon ulandi!"); status("📱 Telefon kamerasi ulandi", 3000); setTimeout(() => (panel.hidden = true), 900); };
             pc.onconnectionstatechange = () => { if (pc && ["failed", "disconnected", "closed"].includes(pc.connectionState)) status("⚠️ Telefon bilan aloqa uzildi", 5000); };
             room.send({ t: "ready" }); say("📶 Telefon topildi, ulanmoqda…");
           } else if (m.t === "offer" && pc && !pc.remoteDescription) { pc._mirror = !!m.mirror; await pc.setRemoteDescription({ type: "offer", sdp: m.sdp }); await flushIce(pc); const a = await pc.createAnswer(); await pc.setLocalDescription(a); room.send({ t: "answer", sdp: a.sdp }); }
@@ -264,6 +323,160 @@
       });
     } catch (e) { say("❌ " + e.message); }
   }
+
+  // =====================================================================
+  // JONLI EFIR (o'quvchilarga ovozli uzatish) va DARSNI YOZIB OLISH
+  // Doska tasviri (fon + kamera + yozuv + 3D) bitta kanvasga yig'iladi, ovoz — telefon yoki doska mikrofonidan.
+  // =====================================================================
+  let phoneAudio = null;
+  const BGCOL = { board: "#0f3a2c", black: "#0b0d12", white: "#f8fafc", cam: "#000" };
+  const LV = { on: false, room: null, code: "", peers: new Map(), cv: null, cx: null, stream: null, ac: null, gain: null, an: null, lvl: null,
+    mic: false, micStream: null, src: null, srcKind: "", rec: null, chunks: [], recT0: 0, last: 0, badgeT: 0 };
+  const liveSize = () => { const k = Math.min(1, 1280 / Math.max(W, 1)); return [Math.round((W * k) / 2) * 2 || 2, Math.round((H * k) / 2) * 2 || 2]; };
+  function liveInit() {
+    if (LV.stream) return;
+    const cv = document.createElement("canvas"); [cv.width, cv.height] = liveSize();
+    if (!cv.captureStream) throw new Error("Bu brauzer efir/yozishni qo‘llamaydi — Chrome yoki Edge da oching");
+    LV.cv = cv; LV.cx = cv.getContext("2d"); liveDraw(performance.now(), true);
+    const vs = cv.captureStream(24);
+    try { vs.getVideoTracks()[0].contentHint = "detail"; } catch (e) { /* bo'sh */ } // yozuvlar tiniq chiqsin
+    const AC = window.AudioContext || window.webkitAudioContext;
+    LV.ac = new AC(); const dest = LV.ac.createMediaStreamDestination();
+    LV.gain = LV.ac.createGain(); LV.gain.gain.value = 0; LV.gain.connect(dest);
+    LV.an = LV.ac.createAnalyser(); LV.an.fftSize = 256; LV.gain.connect(LV.an); LV.lvl = new Uint8Array(LV.an.fftSize);
+    LV.stream = new MediaStream([vs.getVideoTracks()[0], dest.stream.getAudioTracks()[0]]);
+  }
+  /** Ovoz manbai: telefon ulangan bo'lsa — telefon mikrofoni, aks holda — doska mikrofoni */
+  async function liveAudioSrc() {
+    if (!LV.ac) return;
+    const want = !LV.mic ? "" : phoneAudio ? "phone" : "board";
+    if (want === LV.srcKind) return;
+    if (LV.src) { try { LV.src.disconnect(); } catch (e) { /* bo'sh */ } LV.src = null; }
+    if (LV.micStream) { LV.micStream.getTracks().forEach((t) => t.stop()); LV.micStream = null; }
+    LV.srcKind = want; LV.gain.gain.value = want ? 1 : 0;
+    if (want === "phone") LV.src = LV.ac.createMediaStreamSource(phoneAudio);
+    else if (want === "board") {
+      try { LV.micStream = await getCam({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false }); }
+      catch (e) { LV.mic = false; LV.srcKind = ""; mark(); status("🎙 Mikrofon ochilmadi: " + (e.name === "NotAllowedError" ? "ruxsat berilmadi (🔒 → Mikrofon → Ruxsat)" : e.name === "NotFoundError" ? "doskada mikrofon yo‘q — telefonni ulang" : e.message), 7000); return; }
+      LV.src = LV.ac.createMediaStreamSource(LV.micStream);
+    }
+    if (LV.src) LV.src.connect(LV.gain);
+    LV.ac.resume().catch(() => {});
+    if (want) status(want === "phone" ? "🎙 Ovoz telefon mikrofonidan olinmoqda" : "🎙 Doska mikrofoni yoqildi", 2500);
+  }
+  async function setMic(on) { liveInit(); LV.mic = on; LV.srcKind = on ? "?" : LV.srcKind; if (!on) LV.srcKind = "x"; await liveAudioSrc(); mark(); liveBadge(); }
+  function drawCover(x, w, h, X = 0, Y = 0) {
+    const vw = video.videoWidth, vh = video.videoHeight, k = Math.max(w / vw, h / vh), dw = vw * k, dh = vh * k;
+    x.save(); x.beginPath(); x.rect(X, Y, w, h); x.clip();
+    if (S.mirror) { x.translate(X * 2 + w, 0); x.scale(-1, 1); }
+    x.drawImage(video, X + (w - dw) / 2, Y + (h - dh) / 2, dw, dh); x.restore();
+  }
+  /** Har kadrda (3D chizilgandan so'ng) efir kanvasini yangilash */
+  function liveDraw(t, force) {
+    if (!LV.cv || (!force && !LV.on && !LV.rec)) return;
+    if (!force && t - LV.last < 40) return; LV.last = t;
+    const cv = LV.cv, x = LV.cx, [w, h] = liveSize();
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    x.fillStyle = BGCOL[S.bg] || "#000"; x.fillRect(0, 0, w, h);
+    const vok = video.srcObject && video.videoWidth && video.readyState >= 2;
+    if (vok && S.bg === "cam") drawCover(x, w, h);
+    x.drawImage(cDraw, 0, 0, w, h); x.drawImage(c3d, 0, 0, w, h);
+    if (vok && S.bg !== "cam") { // fon kamera bo'lmasa, ustoz burchakda ko'rinadi
+      const pw = Math.round(w * 0.24), ph = Math.round((pw * 3) / 4), X = w - pw - 12, Y = h - ph - 12;
+      x.fillStyle = "rgba(0,0,0,.5)"; x.fillRect(X - 3, Y - 3, pw + 6, ph + 6); drawCover(x, pw, ph, X, Y);
+    }
+  }
+  function liveLevel() { if (!LV.an || !LV.mic) return 0; LV.an.getByteTimeDomainData(LV.lvl); let m = 0; for (const v of LV.lvl) m = Math.max(m, Math.abs(v - 128)); return Math.min(1, m / 60); }
+  const liveViewers = () => [...LV.peers.values()].filter((p) => p.connectionState === "connected").length;
+  function liveBadge() {
+    let el = $("dkLive"); if (!el) { el = document.createElement("button"); el.id = "dkLive"; el.className = "dk-live"; el.onclick = livePanel; root.append(el); }
+    el.hidden = !LV.on && !LV.rec && !LV.mic;
+    const p = [];
+    if (LV.on) p.push(`<b class="red">● EFIR</b> ${LV.code} · 👥 ${liveViewers()}`);
+    if (LV.rec) { const s = Math.floor((performance.now() - LV.recT0) / 1000); p.push(`<b class="red">⏺</b> ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`); }
+    if (LV.mic) p.push(`🎙<i style="--l:${liveLevel().toFixed(2)}"></i>`);
+    el.innerHTML = p.join('<span class="sep"></span>');
+  }
+  async function liveStart() {
+    liveInit();
+    LV.code = String(Math.floor(1000 + Math.random() * 9000));
+    try { LV.room = await joinRoom("e" + LV.code, liveMsg); } catch (e) { status("❌ Efir boshlanmadi: " + e.message, 6000); return; }
+    LV.on = true; LV.room.send({ t: "v-start" });
+    if (!LV.mic) await setMic(true);
+    mark(); liveBadge(); livePanel();
+  }
+  function liveStop() {
+    if (LV.room) { LV.room.send({ t: "v-end" }); const r = LV.room; setTimeout(() => r.leave(), 400); }
+    LV.peers.forEach((p) => p.close()); LV.peers.clear(); LV.room = null; LV.on = false;
+    if (!LV.rec && LV.mic) setMic(false);
+    mark(); liveBadge(); status("⏹ Efir tugatildi", 2500);
+  }
+  async function liveMsg(m) {
+    try {
+      if (m.t === "v-hello" && m.id) {
+        let p = LV.peers.get(m.id);
+        if (p && !["failed", "closed", "disconnected"].includes(p.connectionState)) return;
+        if (p) p.close();
+        p = new RTCPeerConnection(ICE); LV.peers.set(m.id, p);
+        LV.stream.getTracks().forEach((t) => p.addTrack(t, LV.stream));
+        p.onicecandidate = (e) => e.candidate && LV.room && LV.room.send({ t: "v-ice", to: m.id, from: "b", c: e.candidate.toJSON() });
+        p.onconnectionstatechange = () => {
+          if (p.connectionState === "connected") { // ko'p o'quvchi bo'lsa ham tarmoq yetishi uchun tezlikni cheklaymiz
+            p.getSenders().forEach((s) => { if (s.track && s.track.kind === "video" && s.getParameters) { const pr = s.getParameters(); if (!pr.encodings || !pr.encodings.length) pr.encodings = [{}]; pr.encodings[0].maxBitrate = LV.peers.size > 8 ? 600000 : 1200000; s.setParameters(pr).catch(() => {}); } });
+            status("👤 Yangi o‘quvchi ulandi · jami " + liveViewers(), 2000);
+          }
+          if (["failed", "closed"].includes(p.connectionState) && LV.peers.get(m.id) === p) LV.peers.delete(m.id);
+          refreshLivePanel();
+        };
+        const o = await p.createOffer(); await p.setLocalDescription(o);
+        LV.room.send({ t: "v-offer", to: m.id, sdp: o.sdp });
+      } else if (m.t === "v-answer") { const p = LV.peers.get(m.id); if (p && !p.remoteDescription) { await p.setRemoteDescription({ type: "answer", sdp: m.sdp }); await flushIce(p); } }
+      else if (m.t === "v-ice" && m.from === "v") { const p = LV.peers.get(m.id); if (p) await addIce(p, m.c); }
+      else if (m.t === "v-bye") { const p = LV.peers.get(m.id); if (p) { p.close(); LV.peers.delete(m.id); refreshLivePanel(); } }
+    } catch (e) { /* bitta o'quvchi xatosi efirni to'xtatmasin */ }
+  }
+  async function recToggle() {
+    if (LV.rec) { LV.rec.stop(); return; }
+    try { liveInit(); } catch (e) { status("❌ " + e.message, 6000); return; }
+    if (!window.MediaRecorder) { status("❌ Bu brauzer video yozishni qo‘llamaydi — Chrome yoki Edge da oching", 6000); return; }
+    if (!LV.mic) await setMic(true);
+    const mt = ["video/mp4;codecs=avc1,mp4a", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"].find((t) => MediaRecorder.isTypeSupported(t)) || "";
+    let r; try { r = new MediaRecorder(LV.stream, mt ? { mimeType: mt, videoBitsPerSecond: 2500000 } : undefined); } catch (e) { status("❌ Yozib bo‘lmadi: " + e.message, 6000); return; }
+    LV.chunks = []; r.ondataavailable = (e) => e.data && e.data.size && LV.chunks.push(e.data);
+    r.onstop = () => {
+      const blob = new Blob(LV.chunks, { type: (r.mimeType || "video/webm").split(";")[0] }), ext = /mp4/.test(blob.type) ? "mp4" : "webm";
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "dars-" + new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-") + "." + ext; a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+      LV.rec = null; LV.chunks = []; if (!LV.on && LV.mic) setMic(false); mark(); liveBadge(); refreshLivePanel();
+      status("💾 Dars videosi saqlandi (" + (blob.size / 1048576).toFixed(1) + " MB)", 5000);
+    };
+    r.start(1000); LV.rec = r; LV.recT0 = performance.now(); mark(); liveBadge(); refreshLivePanel();
+    status("⏺ Dars yozilmoqda — ovoz bilan. To‘xtatish uchun ⏺ ni yana bosing.", 4000);
+  }
+  function livePanel() {
+    const watchUrl = location.origin + location.pathname + "?watch=" + LV.code + (LOCAL ? "&net=local" : "");
+    const src = LV.srcKind === "phone" ? "📱 telefon mikrofoni" : LV.srcKind === "board" ? "🖥 doska mikrofoni" : "o‘chiq";
+    showPanel(`<h2>📡 Jonli dars</h2>
+      ${LV.on ? `<div>O‘quvchilar telefon yoki kompyuterda shu manzilni ochadi:</div><span class="url">${watchUrl.replace(/^https?:\/\//, "")}</span>
+      <div style="margin-top:8px">yoki <b>Doska → 👀 Darsni ko‘rish</b> sahifasida kodni kiritadi:</div><div class="code">${LV.code}</div>
+      <div class="muted" id="dkLvN">👥 Ko‘rmoqda: <b>${liveViewers()}</b></div>`
+      : `<p>Doskadagi hamma narsa — yozuvlar, 3D shakllar, kamera va <b>sizning ovozingiz</b> — o‘quvchilarga jonli uzatiladi yoki video qilib yozib olinadi.</p>`}
+      <p class="muted">🎙 Ovoz: <b>${src}</b>. Telefon ulangan bo‘lsa, ovoz telefon mikrofonidan olinadi (ustozga yaqin turadi — aniqroq eshitiladi). Fon kamera bo‘lmasa, kamera tasviri o‘quvchilarga burchakda ko‘rinadi.</p>
+      <div class="dkl-row">
+        ${LV.on ? `<button class="go stop" id="dkLvStop">⏹ Efirni tugatish</button>` : `<button class="go" id="dkLvStart">📡 Efirni boshlash</button>`}
+        <button class="go ${LV.mic ? "" : "off"}" id="dkLvMic">${LV.mic ? "🎙 Mikrofon yoqiq" : "🔇 Mikrofon o‘chiq"}</button>
+        <button class="go ${LV.rec ? "stop" : "rec"}" id="dkLvRec">${LV.rec ? "⏹ Yozishni to‘xtatish" : "⏺ Darsni yozib olish"}</button>
+        ${pc ? "" : `<button class="go off" id="dkLvPh">📱 Telefon (kamera + ovoz)</button>`}
+      </div>`);
+    const on = (id, f) => { const b = $(id); if (b) b.onclick = f; };
+    on("dkLvStart", async () => { await liveStart(); });
+    on("dkLvStop", () => { liveStop(); livePanel(); });
+    on("dkLvMic", async () => { await setMic(!LV.mic); livePanel(); });
+    on("dkLvRec", async () => { await recToggle(); livePanel(); });
+    on("dkLvPh", async () => { await phoneCam(); mark(); });
+  }
+  function refreshLivePanel() { const n = $("dkLvN"); if (n) n.innerHTML = `👥 Ko‘rmoqda: <b>${liveViewers()}</b>`; liveBadge(); }
+  addEventListener("pagehide", () => { if (LV.room) LV.room.send({ t: "v-end" }); });
 
   // ---------- qo'l ishoralari ----------
   const HL = { lm: null, loading: false, last: 0, hands: [{}, {}] };
@@ -404,7 +617,7 @@
   $("dkSize").oninput = (e) => (S.size = Number(e.target.value));
   function setTool(t) { S.tool = t; document.querySelectorAll("[data-tool]").forEach((b) => b.classList.toggle("on", b.dataset.tool === t)); cDraw.style.cursor = t === "move" ? "grab" : "crosshair"; if (t !== "move") select(null); }
   function setBg(b) { S.bg = b; root.dataset.bg = b; if (b === "white" && S.color === "#ffffff") colorsEl.lastChild.click(); if (b !== "white" && S.color === "#111827") colorsEl.firstChild.click(); }
-  function mark() { const q = (a) => document.querySelector(`[data-act="${a}"]`); q("cam").classList.toggle("on", !!localStream); q("phone").classList.toggle("on", !!pc); q("hands").classList.toggle("on", S.hands); q("mirror").classList.toggle("on", S.mirror && !!video.srcObject); }
+  function mark() { const q = (a) => document.querySelector(`[data-act="${a}"]`); q("cam").classList.toggle("on", !!localStream); q("phone").classList.toggle("on", !!pc); q("hands").classList.toggle("on", S.hands); q("mirror").classList.toggle("on", S.mirror && !!video.srcObject); q("live").classList.toggle("on", LV.on); q("mic").classList.toggle("on", LV.mic); q("rec").classList.toggle("on", !!LV.rec); }
   function showPanel(html) { panel.innerHTML = `<button class="x" aria-label="Yopish">✕</button>` + html; panel.hidden = false; panel.querySelector(".x").onclick = () => (panel.hidden = true); }
   const shapesEl = $("dkShapes");
   Object.entries(KINDS).forEach(([k, [label]]) => { const b = document.createElement("button"); b.type = "button"; b.textContent = label; b.onclick = () => { addShape(k, W / 2 + (Math.random() - 0.5) * 120, H / 2 + (Math.random() - 0.5) * 80); shapesEl.hidden = true; setTool("move"); }; shapesEl.append(b); });
@@ -435,6 +648,9 @@
     }
     else if (a === "mirror") { S.mirror = !S.mirror; root.classList.toggle("mirror", S.mirror); mark(); }
     else if (a === "save") save();
+    else if (a === "live") { if (LV.on) livePanel(); else { try { liveInit(); } catch (e) { return status("❌ " + e.message, 6000); } livePanel(); } }
+    else if (a === "mic") { try { await setMic(!LV.mic); } catch (e) { status("❌ " + e.message, 6000); } }
+    else if (a === "rec") await recToggle();
     else if (a === "full") { if (document.fullscreenElement) document.exitFullscreen(); else (document.documentElement.requestFullscreen || (() => {})).call(document.documentElement).catch?.(() => {}); }
     else if (a === "help") help();
   });
@@ -445,6 +661,9 @@
         <tr><td>🧊</td><td><b>Shakl qo‘shish</b> — kub, prizma, piramida, shar… ✋ bilan suring, ikki barmoq bilan kattalashtiring va burang.</td></tr>
         <tr><td>📷</td><td><b>Kamera</b> — shu qurilma kamerasi doskada jonli ko‘rinadi.</td></tr>
         <tr><td>📱</td><td><b>Telefon</b> — telefonni kamera qilib ulash: doskada kod chiqadi, telefonda shu kod kiritiladi.</td></tr>
+        <tr><td>📡</td><td><b>Jonli efir</b> — doska, kamera va <b>ovozingiz</b> o‘quvchilarga jonli uzatiladi: ular telefonda kodni kiritib ko‘radi va eshitadi.</td></tr>
+        <tr><td>🎙</td><td><b>Mikrofon</b> — ovoz telefon (ulangan bo‘lsa) yoki doska mikrofonidan olinadi.</td></tr>
+        <tr><td>⏺</td><td><b>Darsni yozib olish</b> — doska + ovoz video fayl bo‘lib saqlanadi (keyin o‘quvchilarga yuborish mumkin).</td></tr>
         <tr><td>🖐</td><td><b>Qo‘l ishoralari</b> (kamera yoqilgan bo‘lsin, ishorani ≈1 soniya ushlab turing):</td></tr>
         <tr><td>✌️</td><td>2 barmoq — <b>kub</b></td></tr>
         <tr><td>3</td><td>3 barmoq — <b>prizma</b> · 4 barmoq — <b>piramida</b></td></tr>
@@ -477,6 +696,8 @@
       try { const r = HL.lm.detectForVideo(video, t); HL.lastLm = r.landmarks; processHands(r.landmarks || [], ddt); HL.count = (r.landmarks || []).length; } catch (e) { /* kadr tashlab ketiladi */ }
     }
     render3d(dt);
+    liveDraw(t);
+    if ((LV.on || LV.rec || LV.mic) && t - LV.badgeT > 150) { LV.badgeT = t; liveBadge(); }
     requestAnimationFrame(loop);
   }
   resize(); requestAnimationFrame(loop);
