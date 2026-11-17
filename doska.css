@@ -70,3 +70,14 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b1a14; col
 .dkw-box.live { border-color: #f87171; box-shadow: 0 0 0 2px rgba(248, 113, 113, .35); }
 .dkw-box video { width: 100%; height: 100%; object-fit: contain; aspect-ratio: auto; border: 0; border-radius: 0; background: #000; }
 .dkw-box:fullscreen { border-radius: 0; }
+.dkl-title { display: grid; gap: 4px; margin: 10px 0; font-size: 13px; color: #9fc5b3; }
+.dkl-title input { padding: 9px 11px; border-radius: 10px; border: 1px solid rgba(134, 239, 172, .4); background: rgba(0, 0, 0, .35); color: #fff; font: 600 14px inherit; }
+.dkl-share { margin: 12px 0; padding: 10px 12px; border-radius: 14px; background: rgba(56, 189, 248, .08); border: 1px solid rgba(56, 189, 248, .35); font-size: 13.5px; }
+.dkl-share ol { margin: 6px 0 0; padding-left: 20px; } .dkl-share a { color: #7dd3fc; font-weight: 700; }
+.dkw-list { display: grid; gap: 8px; width: min(440px, 100%); }
+.dkw-list[hidden] { display: none; }
+.dkw-h { font-weight: 800; color: #fca5a5; }
+.dkw-list button { display: flex; align-items: center; gap: 10px; text-align: left; background: linear-gradient(120deg, #7f1d1d, #1e1b4b); color: #fff; border: 1px solid rgba(248, 113, 113, .6); }
+.dkw-list button span { flex: 1; min-width: 0; } .dkw-list button small { display: block; color: #fecaca; font-weight: 500; font-size: 12px; }
+.dkw-list button em { font-style: normal; flex: none; padding: 6px 10px; border-radius: 10px; background: #ef4444; }
+.dkw-list button.on em { background: #22c55e; color: #03130a; }

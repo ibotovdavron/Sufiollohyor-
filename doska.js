@@ -146,6 +146,15 @@
     $("dkwFull").onclick = () => { const el = $("dkwBox"); (el.requestFullscreen || el.webkitRequestFullscreen || (() => {})).call(el); };
     addEventListener("pagehide", () => room && room.send({ t: "v-bye", id }));
     if (codeIn.value.length === 4) { say("Kirish uchun “▶ Ko‘rish” ni bosing"); }
+    // Hozir bo'layotgan efirlar — bitta bosish bilan kirish
+    const listEl = $("dkwList");
+    if (window.SofiLobby) window.SofiLobby.watch((l) => {
+      listEl.hidden = !l.length;
+      const html = `<div class="dkw-h">🔴 Hozir jonli efir bo‘lyapti</div>` + l.map((e) => `<button data-code="${e.code}" class="${e.code === codeIn.value && pc ? "on" : ""}"><span><b>${window.SofiLobby.esc(e.title)}</b><small>${e.screen ? "🖥 ekran · " : ""}👥 ${e.n} · kod ${e.code}</small></span><em>${e.code === codeIn.value && pc ? "Ko‘rmoqdasiz" : "▶ Kirish"}</em></button>`).join("");
+      if (html === listEl._h) return; listEl._h = html; listEl.innerHTML = html;
+      listEl.querySelectorAll("button").forEach((b) => (b.onclick = () => { codeIn.value = b.dataset.code; vid.muted = false; sndBtn(); watch(); }));
+      if (!pc && !codeIn.value && l.length) say("Ro‘yxatdan darsni tanlang yoki kodni kiriting");
+    });
     return;
   }
 
@@ -331,7 +340,9 @@
   let phoneAudio = null;
   const BGCOL = { board: "#0f3a2c", black: "#0b0d12", white: "#f8fafc", cam: "#000" };
   const LV = { on: false, room: null, code: "", peers: new Map(), cv: null, cx: null, stream: null, ac: null, gain: null, an: null, lvl: null,
-    mic: false, micStream: null, src: null, srcKind: "", rec: null, chunks: [], recT0: 0, last: 0, badgeT: 0 };
+    mic: false, micStream: null, src: null, srcKind: "", rec: null, chunks: [], recT0: 0, last: 0, badgeT: 0,
+    dest: null, cvTrack: null, auTrack: null, lobby: null, annT: 0, wk: null, view: "board", scr: null, scrVid: null, scrSrc: null,
+    title: (() => { try { return localStorage.getItem("sofi_efir_title") || ""; } catch (e) { return ""; } })() };
   const liveSize = () => { const k = Math.min(1, 1280 / Math.max(W, 1)); return [Math.round((W * k) / 2) * 2 || 2, Math.round((H * k) / 2) * 2 || 2]; };
   function liveInit() {
     if (LV.stream) return;
@@ -341,10 +352,58 @@
     const vs = cv.captureStream(24);
     try { vs.getVideoTracks()[0].contentHint = "detail"; } catch (e) { /* bo'sh */ } // yozuvlar tiniq chiqsin
     const AC = window.AudioContext || window.webkitAudioContext;
-    LV.ac = new AC(); const dest = LV.ac.createMediaStreamDestination();
+    LV.ac = new AC(); const dest = (LV.dest = LV.ac.createMediaStreamDestination());
     LV.gain = LV.ac.createGain(); LV.gain.gain.value = 0; LV.gain.connect(dest);
     LV.an = LV.ac.createAnalyser(); LV.an.fftSize = 256; LV.gain.connect(LV.an); LV.lvl = new Uint8Array(LV.an.fftSize);
-    LV.stream = new MediaStream([vs.getVideoTracks()[0], dest.stream.getAudioTracks()[0]]);
+    LV.cvTrack = vs.getVideoTracks()[0]; LV.auTrack = dest.stream.getAudioTracks()[0];
+    LV.stream = new MediaStream([LV.cvTrack, LV.auTrack]);
+    // Ustoz boshqa oynaga (masalan, Amaliy darsga) o'tsa ham efir to'xtamasin: fon oynada taymer sekinlashadi, Worker esa yo'q
+    try {
+      LV.wk = new Worker(URL.createObjectURL(new Blob(["setInterval(function(){postMessage(0)},40)"], { type: "text/javascript" })));
+      LV.wk.onmessage = () => {
+        const t = performance.now();
+        if (document.hidden && (LV.on || LV.rec)) { if (LV.view !== "screen") render3d(0); liveDraw(t); }
+        if (LV.on && t - LV.annT > 3000) { LV.annT = t; announce(); }
+      };
+    } catch (e) { setInterval(() => { if (LV.on) announce(); }, 3000); }
+  }
+  const curVideo = () => (LV.view === "screen" && LV.scr ? LV.scr.getVideoTracks()[0] : LV.cvTrack);
+  /** O'quvchilar sahifasida "🔴 Jonli efir bo'lyapti" chiqishi uchun e'lon */
+  function announce() { if (LV.on && LV.lobby) LV.lobby.send({ t: "live", code: LV.code, title: LV.title || "Jonli dars", n: liveViewers(), screen: LV.view === "screen" }); }
+  function setView(v) {
+    LV.view = v === "screen" && LV.scr ? "screen" : "board";
+    const tr = curVideo();
+    LV.peers.forEach((p) => p.getSenders().forEach((s) => { if (s.track && s.track.kind === "video" && s.track !== tr) s.replaceTrack(tr).catch(() => {}); }));
+    announce(); mark(); liveBadge();
+  }
+  /** 🖥 Ekranni ulashish: Amaliy dars oynasi (yoki butun ekran) o'quvchilarga ovoz bilan boradi */
+  async function shareToggle() {
+    if (LV.scr) return shareStop();
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+      showPanel(`<h2>🖥 Ekranni ulashib bo‘lmadi</h2><p>Bu qurilma brauzeri ekran ulashishni qo‘llamaydi (Android doska brauzeri yoki telefon).</p><p><b>Yechim:</b> doskaning <b>Windows (OPS)</b> qismida yoki kompyuterda <b>Google Chrome / Microsoft Edge</b> da oching. Doska, kamera va ovoz efiri bu yerda ham ishlayveradi.</p>`);
+      return;
+    }
+    try { liveInit(); } catch (e) { status("❌ " + e.message, 6000); return; }
+    let st;
+    try { st = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 24, max: 30 } }, audio: true, selfBrowserSurface: "exclude", surfaceSwitching: "include", systemAudio: "include" }); }
+    catch (e) { if (e.name !== "NotAllowedError" && e.name !== "AbortError") status("❌ Ekran ulashilmadi: " + e.message, 6000); return; }
+    LV.scr = st; const vt = st.getVideoTracks()[0];
+    try { vt.contentHint = "detail"; } catch (e) { /* bo'sh */ }
+    vt.addEventListener("ended", shareStop);
+    const v = document.createElement("video"); v.muted = true; v.playsInline = true; v.srcObject = st; v.play().catch(() => {}); LV.scrVid = v;
+    if (st.getAudioTracks().length) { LV.scrSrc = LV.ac.createMediaStreamSource(new MediaStream(st.getAudioTracks())); LV.scrSrc.connect(LV.dest); LV.ac.resume().catch(() => {}); }
+    if (!LV.mic) await setMic(true);
+    setView("screen");
+    status("🖥 Ekran o‘quvchilarga uzatilmoqda" + (LV.on ? "" : " — efirni ham boshlang (📡)"), 4000);
+    if (!panel.hidden) livePanel();
+  }
+  function shareStop() {
+    if (!LV.scr) return;
+    LV.scr.getTracks().forEach((t) => t.stop()); LV.scr = null;
+    if (LV.scrSrc) { try { LV.scrSrc.disconnect(); } catch (e) { /* bo'sh */ } LV.scrSrc = null; }
+    if (LV.scrVid) { LV.scrVid.srcObject = null; LV.scrVid = null; }
+    setView("board"); status("🖊 O‘quvchilar yana doskani ko‘rmoqda", 2500);
+    if (!panel.hidden) livePanel();
   }
   /** Ovoz manbai: telefon ulangan bo'lsa — telefon mikrofoni, aks holda — doska mikrofoni */
   async function liveAudioSrc() {
@@ -377,8 +436,16 @@
     if (!force && t - LV.last < 40) return; LV.last = t;
     const cv = LV.cv, x = LV.cx, [w, h] = liveSize();
     if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
-    x.fillStyle = BGCOL[S.bg] || "#000"; x.fillRect(0, 0, w, h);
     const vok = video.srcObject && video.videoWidth && video.readyState >= 2;
+    const sv = LV.scrVid;
+    if (LV.view === "screen" && sv && sv.videoWidth) { // ulashilgan ekran (yozuv uchun) + burchakda ustoz
+      x.fillStyle = "#000"; x.fillRect(0, 0, w, h);
+      const k = Math.min(w / sv.videoWidth, h / sv.videoHeight), dw = sv.videoWidth * k, dh = sv.videoHeight * k;
+      x.drawImage(sv, (w - dw) / 2, (h - dh) / 2, dw, dh);
+      if (vok) { const pw = Math.round(w * 0.2), ph = Math.round((pw * 3) / 4), X = w - pw - 12, Y = h - ph - 12; x.fillStyle = "rgba(0,0,0,.5)"; x.fillRect(X - 3, Y - 3, pw + 6, ph + 6); drawCover(x, pw, ph, X, Y); }
+      return;
+    }
+    x.fillStyle = BGCOL[S.bg] || "#000"; x.fillRect(0, 0, w, h);
     if (vok && S.bg === "cam") drawCover(x, w, h);
     x.drawImage(cDraw, 0, 0, w, h); x.drawImage(c3d, 0, 0, w, h);
     if (vok && S.bg !== "cam") { // fon kamera bo'lmasa, ustoz burchakda ko'rinadi
@@ -390,10 +457,11 @@
   const liveViewers = () => [...LV.peers.values()].filter((p) => p.connectionState === "connected").length;
   function liveBadge() {
     let el = $("dkLive"); if (!el) { el = document.createElement("button"); el.id = "dkLive"; el.className = "dk-live"; el.onclick = livePanel; root.append(el); }
-    el.hidden = !LV.on && !LV.rec && !LV.mic;
+    el.hidden = !LV.on && !LV.rec && !LV.mic && !LV.scr;
     const p = [];
     if (LV.on) p.push(`<b class="red">● EFIR</b> ${LV.code} · 👥 ${liveViewers()}`);
     if (LV.rec) { const s = Math.floor((performance.now() - LV.recT0) / 1000); p.push(`<b class="red">⏺</b> ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`); }
+    if (LV.scr) p.push(LV.view === "screen" ? "🖥 Ekran" : "🖊 Doska");
     if (LV.mic) p.push(`🎙<i style="--l:${liveLevel().toFixed(2)}"></i>`);
     el.innerHTML = p.join('<span class="sep"></span>');
   }
@@ -401,12 +469,16 @@
     liveInit();
     LV.code = String(Math.floor(1000 + Math.random() * 9000));
     try { LV.room = await joinRoom("e" + LV.code, liveMsg); } catch (e) { status("❌ Efir boshlanmadi: " + e.message, 6000); return; }
-    LV.on = true; LV.room.send({ t: "v-start" });
+    try { LV.lobby = await joinRoom("lobby", (m) => { if (m.t === "who") announce(); }); } catch (e) { LV.lobby = null; }
+    LV.on = true; LV.room.send({ t: "v-start" }); announce();
+    try { localStorage.setItem("sofi_my_efir", LV.code); } catch (e) { /* bo'sh */ }
     if (!LV.mic) await setMic(true);
     mark(); liveBadge(); livePanel();
   }
   function liveStop() {
     if (LV.room) { LV.room.send({ t: "v-end" }); const r = LV.room; setTimeout(() => r.leave(), 400); }
+    try { localStorage.removeItem("sofi_my_efir"); } catch (e) { /* bo'sh */ }
+    if (LV.lobby) { LV.lobby.send({ t: "off", code: LV.code }); const l = LV.lobby; LV.lobby = null; setTimeout(() => l.leave(), 400); }
     LV.peers.forEach((p) => p.close()); LV.peers.clear(); LV.room = null; LV.on = false;
     if (!LV.rec && LV.mic) setMic(false);
     mark(); liveBadge(); status("⏹ Efir tugatildi", 2500);
@@ -418,12 +490,12 @@
         if (p && !["failed", "closed", "disconnected"].includes(p.connectionState)) return;
         if (p) p.close();
         p = new RTCPeerConnection(ICE); LV.peers.set(m.id, p);
-        LV.stream.getTracks().forEach((t) => p.addTrack(t, LV.stream));
+        [curVideo(), LV.auTrack].forEach((t) => p.addTrack(t, LV.stream));
         p.onicecandidate = (e) => e.candidate && LV.room && LV.room.send({ t: "v-ice", to: m.id, from: "b", c: e.candidate.toJSON() });
         p.onconnectionstatechange = () => {
           if (p.connectionState === "connected") { // ko'p o'quvchi bo'lsa ham tarmoq yetishi uchun tezlikni cheklaymiz
             p.getSenders().forEach((s) => { if (s.track && s.track.kind === "video" && s.getParameters) { const pr = s.getParameters(); if (!pr.encodings || !pr.encodings.length) pr.encodings = [{}]; pr.encodings[0].maxBitrate = LV.peers.size > 8 ? 600000 : 1200000; s.setParameters(pr).catch(() => {}); } });
-            status("👤 Yangi o‘quvchi ulandi · jami " + liveViewers(), 2000);
+            status("👤 Yangi o‘quvchi ulandi · jami " + liveViewers(), 2000); announce();
           }
           if (["failed", "closed"].includes(p.connectionState) && LV.peers.get(m.id) === p) LV.peers.delete(m.id);
           refreshLivePanel();
@@ -460,13 +532,24 @@
       ${LV.on ? `<div>O‘quvchilar telefon yoki kompyuterda shu manzilni ochadi:</div><span class="url">${watchUrl.replace(/^https?:\/\//, "")}</span>
       <div style="margin-top:8px">yoki <b>Doska → 👀 Darsni ko‘rish</b> sahifasida kodni kiritadi:</div><div class="code">${LV.code}</div>
       <div class="muted" id="dkLvN">👥 Ko‘rmoqda: <b>${liveViewers()}</b></div>`
-      : `<p>Doskadagi hamma narsa — yozuvlar, 3D shakllar, kamera va <b>sizning ovozingiz</b> — o‘quvchilarga jonli uzatiladi yoki video qilib yozib olinadi.</p>`}
+      : `<p>Doskadagi hamma narsa — yozuvlar, 3D shakllar, kamera va <b>sizning ovozingiz</b> — o‘quvchilarga jonli uzatiladi yoki video qilib yozib olinadi. Efir boshlanishi bilan o‘quvchilarning Amaliy sahifasida <b>“🔴 Jonli efir bo‘lyapti”</b> xabari chiqadi — ular kod kiritmasdan kiradi.</p>`}
+      <label class="dkl-title">Dars nomi (o‘quvchilarga ko‘rinadi): <input id="dkLvTitle" maxlength="60" placeholder="Masalan: 8-sinf · Fizika · Om qonuni" value="${LV.title.replace(/"/g, "&quot;")}"></label>
+
       <p class="muted">🎙 Ovoz: <b>${src}</b>. Telefon ulangan bo‘lsa, ovoz telefon mikrofonidan olinadi (ustozga yaqin turadi — aniqroq eshitiladi). Fon kamera bo‘lmasa, kamera tasviri o‘quvchilarga burchakda ko‘rinadi.</p>
       <div class="dkl-row">
         ${LV.on ? `<button class="go stop" id="dkLvStop">⏹ Efirni tugatish</button>` : `<button class="go" id="dkLvStart">📡 Efirni boshlash</button>`}
         <button class="go ${LV.mic ? "" : "off"}" id="dkLvMic">${LV.mic ? "🎙 Mikrofon yoqiq" : "🔇 Mikrofon o‘chiq"}</button>
         <button class="go ${LV.rec ? "stop" : "rec"}" id="dkLvRec">${LV.rec ? "⏹ Yozishni to‘xtatish" : "⏺ Darsni yozib olish"}</button>
         ${pc ? "" : `<button class="go off" id="dkLvPh">📱 Telefon (kamera + ovoz)</button>`}
+      </div>
+      <div class="dkl-share">
+        <b>🖥 Ekranni ulashish</b> — Amaliy dars (matn, jonli tajriba, animatsiya) o‘quvchilarga ovozingiz bilan boradi.
+        <ol><li><a href="amaliy.html" target="_blank" rel="noopener">📚 Amaliy darsni yangi oynada oching</a> va kerakli mavzuni tanlang.</li>
+        <li>Shu yerga qaytib <b>“🖥 Ekranni ulashish”</b> ni bosing → <b>“Vkladka / Tab”</b> → Amaliy oynasini tanlang (“vkladka ovozini ulashish” ni yoqing).</li>
+        <li>Endi Amaliy oynasida bemalol ishlang. Doskaga qaytib yozmoqchi bo‘lsangiz — <b>“🖊 Doskani ko‘rsatish”</b>.</li></ol>
+        <div class="dkl-row">${LV.scr
+          ? `<button class="go ${LV.view === "screen" ? "off" : ""}" id="dkLvView">${LV.view === "screen" ? "🖊 Doskani ko‘rsatish" : "🖥 Ekranni ko‘rsatish"}</button><button class="go stop" id="dkLvShare">⏹ Ulashishni to‘xtatish</button>`
+          : `<button class="go" id="dkLvShare">🖥 Ekranni ulashish</button>`}</div>
       </div>`);
     const on = (id, f) => { const b = $(id); if (b) b.onclick = f; };
     on("dkLvStart", async () => { await liveStart(); });
@@ -474,9 +557,12 @@
     on("dkLvMic", async () => { await setMic(!LV.mic); livePanel(); });
     on("dkLvRec", async () => { await recToggle(); livePanel(); });
     on("dkLvPh", async () => { await phoneCam(); mark(); });
+    on("dkLvShare", async () => { await shareToggle(); livePanel(); });
+    on("dkLvView", () => { setView(LV.view === "screen" ? "board" : "screen"); livePanel(); });
+    const ti = $("dkLvTitle"); if (ti) ti.oninput = () => { LV.title = ti.value.trim(); try { localStorage.setItem("sofi_efir_title", LV.title); } catch (e) { /* bo'sh */ } announce(); };
   }
   function refreshLivePanel() { const n = $("dkLvN"); if (n) n.innerHTML = `👥 Ko‘rmoqda: <b>${liveViewers()}</b>`; liveBadge(); }
-  addEventListener("pagehide", () => { if (LV.room) LV.room.send({ t: "v-end" }); });
+  addEventListener("pagehide", () => { if (LV.room) LV.room.send({ t: "v-end" }); if (LV.lobby) LV.lobby.send({ t: "off", code: LV.code }); });
 
   // ---------- qo'l ishoralari ----------
   const HL = { lm: null, loading: false, last: 0, hands: [{}, {}] };
@@ -617,7 +703,7 @@
   $("dkSize").oninput = (e) => (S.size = Number(e.target.value));
   function setTool(t) { S.tool = t; document.querySelectorAll("[data-tool]").forEach((b) => b.classList.toggle("on", b.dataset.tool === t)); cDraw.style.cursor = t === "move" ? "grab" : "crosshair"; if (t !== "move") select(null); }
   function setBg(b) { S.bg = b; root.dataset.bg = b; if (b === "white" && S.color === "#ffffff") colorsEl.lastChild.click(); if (b !== "white" && S.color === "#111827") colorsEl.firstChild.click(); }
-  function mark() { const q = (a) => document.querySelector(`[data-act="${a}"]`); q("cam").classList.toggle("on", !!localStream); q("phone").classList.toggle("on", !!pc); q("hands").classList.toggle("on", S.hands); q("mirror").classList.toggle("on", S.mirror && !!video.srcObject); q("live").classList.toggle("on", LV.on); q("mic").classList.toggle("on", LV.mic); q("rec").classList.toggle("on", !!LV.rec); }
+  function mark() { const q = (a) => document.querySelector(`[data-act="${a}"]`); q("cam").classList.toggle("on", !!localStream); q("phone").classList.toggle("on", !!pc); q("hands").classList.toggle("on", S.hands); q("mirror").classList.toggle("on", S.mirror && !!video.srcObject); q("live").classList.toggle("on", LV.on); q("mic").classList.toggle("on", LV.mic); q("rec").classList.toggle("on", !!LV.rec); q("share").classList.toggle("on", !!LV.scr); }
   function showPanel(html) { panel.innerHTML = `<button class="x" aria-label="Yopish">✕</button>` + html; panel.hidden = false; panel.querySelector(".x").onclick = () => (panel.hidden = true); }
   const shapesEl = $("dkShapes");
   Object.entries(KINDS).forEach(([k, [label]]) => { const b = document.createElement("button"); b.type = "button"; b.textContent = label; b.onclick = () => { addShape(k, W / 2 + (Math.random() - 0.5) * 120, H / 2 + (Math.random() - 0.5) * 80); shapesEl.hidden = true; setTool("move"); }; shapesEl.append(b); });
@@ -651,6 +737,7 @@
     else if (a === "live") { if (LV.on) livePanel(); else { try { liveInit(); } catch (e) { return status("❌ " + e.message, 6000); } livePanel(); } }
     else if (a === "mic") { try { await setMic(!LV.mic); } catch (e) { status("❌ " + e.message, 6000); } }
     else if (a === "rec") await recToggle();
+    else if (a === "share") await shareToggle();
     else if (a === "full") { if (document.fullscreenElement) document.exitFullscreen(); else (document.documentElement.requestFullscreen || (() => {})).call(document.documentElement).catch?.(() => {}); }
     else if (a === "help") help();
   });
@@ -663,6 +750,7 @@
         <tr><td>📱</td><td><b>Telefon</b> — telefonni kamera qilib ulash: doskada kod chiqadi, telefonda shu kod kiritiladi.</td></tr>
         <tr><td>📡</td><td><b>Jonli efir</b> — doska, kamera va <b>ovozingiz</b> o‘quvchilarga jonli uzatiladi: ular telefonda kodni kiritib ko‘radi va eshitadi.</td></tr>
         <tr><td>🎙</td><td><b>Mikrofon</b> — ovoz telefon (ulangan bo‘lsa) yoki doska mikrofonidan olinadi.</td></tr>
+        <tr><td>🖥</td><td><b>Ekranni ulashish</b> — Amaliy dars oynasini (yoki butun ekranni) o‘quvchilarga ovoz bilan ko‘rsatish (kompyuterdagi Chrome / Edge).</td></tr>
         <tr><td>⏺</td><td><b>Darsni yozib olish</b> — doska + ovoz video fayl bo‘lib saqlanadi (keyin o‘quvchilarga yuborish mumkin).</td></tr>
         <tr><td>🖐</td><td><b>Qo‘l ishoralari</b> (kamera yoqilgan bo‘lsin, ishorani ≈1 soniya ushlab turing):</td></tr>
         <tr><td>✌️</td><td>2 barmoq — <b>kub</b></td></tr>
