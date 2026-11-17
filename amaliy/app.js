@@ -236,6 +236,8 @@
         <span class="am-today-t"><small>${esc(tod.c.name)} · ${esc(tod.s_.name)}</small><b>${esc(tod.t.title)}</b><em>${esc(short(tod.t.life, 140))}</em></span>
         <span class="am-today-go">Ochish →</span></a>` : ""}
 
+      <a class="am-doska" href="doska.html"><span class="am-doska-ic">🖊️</span><span><b>Elektron doska</b><em>Barmoq bilan yozing, telefon kamerasini ulang, qo‘l ishoralari bilan 3D shakllar chiqaring</em></span><span class="am-today-go">Ochish →</span></a>
+
       <h2 class="am-step" id="start"><span>1</span> Sinfingizni tanlang</h2>
       <div class="am-grid classes">
         ${DB.classes.map((c, i) => {

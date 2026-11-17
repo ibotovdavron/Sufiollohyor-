@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#0b1a14">
+  <meta name="description" content="So‘fi Ollohyor — elektron doska: barmoq bilan yozish, jonli kamera va qo‘l ishoralari bilan 3D shakllar">
+  <title>Doska | So‘fi Ollohyor</title>
+  <link rel="stylesheet" href="doska.css?v=1">
+</head>
+<body>
+
+<div class="dk" id="dk" data-bg="board">
+  <video id="dkVideo" playsinline muted autoplay></video>
+  <canvas id="dkDraw"></canvas>
+  <canvas id="dk3d"></canvas>
+  <canvas id="dkHand"></canvas>
+
+  <div class="dk-bar" id="dkBar">
+    <a class="dk-b" href="amaliy.html" title="Amaliy darslarga qaytish">←</a>
+    <span class="dk-sep"></span>
+    <button class="dk-b on" data-tool="pen" title="Qalam">✏️</button>
+    <button class="dk-b" data-tool="erase" title="O‘chirg‘ich">🧽</button>
+    <button class="dk-b" data-tool="move" title="Shakllarni ushlash">✋</button>
+    <span class="dk-sep"></span>
+    <span class="dk-colors" id="dkColors"></span>
+    <input class="dk-size" id="dkSize" type="range" min="2" max="28" value="5" aria-label="Qalam qalinligi">
+    <span class="dk-sep"></span>
+    <button class="dk-b" data-act="undo" title="Orqaga">↶</button>
+    <button class="dk-b" data-act="clear" title="Hammasini tozalash">🗑</button>
+    <button class="dk-b" data-act="bg" title="Fon: yashil doska / oq / kamera">🎨</button>
+    <button class="dk-b" data-act="shape" title="Shakl qo‘shish">🧊</button>
+    <span class="dk-sep"></span>
+    <button class="dk-b wide" data-act="cam" title="Shu qurilma kamerasi">📷 Kamera</button>
+    <button class="dk-b wide" data-act="phone" title="Telefonni kamera qilib ulash">📱 Telefon</button>
+    <button class="dk-b wide" data-act="hands" title="Qo‘l ishoralari">🖐 Ishoralar</button>
+    <span class="dk-sep"></span>
+    <button class="dk-b" data-act="mirror" title="Ko‘zgu (chap-o‘ng)">↔</button>
+    <button class="dk-b" data-act="save" title="Rasm qilib saqlash">💾</button>
+    <button class="dk-b" data-act="full" title="To‘liq ekran">⛶</button>
+    <button class="dk-b" data-act="help" title="Yordam">❓</button>
+  </div>
+
+  <div class="dk-shapes" id="dkShapes" hidden></div>
+  <div class="dk-sel" id="dkSel" hidden>
+    <button data-s="smaller" title="Kichraytirish">➖</button>
+    <button data-s="bigger" title="Kattalashtirish">➕</button>
+    <button data-s="rotate" title="Aylantirish rejimi">🔄</button>
+    <button data-s="color" title="Rangini almashtirish">🎨</button>
+    <button data-s="del" title="O‘chirish">🗑</button>
+  </div>
+  <div class="dk-status" id="dkStatus" hidden></div>
+  <div class="dk-panel" id="dkPanel" hidden></div>
+</div>
+
+<!-- Telefon kamera rejimi (doska.html?cam=KOD) -->
+<div class="dkp" id="dkPhone" hidden>
+  <h1>📱 Telefon — doska kamerasi</h1>
+  <p>Doskada ko‘rsatilgan 4 xonali kodni kiriting. Telefon kamerasi doskaga jonli uzatiladi.</p>
+  <input id="dkpCode" inputmode="numeric" maxlength="4" placeholder="Kod" aria-label="Doska kodi">
+  <div class="dkp-row"><button id="dkpGo">▶ Ulash</button><button id="dkpFlip" class="ghost">🔄 Kamerani almashtirish</button></div>
+  <div class="dkp-status" id="dkpStatus"></div>
+  <video id="dkpVideo" playsinline muted autoplay></video>
+  <a href="doska.html">← Doskaga o‘tish</a>
+</div>
+
+<script src="lib/supabase.js"></script>
+<script src="config.js"></script>
+<script src="lib/three.min.js"></script>
+<script src="doska.js?v=1"></script>
+</body>
+</html>

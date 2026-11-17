@@ -1,0 +1,55 @@
+/* Elektron doska */
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #0b1a14; color: #fff; font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; overscroll-behavior: none; }
+.dk { position: fixed; inset: 0; touch-action: none; user-select: none; -webkit-user-select: none; }
+.dk[data-bg="board"] { background: radial-gradient(circle at 30% 20%, #1f5a45, #0f3a2c 60%, #0a2a20); }
+.dk[data-bg="black"] { background: #0b0d12; }
+.dk[data-bg="white"] { background: #f8fafc; }
+.dk[data-bg="cam"] { background: #000; }
+.dk video, .dk canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+#dkVideo { object-fit: cover; opacity: 0; pointer-events: none; }
+.dk[data-bg="cam"] #dkVideo { opacity: 1; }
+.dk.mirror #dkVideo { transform: scaleX(-1); }
+/* kamera fonda bo'lmasa — kichik oynada ko'rinadi */
+.dk.has-cam:not([data-bg="cam"]) #dkVideo { opacity: 1; inset: auto 10px 10px auto; width: 180px; height: 120px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, .5); z-index: 4; }
+#dk3d, #dkHand { pointer-events: none; }
+#dkDraw { cursor: crosshair; }
+
+.dk-bar { position: absolute; z-index: 10; left: 8px; right: 8px; top: calc(8px + env(safe-area-inset-top)); display: flex; align-items: center; gap: 4px; padding: 6px; border-radius: 16px; background: rgba(8, 14, 12, .82); border: 1px solid rgba(255, 255, 255, .16); backdrop-filter: blur(8px); overflow-x: auto; scrollbar-width: none; touch-action: pan-x; }
+.dk-bar::-webkit-scrollbar { display: none; }
+.dk-b { flex: none; min-width: 40px; height: 40px; padding: 0 8px; display: inline-grid; place-items: center; border-radius: 11px; border: 1px solid transparent; background: rgba(255, 255, 255, .07); color: #fff; font: 700 16px/1 inherit; text-decoration: none; cursor: pointer; white-space: nowrap; }
+.dk-b.wide { font-size: 13px; }
+.dk-b.on { background: #22c55e; color: #03130a; border-color: #86efac; }
+.dk-b:active { transform: scale(.94); }
+.dk-sep { flex: none; width: 1px; height: 26px; background: rgba(255, 255, 255, .18); margin: 0 2px; }
+.dk-colors { display: inline-flex; gap: 4px; flex: none; }
+.dk-colors button { width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .35); cursor: pointer; padding: 0; }
+.dk-colors button.on { border-color: #fff; box-shadow: 0 0 0 3px rgba(255, 255, 255, .35); transform: scale(1.1); }
+.dk-size { flex: none; width: 84px; accent-color: #22c55e; }
+
+.dk-shapes { position: absolute; z-index: 11; left: 8px; top: calc(66px + env(safe-area-inset-top)); display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 8px; border-radius: 14px; background: rgba(8, 14, 12, .9); border: 1px solid rgba(255, 255, 255, .16); }
+.dk-shapes button, .dk-sel button { padding: 9px 10px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, .15); background: rgba(255, 255, 255, .07); color: #fff; font: 700 13px inherit; cursor: pointer; }
+.dk-sel { position: absolute; z-index: 9; display: flex; gap: 4px; padding: 5px; border-radius: 12px; background: rgba(8, 14, 12, .85); border: 1px solid rgba(255, 255, 255, .2); transform: translate(-50%, 0); }
+.dk-sel button.on { background: #22c55e; color: #03130a; }
+.dk-status { position: absolute; z-index: 9; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom)); transform: translateX(-50%); max-width: calc(100% - 24px); padding: 9px 14px; border-radius: 999px; background: rgba(8, 14, 12, .85); border: 1px solid rgba(255, 255, 255, .2); font-size: 13.5px; text-align: center; pointer-events: none; }
+.dk-panel { position: absolute; z-index: 20; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(460px, calc(100% - 24px)); max-height: calc(100% - 90px); overflow: auto; padding: 18px; border-radius: 20px; background: #0d1f18; border: 1px solid rgba(134, 239, 172, .4); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); line-height: 1.6; font-size: 14.5px; touch-action: pan-y; user-select: text; }
+.dk-panel h2 { margin: 0 0 8px; font-size: 19px; }
+.dk-panel .x { float: right; width: 34px; height: 34px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, .12); color: #fff; font-size: 15px; cursor: pointer; }
+.dk-panel .code { margin: 10px 0; font: 900 44px/1 ui-monospace, Menlo, monospace; letter-spacing: .2em; text-align: center; color: #86efac; }
+.dk-panel .url { display: block; padding: 8px 10px; border-radius: 10px; background: rgba(0, 0, 0, .35); font: 600 13px ui-monospace, Menlo, monospace; word-break: break-all; }
+.dk-panel table { width: 100%; border-collapse: collapse; } .dk-panel td { padding: 5px 6px; border-top: 1px solid rgba(255, 255, 255, .1); vertical-align: top; } .dk-panel td:first-child { font-size: 22px; width: 44px; text-align: center; }
+.dk-panel .muted { color: #9fc5b3; font-size: 13px; }
+.dk-panel button.go { margin-top: 10px; padding: 10px 14px; border-radius: 12px; border: 0; background: #22c55e; color: #03130a; font: 800 14px inherit; cursor: pointer; }
+
+.dkp { position: fixed; inset: 0; z-index: 50; overflow: auto; display: grid; align-content: start; justify-items: center; gap: 12px; padding: 22px 16px; background: #0b1a14; text-align: center; }
+.dkp[hidden] { display: none; }
+.dkp h1 { margin: 6px 0 0; font-size: 22px; } .dkp p { margin: 0; color: #9fc5b3; max-width: 420px; }
+.dkp input { width: 200px; padding: 12px; border-radius: 14px; border: 2px solid rgba(134, 239, 172, .5); background: rgba(0, 0, 0, .35); color: #fff; font: 900 34px ui-monospace, Menlo, monospace; letter-spacing: .25em; text-align: center; }
+.dkp-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.dkp button { padding: 13px 18px; border-radius: 14px; border: 0; background: #22c55e; color: #03130a; font: 800 15px inherit; cursor: pointer; }
+.dkp button.ghost { background: rgba(255, 255, 255, .1); color: #fff; }
+.dkp-status { min-height: 1.4em; font-weight: 700; color: #fde68a; }
+.dkp video { width: min(420px, 100%); aspect-ratio: 4 / 3; object-fit: cover; border-radius: 16px; background: #000; border: 1px solid rgba(255, 255, 255, .2); }
+.dkp a { color: #86efac; }
+@media (max-width: 600px) { .dk.has-cam:not([data-bg="cam"]) #dkVideo { width: 120px; height: 84px; } }
