@@ -194,23 +194,47 @@
   // ---------- kamera ----------
   let localStream = null, pc = null, room = null;
   function setVideo(stream, mirror) {
-    video.srcObject = stream; video.play().catch(() => {});
+    try { video.srcObject = stream; } catch (e) { video.src = stream ? URL.createObjectURL(stream) : ""; } // eski brauzerlar
+    video.play().catch(() => {});
     root.classList.toggle("has-cam", !!stream); S.mirror = mirror; root.classList.toggle("mirror", mirror);
     if (stream && S.bg !== "cam") setBg("cam");
     if (stream) setTimeout(() => preloadHands().catch(() => {}), 400); // ishoralar tugmasi bosilganda tayyor tursin
     if (!stream && S.bg === "cam") setBg("board");
     mark();
   }
+  /** Kamera olish: yangi usul (mediaDevices) yoki eski brauzerlardagi usul (webkit/moz getUserMedia) */
+  function getCam(constraints) {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) return navigator.mediaDevices.getUserMedia(constraints);
+    const old = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+    if (old) return new Promise((res, rej) => old.call(navigator, constraints, res, rej));
+    const e = new Error("NO_API"); e.name = "NoApi"; return Promise.reject(e);
+  }
+  /** Doska kamerasi ochilmasa — sababi va yechimi */
+  function camHelp(e) {
+    const ua = navigator.userAgent, http = location.protocol !== "https:" && !/^(localhost|127\.)/.test(location.hostname);
+    const browser = /Edg\//.test(ua) ? "Microsoft Edge" : /OPR\//.test(ua) ? "Opera" : /Chrome\//.test(ua) ? (/; wv\)/.test(ua) ? "Android ichki brauzeri (WebView)" : "Chrome") : /Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : "Noma’lum brauzer";
+    let why, fix;
+    if (http) { why = "Sahifa <b>http://</b> bilan ochilgan. Brauzerlar kamerani faqat xavfsiz <b>https://</b> sahifada beradi."; fix = `Manzilni boshida <b>https</b> bilan oching: <span class="url">https://${location.host}${location.pathname}</span>`; }
+    else if (e && e.name === "NoApi") { why = `Bu brauzer (<b>${browser}</b>) kamerani qo‘llab-quvvatlamaydi — u eski yoki cheklangan.`; fix = "Doskaga <b>Google Chrome</b> (Android doskalarda Play Market yoki APK orqali) o‘rnating yoki doskaning Windows (OPS) qismidagi Chrome/Edge da oching."; }
+    else if (e && e.name === "NotAllowedError") { why = "Kameraga ruxsat berilmagan."; fix = "Manzil satri yonidagi 🔒 belgisini bosib, <b>Kamera → Ruxsat berish</b> ni tanlang va sahifani yangilang. Doska sozlamalarida ham brauzerga kamera ruxsatini bering."; }
+    else if (e && (e.name === "NotFoundError" || e.name === "OverconstrainedError")) { why = "Doskada kamera topilmadi."; fix = "Doskaning kamerasi ulanganini (USB kamera bo‘lsa — kabelini) tekshiring. Kamerasi yo‘q doskada telefonni kamera qilib ulang."; }
+    else if (e && e.name === "NotReadableError") { why = "Kamera boshqa dastur tomonidan band (masalan, Zoom yoki kamera ilovasi ochiq)."; fix = "Kamerani ishlatayotgan dasturni yoping va qayta urinib ko‘ring."; }
+    else { why = "Kamerani ochib bo‘lmadi: " + ((e && e.message) || "noma’lum xato"); fix = "Sahifani yangilab qayta urinib ko‘ring yoki boshqa brauzerda oching."; }
+    showPanel(`<h2>📷 Doska kamerasi ochilmadi</h2><p><b>Sababi:</b> ${why}</p><p><b>Yechim:</b> ${fix}</p>
+      <p class="muted">Brauzer: ${browser}</p>
+      <button class="go" id="dkTryCam">🔄 Qayta urinish</button> <button class="go" id="dkUsePhone" style="background:#38bdf8">📱 Telefonni kamera qilish</button>`);
+    $("dkTryCam").onclick = () => { panel.hidden = true; toggleCam(); };
+    $("dkUsePhone").onclick = async () => { await phoneCam(); mark(); };
+  }
   async function toggleCam() {
     if (localStream) { localStream.getTracks().forEach((t) => t.stop()); localStream = null; setVideo(null, true); return; }
     try {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { status("📱 Bu doskaning brauzerida kamera yo‘q — telefon kamerasini ulaymiz", 6000); await phoneCam(); mark(); return; }
-      localStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
-      closePhone(); setVideo(localStream, true); status("📷 Kamera yoqildi. Qo‘l ishoralari uchun “🖐 Ishoralar” ni bosing.");
-    } catch (e) {
-      if (e.name === "NotFoundError" || e.name === "NotReadableError" || e.name === "OverconstrainedError") { status("📱 Doskada kamera topilmadi — telefon kamerasini ulaymiz", 6000); await phoneCam(); mark(); return; }
-      status("❌ " + (e.name === "NotAllowedError" ? "Kameraga ruxsat berilmadi. Brauzer sozlamalaridan ruxsat bering yoki 📱 Telefon tugmasini bosing." : e.message), 7000);
-    }
+      // avval yuqori sifat, bo'lmasa — istalgan kamera
+      try { localStream = await getCam({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false }); }
+      catch (e1) { if (e1.name === "NoApi" || e1.name === "NotAllowedError") throw e1; localStream = await getCam({ video: true, audio: false }); }
+      closePhone(); setVideo(localStream, true); status("📷 Doska kamerasi yoqildi. Qo‘l ishoralari uchun “🖐 Ishoralar” ni bosing.");
+      if (S.wantHands && !S.hands) { S.hands = true; mark(); initHands(); }
+    } catch (e) { localStream = null; camHelp(e); }
   }
   function closePhone() { if (pc) { pc.close(); pc = null; } if (room) { room.leave(); room = null; } }
   async function phoneCam() {
