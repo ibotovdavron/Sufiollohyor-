@@ -139,15 +139,18 @@
     const data = {}; keys.forEach((k, i) => (data[k] = SPEC[k].init(rng(1234 + i * 97))));
     const st = { light };
     const target = 50;
+    const off = document.createElement("canvas"); off.width = off.height = 320; const oc = off.getContext("2d");
     animCanvas(stage, 320, 320, (c, dt, t) => {
       const sp = SPEC[key], R = 152, cx = 160, cy = 160, z = mag / 100 * 0.55;
       c.clearRect(0, 0, 320, 320);
       c.fillStyle = "#0b0f14"; c.fillRect(0, 0, 320, 320);
       c.save(); c.beginPath(); c.arc(cx, cy, R, 0, TAU); c.clip();
-      c.fillStyle = sp.bg; c.fillRect(0, 0, 320, 320);
       const blur = Math.abs(focus - target) / 6;
-      if ("filter" in c) c.filter = blur > 0.3 ? `blur(${blur.toFixed(1)}px)` : "none";
-      c.save(); c.translate(cx, cy); c.scale(z, z); st.light = light; sp.draw(c, data[key], t, dt, st); c.restore();
+      // namuna avval alohida kanvasga chiziladi, xiralash esa bir marta qo'llanadi (tez ishlashi uchun)
+      oc.setTransform(1, 0, 0, 1, 0, 0); oc.fillStyle = sp.bg; oc.fillRect(0, 0, 320, 320);
+      oc.translate(cx, cy); oc.scale(z, z); st.light = light; sp.draw(oc, data[key], t, dt, st);
+      if ("filter" in c && blur > 0.3) c.filter = `blur(${blur.toFixed(1)}px)`;
+      c.drawImage(off, 0, 0, 320, 320);
       if ("filter" in c) c.filter = "none";
       const dark = clamp(1 - light / 100, 0, 0.92); if (dark > 0.02) { c.fillStyle = `rgba(0,0,0,${dark})`; c.fillRect(0, 0, 320, 320); }
       const vg = c.createRadialGradient(cx, cy, R * 0.6, cx, cy, R); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,.55)"); c.fillStyle = vg; c.fillRect(0, 0, 320, 320);
