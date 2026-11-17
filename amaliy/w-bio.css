@@ -32,3 +32,17 @@
 .bio-body .bio-dot { fill: #f472b6; stroke: #fff; stroke-width: 1.5; animation: bioPulse 1.8s ease-in-out infinite; animation-delay: var(--d); transform-box: fill-box; transform-origin: center; }
 .bio-body .tx-pin.on .bio-dot { fill: #22c55e; }
 @keyframes bioPulse { 50% { transform: scale(1.35); } }
+.bio-eye { display: grid; place-items: center; width: 100%; max-width: 440px; height: 200px; border-radius: 14px; background: #f8fafc; }
+.bio-eye-s { color: #111; font: 900 40px/1 Arial, sans-serif; transition: transform .2s; }
+.bio-dirs { display: flex; gap: 6px; } .bio-dirs .dbtn { min-width: 52px; font-size: 1.2rem; }
+.bio-mem { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; width: 100%; max-width: 480px; min-height: 120px; }
+.bio-mem span { padding: 8px 12px; border-radius: 10px; background: rgba(56, 189, 248, .15); font-weight: 800; }
+.bio-mem .on { background: rgba(56, 189, 248, .35); border-style: solid; } .bio-mem .ok { background: #22c55e; color: #03130a; } .bio-mem .no { background: #ef4444; color: #fff; }
+.bio-hw { width: 100%; max-width: 440px; } .bio-hw table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: .88rem; } .bio-hw td, .bio-hw th { padding: 5px 6px; border-bottom: 1px solid var(--line); text-align: left; }
+.bio-hw-bar { display: flex; height: 26px; border-radius: 8px; overflow: hidden; } .bio-hw-bar i { display: grid; place-items: center; font-style: normal; font-weight: 800; font-size: .75rem; color: #111; transition: width .3s; overflow: hidden; }
+.bio-cyc-e { fill: none; stroke: #38bdf8; stroke-width: 2.5; stroke-dasharray: 6 5; opacity: .75; animation: txDash 1.4s linear infinite; animation-delay: var(--d); }
+.bio-cyc-e.on { stroke: #fde047; stroke-width: 4; opacity: 1; }
+.bio-cyc-n { fill: rgba(15, 118, 110, .35); stroke: #2dd4bf; }
+.bio-diet { display: grid; gap: 4px; width: 100%; max-width: 480px; max-height: 260px; overflow: auto; }
+.bio-food { display: grid; grid-template-columns: 1fr 36px 28px 36px; align-items: center; gap: 4px; font-size: .88rem; } .bio-food b { text-align: center; } .bio-food .dbtn { padding: 4px; min-width: 0; }
+.bio-16 td { min-width: 64px; }
