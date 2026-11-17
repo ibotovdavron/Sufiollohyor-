@@ -8,6 +8,7 @@
   const $ = (id) => document.getElementById(id);
   const qs = new URLSearchParams(location.search);
   const LOCAL = qs.get("net") === "local";
+  if ("serviceWorker" in navigator && location.protocol !== "file:") addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 
   // =====================================================================
   // Signal kanali (telefon ↔ doska): Supabase Realtime yoki BroadcastChannel
@@ -29,7 +30,10 @@
     bc.onmessage = (e) => onMsg(e.data);
     return { send: (d) => bc.postMessage(d), leave: () => bc.close() };
   }
-  const ICE = { iceServers: [{ urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] }] };
+  const ICE = { iceServers: [{ urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302", "stun:stun.cloudflare.com:3478"] }], iceCandidatePoolSize: 4 };
+  /** Nomzod ulanish taklifidan oldin kelsa — yo'qotmasdan navbatda saqlaymiz */
+  async function addIce(pc, c) { if (pc.remoteDescription && pc.remoteDescription.type) { try { await pc.addIceCandidate(c); } catch (e) { /* eskirgan nomzod */ } } else (pc._q = pc._q || []).push(c); }
+  async function flushIce(pc) { const q = pc._q || []; pc._q = []; for (const c of q) { try { await pc.addIceCandidate(c); } catch (e) { /* bo'sh */ } } }
 
   // =====================================================================
   // TELEFON REJIMI: kamera → doska
@@ -42,7 +46,7 @@
     const say = (t) => (st.textContent = t);
     async function camera() {
       if (stream) stream.getTracks().forEach((t) => t.stop());
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing, width: { ideal: 960 }, height: { ideal: 540 }, frameRate: { ideal: 30, max: 30 } }, audio: false });
       vid.srcObject = stream;
       if (pc) { const s = pc.getSenders().find((x) => x.track && x.track.kind === "video"); if (s) await s.replaceTrack(stream.getVideoTracks()[0]); room && room.send({ t: "mirror", v: facing === "user" }); }
     }
@@ -50,8 +54,8 @@
       const code = codeIn.value.trim();
       if (!/^\d{4}$/.test(code)) return say("4 xonali kodni kiriting");
       try {
-        say("Kamera ochilmoqda…"); await camera();
-        say("Doska qidirilmoqda…");
+        say("Kamera ochilmoqda va doska qidirilmoqda…");
+        const camP = camera();
         if (room) room.leave(); if (pc) pc.close(); clearInterval(helloT);
         room = await joinRoom(code, async (m) => {
           try {
@@ -63,12 +67,14 @@
               pc.onconnectionstatechange = () => { if (pc.connectionState === "connected") say("✅ Ulandi — kamera doskaga uzatilmoqda"); if (["failed", "disconnected"].includes(pc.connectionState)) say("⚠️ Aloqa uzildi. Qayta “Ulash” ni bosing."); };
               const offer = await pc.createOffer(); await pc.setLocalDescription(offer);
               room.send({ t: "offer", sdp: offer.sdp, mirror: facing === "user" });
-            } else if (m.t === "answer" && pc) await pc.setRemoteDescription({ type: "answer", sdp: m.sdp });
-            else if (m.t === "ice" && m.from === "b" && pc) await pc.addIceCandidate(m.c);
+            } else if (m.t === "answer" && pc && !pc.remoteDescription) { await pc.setRemoteDescription({ type: "answer", sdp: m.sdp }); await flushIce(pc); }
+            else if (m.t === "ice" && m.from === "b" && pc) await addIce(pc, m.c);
           } catch (e) { say("Xato: " + e.message); }
         });
         pc = null;
-        const hello = () => room.send({ t: "hello" }); hello(); helloT = setInterval(hello, 1500);
+        await camP;
+        say("Doska qidirilmoqda…");
+        const hello = () => room.send({ t: "hello" }); hello(); helloT = setInterval(hello, 700);
         try { if (navigator.wakeLock) await navigator.wakeLock.request("screen"); } catch (e) { /* bo'sh */ }
       } catch (e) { say("❌ " + (e.name === "NotAllowedError" ? "Kameraga ruxsat berilmadi" : e.message)); }
     }
@@ -185,6 +191,7 @@
     video.srcObject = stream; video.play().catch(() => {});
     root.classList.toggle("has-cam", !!stream); S.mirror = mirror; root.classList.toggle("mirror", mirror);
     if (stream && S.bg !== "cam") setBg("cam");
+    if (stream) setTimeout(() => preloadHands().catch(() => {}), 400); // ishoralar tugmasi bosilganda tayyor tursin
     if (!stream && S.bg === "cam") setBg("board");
     mark();
   }
@@ -217,8 +224,8 @@
             pc.ontrack = (e) => { if (localStream) { localStream.getTracks().forEach((t) => t.stop()); localStream = null; } setVideo(e.streams[0] || new MediaStream([e.track]), pc._mirror || false); say("✅ Telefon ulandi!"); status("📱 Telefon kamerasi ulandi", 3000); setTimeout(() => (panel.hidden = true), 900); };
             pc.onconnectionstatechange = () => { if (pc && ["failed", "disconnected", "closed"].includes(pc.connectionState)) status("⚠️ Telefon bilan aloqa uzildi", 5000); };
             room.send({ t: "ready" }); say("📶 Telefon topildi, ulanmoqda…");
-          } else if (m.t === "offer" && pc) { pc._mirror = !!m.mirror; await pc.setRemoteDescription({ type: "offer", sdp: m.sdp }); const a = await pc.createAnswer(); await pc.setLocalDescription(a); room.send({ t: "answer", sdp: a.sdp }); }
-          else if (m.t === "ice" && m.from === "p" && pc) await pc.addIceCandidate(m.c);
+          } else if (m.t === "offer" && pc && !pc.remoteDescription) { pc._mirror = !!m.mirror; await pc.setRemoteDescription({ type: "offer", sdp: m.sdp }); await flushIce(pc); const a = await pc.createAnswer(); await pc.setLocalDescription(a); room.send({ t: "answer", sdp: a.sdp }); }
+          else if (m.t === "ice" && m.from === "p" && pc) await addIce(pc, m.c);
           else if (m.t === "mirror") { S.mirror = !!m.v; root.classList.toggle("mirror", S.mirror); }
         } catch (e) { say("Xato: " + e.message); }
       });
@@ -227,16 +234,27 @@
 
   // ---------- qo'l ishoralari ----------
   const HL = { lm: null, loading: false, last: 0, hands: [{}, {}] };
-  async function initHands() {
-    if (HL.lm || HL.loading) return; HL.loading = true;
-    status("⏳ Qo‘l tanish moduli yuklanmoqda (birinchi marta 10–30 soniya)…", 0);
-    try {
+  let handsP = null;
+  /** Modulni fonda yuklash (bir marta). Kamera yoki telefon ulanishi bilan boshlanadi. */
+  function preloadHands() {
+    if (!handsP) handsP = (async () => {
       const v = await import("./lib/mediapipe/vision_bundle.mjs");
       const fs = await v.FilesetResolver.forVisionTasks("lib/mediapipe/wasm");
       const mk = (delegate) => v.HandLandmarker.createFromOptions(fs, { baseOptions: { modelAssetPath: "lib/mediapipe/hand_landmarker.task", delegate }, runningMode: "VIDEO", numHands: 2, minHandDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
-      try { HL.lm = await mk("GPU"); } catch (e) { HL.lm = await mk("CPU"); }
+      try { return await mk("GPU"); } catch (e) { return await mk("CPU"); }
+    })().catch((e) => { handsP = null; throw e; });
+    return handsP;
+  }
+  async function initHands() {
+    if (HL.lm || HL.loading) return; HL.loading = true;
+    const t0 = performance.now();
+    const slow = setTimeout(() => status("⏳ Qo‘l tanish moduli yuklanmoqda (faqat birinchi marta biroz vaqt oladi)…", 0), 300);
+    try {
+      HL.lm = await preloadHands();
+      clearTimeout(slow);
       status("🖐 Ishoralar yoqildi: ✌️ kub · 3 prizma · 4 piramida · 🖐 shar → o‘rtada chiqadi · 👌 ko‘chirish · ✊ aylantirish", 7000);
-    } catch (e) { S.hands = false; mark(); status("❌ Qo‘l tanish moduli yuklanmadi: " + e.message, 7000); }
+      HL.loadMs = Math.round(performance.now() - t0);
+    } catch (e) { clearTimeout(slow); S.hands = false; mark(); status("❌ Qo‘l tanish moduli yuklanmadi: " + e.message, 7000); }
     HL.loading = false;
   }
   const d2 = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
