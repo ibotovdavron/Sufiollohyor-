@@ -235,7 +235,7 @@
       const fs = await v.FilesetResolver.forVisionTasks("lib/mediapipe/wasm");
       const mk = (delegate) => v.HandLandmarker.createFromOptions(fs, { baseOptions: { modelAssetPath: "lib/mediapipe/hand_landmarker.task", delegate }, runningMode: "VIDEO", numHands: 2, minHandDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
       try { HL.lm = await mk("GPU"); } catch (e) { HL.lm = await mk("CPU"); }
-      status("🖐 Ishoralar yoqildi: ✌️ kub · 3 barmoq prizma · 4 piramida · 🖐 shar · 👌 ushlash · ✊ o‘chirish", 7000);
+      status("🖐 Ishoralar yoqildi: ✌️ kub · 3 prizma · 4 piramida · 🖐 shar → o‘rtada chiqadi · 👌 ko‘chirish · ✊ aylantirish", 7000);
     } catch (e) { S.hands = false; mark(); status("❌ Qo‘l tanish moduli yuklanmadi: " + e.message, 7000); }
     HL.loading = false;
   }
@@ -263,12 +263,25 @@
     return { g: gname, size, n };
   }
   const SPAWN = { two: "kub", three: "prizma", four: "piramida", five: "shar" };
-  const GLABEL = { pinch: "👌 ushlash", fist: "✊ o‘chirish", point: "☝️ chizish", two: "✌️ kub", three: "3 — prizma", four: "4 — piramida", five: "🖐 shar", other: "" };
+  const GLABEL = { pinch: "👌 ko‘chirish", fist: "✊ aylantirish", point: "☝️ chizish", two: "✌️ kub", three: "3 — prizma", four: "4 — piramida", five: "🖐 shar", other: "" };
   const BONES = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8], [5, 9], [9, 10], [10, 11], [11, 12], [9, 13], [13, 14], [14, 15], [15, 16], [13, 17], [17, 18], [18, 19], [19, 20], [0, 17]];
-  const HOLD = 0.8;
+  const HOLD = 1.0, GAIN = 1.8;
+  /** Boshqariladigan shakl: tanlangan yoki oxirgi qo'shilgan */
+  const active = () => (sel && shapes.includes(sel) ? sel : shapes[shapes.length - 1] || null);
+  const clampXY = (sh) => { sh.x = Math.max(sh.s * 0.6, Math.min(W - sh.s * 0.6, sh.x)); sh.y = Math.max(70 + sh.s * 0.5, Math.min(H - sh.s * 0.6, sh.y)); };
+  /** Yangi shakl ekran o'rtasida chiqadi (band bo'lsa — yonida) */
+  function spawnCenter(kind) {
+    const offs = [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, 1]], step = Math.min(W, H) * 0.22;
+    let pos = [W / 2, H / 2 + 20];
+    for (const [ox, oy] of offs) { const x = W / 2 + ox * step, y = H / 2 + 20 + oy * step; if (!shapes.some((q) => Math.hypot(q.x - x, q.y - y) < q.s * 1.4)) { pos = [x, y]; break; } }
+    const sh = addShape(kind, pos[0], pos[1], true); select(sh);
+    status(`${KINDS[kind][0]} chiqdi — 👌 bilan ko‘chiring, ✊ bilan aylantiring (qo‘l istalgan joyda)`, 3500);
+    return sh;
+  }
   function processHands(list, dt) {
     gh.clearRect(0, 0, W, H);
     const seen = [];
+    const both = list.length === 2;
     list.forEach((lm, i) => {
       const hs = HL.hands[i] || (HL.hands[i] = {});
       let P = lm.map(toScreen);
@@ -277,37 +290,62 @@
       const { g: gs, size } = classify(P);
       if (gs === hs.g) hs.t = (hs.t || 0) + dt; else { hs.g = gs; hs.t = 0; hs.armed = true; if (hs.stroke) hs.stroke = null; }
       const palm = P[9], pin = [(P[4][0] + P[8][0]) / 2, (P[4][1] + P[8][1]) / 2];
-      // 👌 ushlash
+      const ang = Math.atan2(P[9][1] - P[0][1], P[9][0] - P[0][0]);
+      let link = null;
+      // 👌 masofadan ko'chirish: qo'l qayerda bo'lishidan qat'i nazar, faol shakl qo'l harakati bilan siljiydi
       if (gs === "pinch") {
-        if (!hs.grab) { const sh = shapeAt(pin[0], pin[1], 1.5); if (sh) { hs.grab = { sh, ox: sh.x - pin[0], oy: sh.y - pin[1], a0: Math.atan2(P[9][1] - P[0][1], P[9][0] - P[0][0]), rz0: sh.rz, s0: sh.s, size0: size }; sh.held = true; } }
-        else { const G = hs.grab; G.sh.x += (pin[0] + G.ox - G.sh.x) * 0.6; G.sh.y += (pin[1] + G.oy - G.sh.y) * 0.6; G.sh.rz = G.rz0 - (Math.atan2(P[9][1] - P[0][1], P[9][0] - P[0][0]) - G.a0); G.sh.ry += dt * 0.15; }
+        if (!hs.grab) { const sh = active(); if (sh) { hs.grab = { sh, lx: pin[0], ly: pin[1], a0: ang, rz0: sh.rz, s0: sh.s, size0: size }; sh.held = true; select(sh); } }
+        else {
+          const G = hs.grab, sh = G.sh;
+          const other = HL.hands[1 - i];
+          const twoPinch = both && other && other.g === "pinch";
+          if (!twoPinch || i === 0) { sh.x += (pin[0] - G.lx) * GAIN; sh.y += (pin[1] - G.ly) * GAIN; clampXY(sh); }
+          G.lx = pin[0]; G.ly = pin[1];
+          if (!twoPinch) {
+            sh.rz = G.rz0 - (ang - G.a0);
+            // qo'lni kameraga yaqinlashtirsa — kattalashadi, uzoqlashtirsa — kichrayadi
+            const r = size / G.size0, rr = 1 + Math.sign(r - 1) * Math.max(0, Math.abs(r - 1) - 0.1);
+            const target = Math.max(30, Math.min(Math.min(W, H) * 0.45, G.s0 * Math.pow(rr, 1.6)));
+            sh.s += (target - sh.s) * 0.25;
+          }
+          link = [pin, sh];
+        }
       } else if (hs.grab) { hs.grab.sh.held = false; hs.grab = null; }
-      // shakl chiqarish / o'chirish (ishorani HOLD soniya ushlab turish)
-      if (hs.armed && hs.t >= HOLD) {
-        if (SPAWN[gs]) { addShape(SPAWN[gs], palm[0], palm[1] - size * 0.2); hs.armed = false; }
-        else if (gs === "fist") { const sh = shapeAt(palm[0], palm[1], 1.6); if (sh) { delShape(sh); status("✊ Shakl o‘chirildi", 1500); } hs.armed = false; }
-      }
+      // ✊ masofadan aylantirish: mushtni surish — shakl 3D da aylanadi
+      if (gs === "fist") {
+        if (!hs.rot) { const sh = active(); if (sh) { hs.rot = { sh, lx: palm[0], ly: palm[1] }; sh.held = true; select(sh); } }
+        else { const R = hs.rot; R.sh.ry += (palm[0] - R.lx) * 0.014; R.sh.rx += (palm[1] - R.ly) * 0.014; R.lx = palm[0]; R.ly = palm[1]; link = [palm, R.sh]; }
+      } else if (hs.rot) { hs.rot.sh.held = false; hs.rot = null; }
+      // shakl chiqarish (ishorani HOLD soniya ushlab turish) — ekran o'rtasida
+      if (hs.armed && hs.t >= HOLD && SPAWN[gs]) { spawnCenter(SPAWN[gs]); hs.armed = false; }
       // ☝️ havoda chizish
       if (gs === "point" && S.airDraw && hs.t > 0.15) { const tip = P[8]; if (!hs.stroke) hs.stroke = strokeStart(tip[0], tip[1], { erase: false, size: Math.max(4, S.size) }); else strokeAdd(hs.stroke, tip[0], tip[1]); }
       // skelet
       gh.lineWidth = 3; gh.strokeStyle = "rgba(134,239,172,.9)"; gh.beginPath(); for (const [a, b] of BONES) { gh.moveTo(P[a][0], P[a][1]); gh.lineTo(P[b][0], P[b][1]); } gh.stroke();
       gh.fillStyle = "#fff"; for (const k of [4, 8, 12, 16, 20]) { gh.beginPath(); gh.arc(P[k][0], P[k][1], 5, 0, 7); gh.fill(); }
       if (gs === "pinch") { gh.strokeStyle = "#fde047"; gh.lineWidth = 4; gh.beginPath(); gh.arc(pin[0], pin[1], 16, 0, 7); gh.stroke(); }
+      // qo'l va boshqarilayotgan shakl orasidagi “nur”
+      if (link) {
+        const [from, sh] = link;
+        gh.save(); gh.strokeStyle = "rgba(253,224,71,.85)"; gh.lineWidth = 3; gh.setLineDash([8, 8]); gh.lineDashOffset = -performance.now() / 30;
+        gh.beginPath(); gh.moveTo(from[0], from[1]); gh.lineTo(sh.x, sh.y); gh.stroke(); gh.setLineDash([]);
+        gh.beginPath(); gh.arc(sh.x, sh.y, sh.s * 1.25, 0, 7); gh.stroke(); gh.restore();
+      }
       if (GLABEL[gs]) {
         gh.font = "800 16px system-ui, sans-serif"; gh.textAlign = "center"; const tw = gh.measureText(GLABEL[gs]).width + 18;
         gh.fillStyle = "rgba(0,0,0,.6)"; gh.fillRect(P[0][0] - tw / 2, P[0][1] + 14, tw, 26); gh.fillStyle = "#fff"; gh.fillText(GLABEL[gs], P[0][0], P[0][1] + 32);
-        if ((SPAWN[gs] || gs === "fist") && hs.armed) { gh.strokeStyle = "#fde047"; gh.lineWidth = 6; gh.beginPath(); gh.arc(palm[0], palm[1], size * 0.55, -Math.PI / 2, -Math.PI / 2 + Math.min(1, hs.t / HOLD) * Math.PI * 2); gh.stroke(); }
+        if (SPAWN[gs] && hs.armed) { gh.strokeStyle = "#fde047"; gh.lineWidth = 6; gh.beginPath(); gh.arc(palm[0], palm[1], size * 0.55, -Math.PI / 2, -Math.PI / 2 + Math.min(1, hs.t / HOLD) * Math.PI * 2); gh.stroke(); }
       }
     });
-    // ikki qo'l bilan chimchilash — kattalashtirish
+    // ikki qo'l bilan chimchilash — qo'llarni yaqinlashtirish/uzoqlashtirish bilan kattalashtirish
     const A = HL.hands[0], B = HL.hands[1];
     if (seen.length === 2 && A.g === "pinch" && B.g === "pinch" && (A.grab || B.grab)) {
       const G = A.grab || B.grab, d = d2(A.P[8], B.P[8]);
       if (!G.d0) { G.d0 = d; G.s0 = G.sh.s; } G.sh.s = Math.max(30, Math.min(Math.min(W, H) * 0.45, G.s0 * d / G.d0));
     } else { if (A.grab) A.grab.d0 = 0; if (B.grab) B.grab.d0 = 0; }
-    HL.hands.forEach((hs, i) => { if (!seen.includes(i)) { if (hs.grab) hs.grab.sh.held = false; HL.hands[i] = {}; } });
+    HL.hands.forEach((hs, i) => { if (!seen.includes(i)) { if (hs.grab) hs.grab.sh.held = false; if (hs.rot) hs.rot.sh.held = false; HL.hands[i] = {}; } });
   }
-  window.DOSKA = { S, shapes, addShape, classify, HL };
+  window.DOSKA = { S, shapes, addShape, classify, HL, processHands, active: () => active() };
 
   // ---------- asboblar paneli ----------
   const colorsEl = $("dkColors");
@@ -359,8 +397,10 @@
         <tr><td>✌️</td><td>2 barmoq — <b>kub</b></td></tr>
         <tr><td>3</td><td>3 barmoq — <b>prizma</b> · 4 barmoq — <b>piramida</b></td></tr>
         <tr><td>🖐</td><td>ochiq kaft — <b>shar</b></td></tr>
-        <tr><td>👌</td><td>bosh va ko‘rsatkich barmoqni birlashtiring — shaklni <b>ushlab ko‘chirish</b>; bilakni burasangiz shakl buriladi; ikki qo‘l bilan — <b>kattalashtirish</b></td></tr>
-        <tr><td>✊</td><td>musht — yaqindagi shaklni <b>o‘chirish</b></td></tr>
+        <tr><td>🎯</td><td>Yangi shakl <b>ekran o‘rtasida</b> chiqadi. Uni <b>uzoqdan</b> boshqarasiz — qo‘lni shaklga olib borish shart emas.</td></tr>
+        <tr><td>👌</td><td>bosh va ko‘rsatkich barmoqni birlashtirib qo‘lni suring — shakl shu tomonga <b>ko‘chadi</b>; bilakni burasangiz — <b>buriladi</b>; qo‘lni kameraga yaqinlashtirsangiz — <b>kattalashadi</b>, uzoqlashtirsangiz — kichrayadi; ikki qo‘l bilan ham kattalashtirish mumkin</td></tr>
+        <tr><td>✊</td><td>musht qilib qo‘lni suring — shakl <b>3D da aylanadi</b> (har tomondan ko‘rsatish uchun)</td></tr>
+        <tr><td>🗑</td><td>shaklni o‘chirish — shakl ostidagi 🗑 tugmasi</td></tr>
         <tr><td>☝️</td><td>ko‘rsatkich barmoq — <b>havoda chizish</b> <label style="white-space:nowrap"><input type="checkbox" id="dkAir" ${S.airDraw ? "checked" : ""}> yoqilgan</label></td></tr>
       </table>
       <p class="muted">Yorug‘lik yaxshi bo‘lsa va qo‘l kameradan 0,5–1,5 m masofada to‘liq ko‘rinsa, ishoralar aniqroq taniladi.</p>`);
@@ -382,7 +422,7 @@
     const dt = Math.min(0.1, (t - lastT) / 1000); lastT = t;
     if (S.hands && HL.lm && video.readyState >= 2 && video.videoWidth && t - HL.last > 55) {
       const ddt = Math.min(0.3, (t - HL.last) / 1000); HL.last = t;
-      try { const r = HL.lm.detectForVideo(video, t); processHands(r.landmarks || [], ddt); HL.count = (r.landmarks || []).length; } catch (e) { /* kadr tashlab ketiladi */ }
+      try { const r = HL.lm.detectForVideo(video, t); HL.lastLm = r.landmarks; processHands(r.landmarks || [], ddt); HL.count = (r.landmarks || []).length; } catch (e) { /* kadr tashlab ketiladi */ }
     }
     render3d(dt);
     requestAnimationFrame(loop);
