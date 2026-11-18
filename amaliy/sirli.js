@@ -146,7 +146,7 @@
 
   const LV = { 1: "oson — 📌 qoida qatorida", 2: "o‘rta — misol javobi yoki “Hayotda” bo‘limida", 3: "qiyin — tushuntirish matnida" };
   const starStr = (n) => "★".repeat(n) + "☆".repeat(3 - n);
-  const total = () => Object.values(load()).reduce((a, x) => a + (x.stars || 0), 0);
+  const total = () => Math.max(0, Object.values(load()).reduce((a, x) => a + (x.stars || 0), 0));
 
   function fixInline(rootEl, p) {
     rootEl.querySelectorAll("[data-sirli]").forEach((el) => {
@@ -162,7 +162,7 @@
     const store = load();
     const prev = store[p.key];
     const intro = `<h2><span class="h-ic">🕵️</span> Sirli xato</h2>
-      <p class="am-sirli-intro">Ba’zi mavzularda bitta <b>sirli xato</b> yashiringan, ba’zilarida esa xato yo‘q. Darsni diqqat bilan o‘qib chiqdingizmi? Xatoni topsangiz, qiyinligiga qarab <b>1–3 ⭐</b> olasiz. Har mavzuda faqat <b>bir marta</b> javob berish mumkin!</p>`;
+      <p class="am-sirli-intro">Ba’zi mavzularda bitta <b>sirli xato</b> yashiringan, ba’zilarida esa xato yo‘q. Darsni diqqat bilan o‘qib chiqdingizmi? Xatoni topsangiz, qiyinligiga qarab <b>1–3 ⭐</b> olasiz. Xato yo‘q mavzuda “xato bor” desangiz — <b>1 ⭐ olib tashlanadi</b>. Har mavzuda faqat <b>bir marta</b> javob berish mumkin!</p>`;
     const totalLine = () => `<div class="am-sirli-total">⭐ Sirli xato yulduzlaringiz: <b>${total()}</b></div>`;
     const done = (html) => { box.innerHTML = intro + `<div class="am-sirli-res">${html}</div>` + totalLine(); };
     const resultHTML = (res) => {
@@ -170,14 +170,14 @@
       if (res.kind === "missed") return `<b class="bad">😕 Afsus, xato boshqa joyda edi.</b><p>❌ Xato gap: ${rich(esc(p.answer))}</p><p>✅ To‘g‘risi: ${rich(esc(p.right))}</p><p>Qiyinlik: <span class="am-stars">${starStr(p.stars)}</span></p>`;
       if (res.kind === "skipped") return `<b class="bad">🙈 Bu mavzuda xato bor edi!</b><p>❌ Xato gap: ${rich(esc(p.answer))}</p><p>✅ To‘g‘risi: ${rich(esc(p.right))}</p><p>Qiyinlik: <span class="am-stars">${starStr(p.stars)}</span> — keyingi safar diqqatliroq bo‘ling 😉</p>`;
       if (res.kind === "clean") return `<b class="good">👏 To‘g‘ri! Bu mavzuda xato yo‘q edi. +1 ⭐</b><p>Siz darsga ishondingiz — chunki uni tushunib o‘qidingiz.</p>`;
-      return `<b class="bad">🙂 Bu mavzuda xato yo‘q edi.</b><p>Hamma ma’lumot to‘g‘ri. Keyingi mavzuda omadingizni sinab ko‘ring!</p>`;
+      return `<b class="bad">🙁 Bu mavzuda xato yo‘q edi! −1 ⭐</b><p>Hamma ma’lumot to‘g‘ri edi. Shoshilmang — “xato bor” deyishdan oldin darsni yaxshilab tekshiring.</p>`;
     };
     if (prev) { done(resultHTML(prev)); if (p.has) fixInline(rootEl, p); return; }
     const finishWith = (res) => {
       const s = load(); s[p.key] = res; save(s);
       done(resultHTML(res));
       if (p.has) fixInline(rootEl, p);
-      if (res.stars) box.classList.add("win");
+      if (res.stars > 0) box.classList.add("win");
     };
     box.innerHTML = intro + `
       <div class="am-sirli-ask"><b>Bu mavzuda xato bormi?</b>
@@ -185,7 +185,7 @@
       </div>` + totalLine();
     box.querySelector('[data-a="no"]').onclick = () => finishWith(p.has ? { kind: "skipped", stars: 0 } : { kind: "clean", stars: 1 });
     box.querySelector('[data-a="yes"]').onclick = () => {
-      if (!p.has) { finishWith({ kind: "none", stars: 0 }); return; }
+      if (!p.has) { finishWith({ kind: "none", stars: total() > 0 ? -1 : 0 }); return; }
       const ask = box.querySelector(".am-sirli-ask");
       ask.innerHTML = `<b>Qaysi gapda xato bor?</b><div class="am-sirli-opts">${p.opts.map((o, i) => `<button type="button" data-i="${i}">${rich(esc(o))}</button>`).join("")}</div>`;
       ask.querySelectorAll("button").forEach((b) => (b.onclick = () => {
