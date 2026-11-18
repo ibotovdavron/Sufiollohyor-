@@ -19,3 +19,14 @@
 @keyframes phGlow { 50% { box-shadow: 0 16px 50px rgba(250, 204, 21, .25); } }
 .pf-hour.done .ph-clock .fg { stroke: #22c55e; }
 @media (max-width: 560px) { .ph-row { flex-direction: column-reverse; align-items: stretch; } .ph-clock { margin: 0 auto; } .ph-btns .btn { flex: 1; } }
+
+/* E’lon: Sirli xato */
+.sx-card { border-color: rgba(56, 189, 248, .5); background: radial-gradient(circle at 90% 10%, rgba(56, 189, 248, .2), transparent 45%), linear-gradient(135deg, rgba(99, 102, 241, .16), rgba(2, 6, 23, .6)); }
+.sx-card .ph-kicker { background: rgba(56, 189, 248, .16); color: #bae6fd; }
+.sx-icon { flex: none; font-size: 72px; line-height: 1; filter: drop-shadow(0 8px 20px rgba(56, 189, 248, .45)); animation: sxSpy 3s ease-in-out infinite; }
+@keyframes sxSpy { 0%, 100% { transform: translate(0, 0) rotate(-8deg); } 50% { transform: translate(-10px, 4px) rotate(8deg); } }
+.sx-rules { margin: 12px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.sx-rules li { padding: 8px 12px; border-radius: 12px; background: rgba(255, 255, 255, .06); line-height: 1.45; font-size: 14px; }
+.sx-rules b { color: #fde68a; }
+@media (max-width: 560px) { .sx-icon { display: none; } }
+@media (prefers-reduced-motion: reduce) { .sx-icon { animation: none; } }
