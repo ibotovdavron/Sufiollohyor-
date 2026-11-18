@@ -36,18 +36,20 @@
   // ---------- Ma'lumotlar ----------
   async function loadServer() {
     const cfg = window.SUFIOLLOHYOR_CONFIG || {};
-    const out = { ok: false, game: [], qw: [], mres: [], mwin: [], ts: [], chess: [] };
+    const out = { ok: false, game: [], qw: [], mres: [], mwin: [], ts: [], chess: [], sx: [] };
     if (!window.supabase || !cfg.SUPABASE_URL) return out;
     try {
       const db = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, { auth: { persistSession: false } });
-      const [g, q, mr, mw, ts, cr] = await Promise.all([
+      const [g, q, mr, mw, ts, cr, sx] = await Promise.all([
         db.from("game_stars").select("student_name, game, stars, day, created_at"),
         db.from("question_winners").select("*"),
         db.from("master_results").select("student_name, topic, attempt, correct, points, seconds, created_at"),
         db.from("master_winners").select("topic, student_name, points, awarded_at"),
         db.from("teacher_stars").select("student_name, stars, reason, teacher, created_at").order("created_at", { ascending: false }),
-        db.from("chess_ratings").select("*").order("rating", { ascending: false })
+        db.from("chess_ratings").select("*").order("rating", { ascending: false }),
+        db.from("sirli_totals").select("student_name, stars")
       ]);
+      out.sx = sx.error ? [] : sx.data || [];
       out.chess = cr.error ? [] : cr.data || [];
       out.ts = ts.error ? [] : ts.data || [];
       out.game = g.error ? [] : g.data || [];
@@ -62,6 +64,7 @@
   function totals(srv) {
     const bonus = {};
     srv.game.concat(srv.qw, srv.ts).forEach((r) => { const k = norm(r.student_name); bonus[k] = (bonus[k] || 0) + Number(r.stars || 1); });
+    (srv.sx || []).forEach((r) => { const k = norm(r.student_name); bonus[k] = (bonus[k] || 0) + Number(r.stars || 0); });
     const rows = STUDENTS.map((s) => ({ ...s, total: s.base + (bonus[norm(s.name)] || 0) })).sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, "uz"));
     rows.forEach((r, i) => { r.rank = i && r.total === rows[i - 1].total ? rows[i - 1].rank : i + 1; });
     return rows;
@@ -103,6 +106,7 @@
     const qStars = myQ.reduce((a, r) => a + Number(r.stars || 1), 0);
     const myT = srv.ts.filter((r) => norm(r.student_name) === k);
     const tStars = myT.reduce((a, r) => a + Number(r.stars || 0), 0);
+    const sxStars = (srv.sx || []).filter((r) => norm(r.student_name) === k).reduce((a, r) => a + Number(r.stars || 0), 0);
     const gStars = Object.values(byGame).reduce((a, b) => a + b, 0);
     // Shu qurilmadagi (internetga yozilmagan) o'yin yulduzlari
     let localG = 0;
@@ -112,6 +116,7 @@
       ["📚", "Darslar va faollik", meRow.base, "#22c55e"],
       ["👨‍🏫", "Ustoz bergan yulduzlar", tStars, "#0ea5e9"],
       ["🏆", "Musobaqalar (kunlik savol)", qStars, "#f59e0b"],
+      ["🕵️", "Amaliy: sirli xato", sxStars, "#6366f1"],
       ...Object.entries(GAME).map(([g, [ic, nm]]) => [ic, nm, byGame[g] || 0, g === "master" ? "#ef4444" : "#a78bfa"])
     ];
     const sumParts = Math.max(1, parts.reduce((a, p) => a + Math.max(0, p[2]), 0));

@@ -399,3 +399,10 @@ b.v { color: #fde047; }
 .am-sirli.fixed { background: rgba(34, 197, 94, .15); border-radius: 6px; padding: 0 4px; }
 .am-sirli.fixed s { color: #dc2626; opacity: .8; }
 .am-sirli.fixed b { color: #16a34a; }
+
+.am-sirli-who { margin-top: 6px; font-size: 13.5px; opacity: .9; }
+.am-sirli-who a { font-weight: 800; }
+.am-sirli-who.warn { padding: 8px 10px; border-radius: 10px; background: rgba(245, 158, 11, .12); border: 1px solid rgba(245, 158, 11, .4); }
+.am-sirli-who .dbtn.sm { padding: 4px 10px; font-size: 13px; }
+.am-sirli-sync { font-size: 14px; opacity: .9; }
+.am-sirli-sync.ok { color: #16a34a; font-weight: 800; }

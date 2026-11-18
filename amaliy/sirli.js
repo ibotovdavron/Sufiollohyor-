@@ -5,8 +5,32 @@
 (() => {
   "use strict";
   const KEY = "sofi_amaliy_sirli_v1";
-  const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { return {}; } };
-  const save = (s) => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) { /* bo'sh */ } };
+  /** Kirgan o'quvchi (SofiAuth). Ustoz va mehmonlar reytingga yulduz olmaydi. */
+  const me = () => { try { const u = window.SofiAuth && window.SofiAuth.me(); return u && u.name && (u.role || "student") === "student" ? u : null; } catch (e) { return null; } };
+  const skey = () => { const u = me(); return u ? KEY + ":" + u.name : KEY; }; // bitta qurilmada bir nechta o'quvchi bo'lsa ham aralashmasin
+  const load = () => { try { return JSON.parse(localStorage.getItem(skey()) || "{}") || {}; } catch (e) { return {}; } };
+  const save = (s) => { try { localStorage.setItem(skey(), JSON.stringify(s)); } catch (e) { /* bo'sh */ } };
+  let client;
+  function db() {
+    if (client !== undefined) return client;
+    client = null;
+    const cfg = window.SUFIOLLOHYOR_CONFIG || {};
+    if (new URLSearchParams(location.search).get("net") !== "local" && window.supabase && cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY) {
+      try { client = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, { auth: { persistSession: false } }); } catch (e) { client = null; }
+    }
+    return client;
+  }
+  /** Yulduzni markaz reytingiga yozish. Natija: { ok, n } yoki { ok:false, why } */
+  async function sendStars(key, stars) {
+    const u = me(), c = db();
+    if (!u) return { ok: false, why: "login" };
+    if (!c || !stars) return { ok: false, why: "offline" };
+    try {
+      const { data, error } = await c.rpc("sirli_submit", { p_student: u.name, p_topic: key, p_stars: stars });
+      if (error) return { ok: false, why: "error" };
+      return { ok: true, n: Number(data) || 0 };
+    } catch (e) { return { ok: false, why: "offline" }; }
+  }
   const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const SHARE = 0.55; // xato bo'ladigan mavzular ulushi
 
@@ -163,8 +187,25 @@
     const prev = store[p.key];
     const intro = `<h2><span class="h-ic">🕵️</span> Sirli xato</h2>
       <p class="am-sirli-intro">Ba’zi mavzularda bitta <b>sirli xato</b> yashiringan, ba’zilarida esa xato yo‘q. Darsni diqqat bilan o‘qib chiqdingizmi? Xatoni topsangiz, qiyinligiga qarab <b>1–3 ⭐</b> olasiz. Xato yo‘q mavzuda “xato bor” yoki xato bor mavzuda “xato yo‘q” desangiz — <b>1 ⭐ olib tashlanadi</b>. Har mavzuda faqat <b>bir marta</b> javob berish mumkin!</p>`;
-    const totalLine = () => `<div class="am-sirli-total">⭐ Sirli xato yulduzlaringiz: <b>${total()}</b></div>`;
-    const done = (html) => { box.innerHTML = intro + `<div class="am-sirli-res">${html}</div>` + totalLine(); };
+    const totalLine = () => {
+      const u = me();
+      return `<div class="am-sirli-total">⭐ Sirli xato yulduzlaringiz: <b>${total()}</b></div>` + (u
+        ? `<div class="am-sirli-who">👤 ${esc(u.name)} — yulduzlar <a href="ranking.html">markaz reytingiga</a> qo‘shiladi</div>`
+        : `<div class="am-sirli-who warn">⚠️ Yulduzlar reytingga yozilishi uchun <button type="button" class="dbtn sm" data-login>🔑 Kiring</button> (ismingizni tanlang). Kirmasangiz, yulduzlar faqat shu telefonda qoladi.</div>`);
+    };
+    const bindLogin = () => {
+      const b = box.querySelector("[data-login]");
+      if (b && window.SofiAuth) b.onclick = async () => { const u = await window.SofiAuth.open({ title: "Sirli xato yulduzlari uchun kirish", teachers: false }); if (u) mount(box, rootEl, p, rich); };
+    };
+    const syncLine = (res) => {
+      if (!res.stars) return "";
+      if (res.sync === "ok") return `<p class="am-sirli-sync ok">📊 Reytingga yozildi: ${res.sent > 0 ? "+" : ""}${res.sent} ⭐</p>`;
+      if (res.sync === "cap") return `<p class="am-sirli-sync">📊 Bugungi limit (30 ⭐) to‘ldi — bu yulduz reytingga yozilmadi. Ertaga davom eting!</p>`;
+      if (res.sync === "dup") return `<p class="am-sirli-sync">📊 Bu mavzu uchun yulduz avval yozilgan.</p>`;
+      if (res.sync === "pending") return `<p class="am-sirli-sync">⏳ Internet yo‘q — reytingga keyinroq yoziladi.</p>`;
+      return "";
+    };
+    const done = (html, res) => { box.innerHTML = intro + `<div class="am-sirli-res">${html}${res ? syncLine(res) : ""}</div>` + totalLine(); bindLogin(); };
     const resultHTML = (res) => {
       if (res.kind === "found") return `<b class="good">🎉 Topdingiz! +${res.stars} ⭐</b><p>Qiyinlik: <span class="am-stars">${starStr(res.stars)}</span> (${LV[res.stars]}).</p><p>✅ To‘g‘risi: ${rich(esc(p.right))}</p>`;
       if (res.kind === "missed") return `<b class="bad">😕 Afsus, xato boshqa joyda edi.</b><p>❌ Xato gap: ${rich(esc(p.answer))}</p><p>✅ To‘g‘risi: ${rich(esc(p.right))}</p><p>Qiyinlik: <span class="am-stars">${starStr(p.stars)}</span></p>`;
@@ -172,17 +213,32 @@
       if (res.kind === "clean") return `<b class="good">👏 To‘g‘ri! Bu mavzuda xato yo‘q edi. +1 ⭐</b><p>Siz darsga ishondingiz — chunki uni tushunib o‘qidingiz.</p>`;
       return `<b class="bad">🙁 Bu mavzuda xato yo‘q edi! −1 ⭐</b><p>Hamma ma’lumot to‘g‘ri edi. Shoshilmang — “xato bor” deyishdan oldin darsni yaxshilab tekshiring.</p>`;
     };
-    if (prev) { done(resultHTML(prev)); if (p.has) fixInline(rootEl, p); return; }
-    const finishWith = (res) => {
+    const push = async (res) => {
+      if (!res.stars || !me()) return;
+      const r = await sendStars(p.key, res.stars);
+      if (!r.ok) res.sync = "pending";
+      else res.sync = r.n === 0 ? (res.stars > 0 && !res.sync ? "cap" : "dup") : "ok", res.sent = r.n;
       const s = load(); s[p.key] = res; save(s);
-      done(resultHTML(res));
+      if (box.isConnected) done(resultHTML(res), res);
+    };
+    if (prev) {
+      done(resultHTML(prev), prev); if (p.has) fixInline(rootEl, p);
+      if (prev.stars && me() && (!prev.sync || prev.sync === "pending")) push(prev); // avval yozilmay qolgan bo'lsa — qayta yuboramiz
+      return;
+    }
+    const finishWith = (res) => {
+      if (me()) res.sync = "pending";
+      const s = load(); s[p.key] = res; save(s);
+      done(resultHTML(res), res);
       if (p.has) fixInline(rootEl, p);
       if (res.stars > 0) box.classList.add("win");
+      res.sync = ""; push(res);
     };
     box.innerHTML = intro + `
       <div class="am-sirli-ask"><b>Bu mavzuda xato bormi?</b>
         <div class="am-sirli-btns"><button type="button" class="dbtn" data-a="yes">🔎 Ha, xato bor</button><button type="button" class="dbtn ghost" data-a="no">✅ Xato yo‘q</button></div>
       </div>` + totalLine();
+    bindLogin();
     box.querySelector('[data-a="no"]').onclick = () => finishWith(p.has ? { kind: "skipped", stars: total() > 0 ? -1 : 0 } : { kind: "clean", stars: 1 });
     box.querySelector('[data-a="yes"]').onclick = () => {
       if (!p.has) { finishWith({ kind: "none", stars: total() > 0 ? -1 : 0 }); return; }
