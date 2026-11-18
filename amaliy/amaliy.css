@@ -377,3 +377,25 @@ b.v { color: #fde047; }
 .am-doska b { display: block; font-size: 1.1rem; } .am-doska em { display: block; font-style: normal; font-size: .86rem; color: var(--muted); }
 .am-doska > span:nth-child(2) { flex: 1; min-width: 0; }
 .am-watch { margin-top: -6px; background: linear-gradient(120deg, rgba(248, 113, 113, .18), rgba(99, 102, 241, .14)); border-color: rgba(248, 113, 113, .45); }
+
+/* ---------- Sirli xato ---------- */
+.am-sirli-hint { margin: 10px 0 0; padding: 10px 14px; border-radius: 12px; border: 1px dashed color-mix(in srgb, var(--c, #f5c84c) 60%, transparent); background: color-mix(in srgb, var(--c, #f5c84c) 10%, transparent); font-size: 14px; }
+.am-sirli-box { border: 2px dashed color-mix(in srgb, var(--c, #f5c84c) 55%, transparent); }
+.am-sirli-box.win { animation: amSirliWin .9s ease; }
+@keyframes amSirliWin { 0% { transform: scale(1); } 40% { transform: scale(1.02); box-shadow: 0 0 40px rgba(245, 200, 76, .45); } 100% { transform: scale(1); } }
+.am-sirli-intro { margin: 0 0 12px; line-height: 1.55; }
+.am-sirli-ask > b { display: block; font-size: 17px; margin-bottom: 10px; }
+.am-sirli-btns { display: flex; flex-wrap: wrap; gap: 10px; }
+.am-sirli-btns .ghost { background: transparent; border: 1px solid currentColor; }
+.am-sirli-opts { display: grid; gap: 8px; }
+.am-sirli-opts button { text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(127, 127, 127, .35); background: rgba(127, 127, 127, .08); color: inherit; font: inherit; line-height: 1.45; cursor: pointer; }
+.am-sirli-opts button:hover { border-color: var(--c, #f5c84c); background: color-mix(in srgb, var(--c, #f5c84c) 12%, transparent); }
+.am-sirli-res p { margin: 6px 0; line-height: 1.5; }
+.am-sirli-res .good { color: #16a34a; font-size: 18px; }
+.am-sirli-res .bad { color: #dc2626; font-size: 18px; }
+.am-stars { color: #f59e0b; letter-spacing: 2px; font-size: 18px; }
+.am-sirli-total { margin-top: 12px; font-weight: 800; }
+.am-sirli-chip { display: inline-block; margin-top: 4px; font-weight: 700; }
+.am-sirli.fixed { background: rgba(34, 197, 94, .15); border-radius: 6px; padding: 0 4px; }
+.am-sirli.fixed s { color: #dc2626; opacity: .8; }
+.am-sirli.fixed b { color: #16a34a; }

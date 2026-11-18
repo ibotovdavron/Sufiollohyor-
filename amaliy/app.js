@@ -287,7 +287,7 @@
         <span class="am-subhead-ic">${sub.icon}</span>
         <div><b>${esc(cls.name)} · ${esc(sub.name)}</b>
           <small>${d ? `${d} / ${tot} mavzu o‘rganildi${d === tot ? " — barchasi! 🏆" : ""}` : `${tot} ta mavzu sizni kutmoqda`}</small>
-          ${bar(d, tot)}</div>
+          ${bar(d, tot)}${window.AMALIY_SIRLI && /^\d+$/.test(cls.id) ? `<small class="am-sirli-chip">🕵️ Sirli xato yulduzlari: ⭐ ${window.AMALIY_SIRLI.total()}</small>` : ""}</div>
         ${firstNew ? `<a class="am-btn primary sm" href="#${cls.id}/${sub.id}/${firstNew.id}">${d ? "▶ Keyingisi" : "🚀 Boshlash"}</a>` : ""}
       </section>
       <h2 class="am-step"><span>3</span> Mavzuni tanlang</h2>
@@ -338,6 +338,8 @@
 
   function viewLesson(cls, sub, t) {
     const idx = sub.topics.indexOf(t);
+    const SIR = window.AMALIY_SIRLI ? window.AMALIY_SIRLI.applyTo(cls, sub, t) : { topic: t, plan: null };
+    t = SIR.topic;
     const prev = sub.topics[idx - 1], next = sub.topics[idx + 1];
     const parts = [
       t.life && ["s-life", t.code ? "🎯" : "🌍", t.code ? "Nega kerak" : "Hayotda"],
@@ -359,6 +361,7 @@
           ${t.tag ? `<p>${rich(esc(t.tag))}</p>` : ""}
           <span class="am-meta">⏱ ~${Math.max(3, Math.round(((t.explain || "").length + (t.life || "").length) / 900) + (t.demos || []).length * 2 + (t.quiz || []).length)} daqiqa · ${idx + 1}/${sub.topics.length}-mavzu</span>
         </header>
+        ${SIR.plan ? `<div class="am-sirli-hint">🕵️ Bu darsda <b>sirli xato</b> yashiringan bo‘lishi mumkin — diqqat bilan o‘qing! Oxirida topsangiz, <b>1–3 ⭐</b> olasiz.</div>` : ""}
         ${parts.length > 2 ? `<nav class="am-stepper">${parts.map(([id, ic, nm], i) => `<a href="#${id}" data-id="${id}"><span>${ic}</span><b>${nm}</b></a>${i < parts.length - 1 ? '<i></i>' : ""}`).join("")}</nav>` : ""}
         ${t.life ? `<section class="am-block life rv" id="s-life"><h2><span class="h-ic">${t.code ? "🎯" : "🌍"}</span> ${t.code ? "Nega kerak?" : "Hayotda qayerda uchraydi?"}</h2><div>${rich(t.life)}</div></section>` : ""}
         <section class="am-block rv" id="s-explain"><h2><span class="h-ic">📖</span> Tushuntirish</h2><div class="am-text">${rich(t.explain)}</div>
@@ -369,6 +372,7 @@
         ${(t.examples || []).length ? `<section class="am-block rv" id="s-ex"><h2><span class="h-ic">✍️</span> Ishlangan misollar</h2><div class="am-examples"></div></section>` : ""}
         ${(t.quiz || []).length ? `<section class="am-block rv" id="s-quiz"><h2><span class="h-ic">✅</span> O‘zingizni sinang <span class="am-qprog"><i></i></span></h2><div class="am-quiz"></div></section>` : ""}
         ${t.p1 ? `<p class="am-book">📗 Bu mavzu bo‘yicha test topshiriqlari: <b>Oq to‘plam (1996–2007)</b>, ${t.p1 === t.p2 ? t.p1 + "-bet" : t.p1 + "–" + t.p2 + "-betlar"}.</p>` : ""}
+        ${SIR.plan ? `<section class="am-block am-sirli-box rv" id="s-sirli"></section>` : ""}
         <div class="am-finish" hidden>
           <span class="am-finish-ic">🎉</span>
           <div><b>Mavzu o‘rganildi!</b><small>${esc(sub.name)}: <span class="am-finish-n"></span></small></div>
@@ -437,6 +441,7 @@
       quiz(qz, t.quiz, finish);
     }
 
+    if (SIR.plan) window.AMALIY_SIRLI.mount(root.querySelector("#s-sirli"), root.querySelector(".am-lesson"), SIR.plan, rich);
     reveal(root);
     if (window.AMALIY_CT) window.AMALIY_CT.lessonTools(root.querySelector(".am-teach"), cls, sub, t);
 
