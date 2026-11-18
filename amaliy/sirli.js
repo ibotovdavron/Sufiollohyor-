@@ -162,13 +162,13 @@
     const store = load();
     const prev = store[p.key];
     const intro = `<h2><span class="h-ic">🕵️</span> Sirli xato</h2>
-      <p class="am-sirli-intro">Ba’zi mavzularda bitta <b>sirli xato</b> yashiringan, ba’zilarida esa xato yo‘q. Darsni diqqat bilan o‘qib chiqdingizmi? Xatoni topsangiz, qiyinligiga qarab <b>1–3 ⭐</b> olasiz. Xato yo‘q mavzuda “xato bor” desangiz — <b>1 ⭐ olib tashlanadi</b>. Har mavzuda faqat <b>bir marta</b> javob berish mumkin!</p>`;
+      <p class="am-sirli-intro">Ba’zi mavzularda bitta <b>sirli xato</b> yashiringan, ba’zilarida esa xato yo‘q. Darsni diqqat bilan o‘qib chiqdingizmi? Xatoni topsangiz, qiyinligiga qarab <b>1–3 ⭐</b> olasiz. Xato yo‘q mavzuda “xato bor” yoki xato bor mavzuda “xato yo‘q” desangiz — <b>1 ⭐ olib tashlanadi</b>. Har mavzuda faqat <b>bir marta</b> javob berish mumkin!</p>`;
     const totalLine = () => `<div class="am-sirli-total">⭐ Sirli xato yulduzlaringiz: <b>${total()}</b></div>`;
     const done = (html) => { box.innerHTML = intro + `<div class="am-sirli-res">${html}</div>` + totalLine(); };
     const resultHTML = (res) => {
       if (res.kind === "found") return `<b class="good">🎉 Topdingiz! +${res.stars} ⭐</b><p>Qiyinlik: <span class="am-stars">${starStr(res.stars)}</span> (${LV[res.stars]}).</p><p>✅ To‘g‘risi: ${rich(esc(p.right))}</p>`;
       if (res.kind === "missed") return `<b class="bad">😕 Afsus, xato boshqa joyda edi.</b><p>❌ Xato gap: ${rich(esc(p.answer))}</p><p>✅ To‘g‘risi: ${rich(esc(p.right))}</p><p>Qiyinlik: <span class="am-stars">${starStr(p.stars)}</span></p>`;
-      if (res.kind === "skipped") return `<b class="bad">🙈 Bu mavzuda xato bor edi!</b><p>❌ Xato gap: ${rich(esc(p.answer))}</p><p>✅ To‘g‘risi: ${rich(esc(p.right))}</p><p>Qiyinlik: <span class="am-stars">${starStr(p.stars)}</span> — keyingi safar diqqatliroq bo‘ling 😉</p>`;
+      if (res.kind === "skipped") return `<b class="bad">🙈 Bu mavzuda xato bor edi!${res.stars < 0 ? " −1 ⭐" : ""}</b><p>❌ Xato gap: ${rich(esc(p.answer))}</p><p>✅ To‘g‘risi: ${rich(esc(p.right))}</p><p>Qiyinlik: <span class="am-stars">${starStr(p.stars)}</span> — keyingi safar diqqatliroq bo‘ling 😉</p>`;
       if (res.kind === "clean") return `<b class="good">👏 To‘g‘ri! Bu mavzuda xato yo‘q edi. +1 ⭐</b><p>Siz darsga ishondingiz — chunki uni tushunib o‘qidingiz.</p>`;
       return `<b class="bad">🙁 Bu mavzuda xato yo‘q edi! −1 ⭐</b><p>Hamma ma’lumot to‘g‘ri edi. Shoshilmang — “xato bor” deyishdan oldin darsni yaxshilab tekshiring.</p>`;
     };
@@ -183,7 +183,7 @@
       <div class="am-sirli-ask"><b>Bu mavzuda xato bormi?</b>
         <div class="am-sirli-btns"><button type="button" class="dbtn" data-a="yes">🔎 Ha, xato bor</button><button type="button" class="dbtn ghost" data-a="no">✅ Xato yo‘q</button></div>
       </div>` + totalLine();
-    box.querySelector('[data-a="no"]').onclick = () => finishWith(p.has ? { kind: "skipped", stars: 0 } : { kind: "clean", stars: 1 });
+    box.querySelector('[data-a="no"]').onclick = () => finishWith(p.has ? { kind: "skipped", stars: total() > 0 ? -1 : 0 } : { kind: "clean", stars: 1 });
     box.querySelector('[data-a="yes"]').onclick = () => {
       if (!p.has) { finishWith({ kind: "none", stars: total() > 0 ? -1 : 0 }); return; }
       const ask = box.querySelector(".am-sirli-ask");
