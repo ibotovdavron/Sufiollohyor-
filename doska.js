@@ -103,8 +103,81 @@
     $("dk").hidden = true; $("dk").style.display = "none"; $("dkWatch").hidden = false;
     const codeIn = $("dkwCode"), st = $("dkwStatus"), vid = $("dkwVideo"), snd = $("dkwSound");
     const id = Math.random().toString(36).slice(2, 10);
-    let pc = null, room = null, helloT = 0;
+    let pc = null, room = null, helloT = 0, dc = null, micTrack = null, allow = false, hand = false;
     const say = (t) => (st.textContent = t);
+    const nameIn = $("dkwName");
+    try { nameIn.value = localStorage.getItem("sofi_watch_name") || ""; } catch (e) { /* bo'sh */ }
+    const myName = () => nameIn.value.replace(/[<>]/g, "").trim().slice(0, 30);
+    nameIn.oninput = () => { try { localStorage.setItem("sofi_watch_name", myName()); } catch (e) { /* bo'sh */ } dcSend({ t: "hi", name: myName() }); };
+    const dcSend = (d) => { try { if (dc && dc.readyState === "open") dc.send(JSON.stringify(d)); } catch (e) { /* bo'sh */ } };
+    // --- Mikrofon (ustoz ruxsat bersa) ---
+    const micBox = $("dkwMic"), micBtn = $("dkwMicBtn"), handBtn = $("dkwHand");
+    const audioSender = () => pc && pc.getTransceivers().map((t) => t.sender).find((sd) => (sd.track && sd.track.kind === "audio") || (!sd.track && sd._audio));
+    function micUi() {
+      micBox.hidden = !allow;
+      micBtn.textContent = micTrack ? "🔇 Mikrofonni o‘chirish" : "🎙 Gapirish — mikrofonni yoqish";
+      micBtn.classList.toggle("on", !!micTrack);
+      handBtn.textContent = hand ? "✋ Qo‘lni tushirish" : "✋ Qo‘l ko‘tarish";
+      handBtn.classList.toggle("on", hand);
+    }
+    async function micOn() {
+      try {
+        const s = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
+        micTrack = s.getAudioTracks()[0];
+        const sd = audioSender(); if (sd) await sd.replaceTrack(micTrack);
+        vid.volume = 0.25; // o'z ovozini aks-sado qilib eshitmasin
+        dcSend({ t: "mic", on: true }); say("🎙 Siz gapiryapsiz — ustoz va sinf eshitadi");
+      } catch (e) { say("🎙 Mikrofon ochilmadi: " + (e.name === "NotAllowedError" ? "ruxsat bering (🔒 → Mikrofon)" : e.message)); micTrack = null; }
+      micUi();
+    }
+    async function micOff(quiet) {
+      if (micTrack) { micTrack.stop(); micTrack = null; }
+      const sd = audioSender(); if (sd) { try { await sd.replaceTrack(null); } catch (e) { /* bo'sh */ } }
+      vid.volume = 1; dcSend({ t: "mic", on: false }); if (!quiet) say("🔴 Jonli dars"); micUi();
+    }
+    micBtn.onclick = () => (micTrack ? micOff() : micOn());
+    handBtn.onclick = () => { hand = !hand; dcSend({ t: "hand", up: hand }); micUi(); };
+    // --- Kichik doska ---
+    const mbBox = $("dkwMb"), mbCv = $("dkwMbCv"), mbTask = $("dkwMbTask"), mbx = mbCv.getContext("2d");
+    const MS = { strokes: [], cur: null, color: "#ffffff", size: 4, erase: false, lastSend: 0 };
+    function mbRedraw() {
+      const w = mbCv.width, h = mbCv.height, k = Math.min(w, h) / 600;
+      mbx.fillStyle = "#0f3a2c"; mbx.fillRect(0, 0, w, h);
+      const one = (s) => { if (!s || !s.p.length) return; mbx.save(); mbx.globalCompositeOperation = s.e ? "destination-out" : "source-over"; mbx.strokeStyle = s.c; mbx.lineWidth = Math.max(1, s.w * k * (s.e ? 4 : 1)); mbx.lineCap = "round"; mbx.lineJoin = "round"; mbx.beginPath(); mbx.moveTo(s.p[0][0] * w, s.p[0][1] * h); if (s.p.length === 1) mbx.lineTo(s.p[0][0] * w + 0.1, s.p[0][1] * h); for (let i = 1; i < s.p.length; i++) mbx.lineTo(s.p[i][0] * w, s.p[i][1] * h); mbx.stroke(); mbx.restore(); };
+      MS.strokes.forEach(one); one(MS.cur);
+      mbx.save(); mbx.globalCompositeOperation = "destination-over"; mbx.fillStyle = "#0f3a2c"; mbx.fillRect(0, 0, w, h); mbx.restore();
+    }
+    function mbSize() { const r = mbCv.getBoundingClientRect(); const d = Math.min(2, devicePixelRatio || 1); mbCv.width = Math.max(10, Math.round(r.width * d)); mbCv.height = Math.max(10, Math.round(r.height * d)); mbRedraw(); }
+    const mbPt = (e) => { const r = mbCv.getBoundingClientRect(); return [Math.round(((e.clientX - r.left) / r.width) * 1000) / 1000, Math.round(((e.clientY - r.top) / r.height) * 1000) / 1000]; };
+    mbCv.addEventListener("pointerdown", (e) => { e.preventDefault(); mbCv.setPointerCapture(e.pointerId); MS.cur = { c: MS.color, w: MS.size, e: MS.erase, p: [mbPt(e)] }; mbRedraw(); });
+    mbCv.addEventListener("pointermove", (e) => { if (!MS.cur) return; const p = mbPt(e), l = MS.cur.p[MS.cur.p.length - 1]; if (Math.abs(p[0] - l[0]) + Math.abs(p[1] - l[1]) < 0.003) return; MS.cur.p.push(p); mbRedraw(); const t = performance.now(); if (t - MS.lastSend > 150) { MS.lastSend = t; dcSend({ t: "sp", s: MS.cur }); } });
+    const mbEnd = () => { if (!MS.cur) return; MS.strokes.push(MS.cur); dcSend({ t: "st", s: MS.cur }); MS.cur = null; if (MS.strokes.length > 400) MS.strokes.shift(); mbRedraw(); };
+    mbCv.addEventListener("pointerup", mbEnd); mbCv.addEventListener("pointercancel", mbEnd);
+    $("dkwMbTools").addEventListener("click", (e) => {
+      const b = e.target.closest("button"); if (!b) return;
+      if (b.dataset.c) { MS.color = b.dataset.c; MS.erase = false; }
+      if (b.dataset.erase != null) MS.erase = true;
+      if (b.dataset.clr != null) { MS.strokes = []; MS.cur = null; mbRedraw(); dcSend({ t: "clr" }); return; }
+      if (b.dataset.undo != null) { MS.strokes.pop(); mbRedraw(); dcSend({ t: "full", strokes: MS.strokes }); return; }
+      $("dkwMbTools").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+    });
+    addEventListener("resize", () => { if (!mbBox.hidden) mbSize(); });
+    function mbShow(on, task) {
+      const was = !mbBox.hidden; mbBox.hidden = !on;
+      mbTask.hidden = !task; mbTask.textContent = task ? "📝 Topshiriq: " + task : "";
+      if (on && !was) { mbSize(); mbBox.scrollIntoView({ behavior: "smooth", block: "start" }); }
+    }
+    function setupDc(ch) {
+      dc = ch;
+      ch.onopen = () => { dcSend({ t: "hi", name: myName() }); if (hand) dcSend({ t: "hand", up: true }); };
+      ch.onmessage = async (e) => {
+        let m; try { m = JSON.parse(e.data); } catch (er) { return; }
+        if (m.t === "mic") { const was = allow; allow = !!m.allow; if (!allow) { if (was) { hand = false; await micOff(true); say("🔇 Ustoz mikrofoningizni o‘chirdi"); } } else { say("🎙 Ustoz sizga so‘z berdi! “Gapirish” tugmasini bosing"); try { navigator.vibrate && navigator.vibrate(200); } catch (er) { /* bo'sh */ } } micUi(); }
+        else if (m.t === "mb") mbShow(!!m.on, m.task || "");
+        else if (m.t === "mbclr") { MS.strokes = []; MS.cur = null; mbRedraw(); }
+        else if (m.t === "full?") dcSend({ t: "full", strokes: MS.strokes });
+      };
+    }
     codeIn.value = (qs.get("watch") || "").replace(/\D/g, "").slice(0, 4);
     const hello = () => room && room.send({ t: "v-hello", id });
     const startHello = () => { clearInterval(helloT); hello(); helloT = setInterval(hello, 1200); };
@@ -122,16 +195,19 @@
               pc = new RTCPeerConnection(ICE);
               pc.onicecandidate = (e) => e.candidate && room.send({ t: "v-ice", id, from: "v", c: e.candidate.toJSON() });
               pc.ontrack = (e) => { vid.srcObject = e.streams[0] || new MediaStream([e.track]); vid.play().catch(() => {}); };
+              pc.ondatachannel = (e) => setupDc(e.channel);
               pc.onconnectionstatechange = () => {
                 if (!pc) return;
                 if (pc.connectionState === "connected") { say("🔴 Jonli dars"); $("dkwBox").classList.add("live"); }
                 if (["failed", "disconnected"].includes(pc.connectionState)) { say("⚠️ Aloqa uzildi — qayta ulanmoqda…"); pc.close(); pc = null; startHello(); }
               };
               await pc.setRemoteDescription({ type: "offer", sdp: m.sdp }); await flushIce(pc);
+              // Ovoz yo'lini ikki tomonlama ochib qo'yamiz: ustoz so'z berganda qayta ulanmasdan gapirish mumkin bo'lsin
+              pc.getTransceivers().forEach((tr) => { if (tr.receiver && tr.receiver.track && tr.receiver.track.kind === "audio") { try { tr.direction = "sendrecv"; tr.sender._audio = true; } catch (er) { /* bo'sh */ } } });
               const a = await pc.createAnswer(); await pc.setLocalDescription(a);
               room.send({ t: "v-answer", id, sdp: a.sdp }); say("📶 Ulanmoqda…");
             } else if (m.t === "v-ice" && m.from === "b" && pc) await addIce(pc, m.c);
-            else if (m.t === "v-end") { if (pc) pc.close(); pc = null; vid.srcObject = null; $("dkwBox").classList.remove("live"); say("⏹ Ustoz efirni tugatdi"); }
+            else if (m.t === "v-end") { if (pc) pc.close(); pc = null; vid.srcObject = null; $("dkwBox").classList.remove("live"); say("⏹ Ustoz efirni tugatdi"); allow = false; hand = false; if (micTrack) { micTrack.stop(); micTrack = null; } mbShow(false, ""); micUi(); }
             else if (m.t === "v-start" && !pc) startHello();
           } catch (e) { say("Xato: " + e.message); }
         });
@@ -459,7 +535,7 @@
     let el = $("dkLive"); if (!el) { el = document.createElement("button"); el.id = "dkLive"; el.className = "dk-live"; el.onclick = livePanel; root.append(el); }
     el.hidden = !LV.on && !LV.rec && !LV.mic && !LV.scr;
     const p = [];
-    if (LV.on) p.push(`<b class="red">● EFIR</b> ${LV.code} · 👥 ${liveViewers()}`);
+    if (LV.on) { const hn = [...CL.values()].filter((x) => x.hand).length, sp = [...CL.values()].filter((x) => x.allow).length; p.push(`<b class="red">● EFIR</b> ${LV.code} · 👥 ${liveViewers()}${hn ? ` · ✋ ${hn}` : ""}${sp ? ` · 🎙 ${sp}` : ""}`); }
     if (LV.rec) { const s = Math.floor((performance.now() - LV.recT0) / 1000); p.push(`<b class="red">⏺</b> ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`); }
     if (LV.scr) p.push(LV.view === "screen" ? "🖥 Ekran" : "🖊 Doska");
     if (LV.mic) p.push(`🎙<i style="--l:${liveLevel().toFixed(2)}"></i>`);
@@ -480,9 +556,165 @@
     try { localStorage.removeItem("sofi_my_efir"); } catch (e) { /* bo'sh */ }
     if (LV.lobby) { LV.lobby.send({ t: "off", code: LV.code }); const l = LV.lobby; LV.lobby = null; setTimeout(() => l.leave(), 400); }
     LV.peers.forEach((p) => p.close()); LV.peers.clear(); LV.room = null; LV.on = false;
+    [...CL.keys()].forEach(clDrop); MB.on = false; mbClose();
     if (!LV.rec && LV.mic) setMic(false);
     mark(); liveBadge(); status("⏹ Efir tugatildi", 2500);
   }
+  // ---------- Sinf: o'quvchilar ro'yxati, mikrofon boshqaruvi, kichik doskalar ----------
+  // Har bir o'quvchi bilan efir ulanishi ichida DataChannel ochiladi (ism, ✋, mikrofon, chizgilar).
+  const CL = new Map(); // id → { id, name, hand, mic, allow, strokes, partial, dc, el, gain, n }
+  const MB = { on: false, task: "", open: false, big: null };
+  let clN = 0;
+  const clEsc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  const clSend = (st, d) => { try { if (st.dc && st.dc.readyState === "open") st.dc.send(JSON.stringify(d)); } catch (e) { /* bo'sh */ } };
+  const clAll = (d) => CL.forEach((st) => clSend(st, d));
+  const clList = () => [...CL.values()].filter((s) => s.dc && s.dc.readyState === "open").sort((a, b) => (b.hand - a.hand) || a.n - b.n);
+  function clStudent(id) {
+    let st = CL.get(id);
+    if (!st) { st = { id, name: "", hand: false, mic: false, allow: false, strokes: [], partial: null, dc: null, el: null, gain: null, n: ++clN }; CL.set(id, st); }
+    return st;
+  }
+  function clDrop(id) {
+    const st = CL.get(id); if (!st) return;
+    if (st.el) { st.el.srcObject = null; st.el.remove(); }
+    if (st.gain) { try { st.gain.disconnect(); } catch (e) { /* bo'sh */ } }
+    CL.delete(id); clRefresh();
+  }
+  function clSetupDC(id, dc) {
+    const st = clStudent(id); st.dc = dc;
+    dc.onopen = () => { clSend(st, { t: "mb", on: MB.on, task: MB.task }); clSend(st, { t: "mic", allow: st.allow }); clSend(st, { t: "full?" }); clRefresh(); };
+    dc.onclose = () => clRefresh();
+    dc.onmessage = (e) => {
+      let m; try { m = JSON.parse(e.data); } catch (er) { return; }
+      if (m.t === "hi") { st.name = String(m.name || "").slice(0, 30); clRefresh(); }
+      else if (m.t === "hand") { st.hand = !!m.up; if (st.hand) status(`✋ ${st.name || "O‘quvchi " + st.n} qo‘l ko‘tardi`, 3000); clRefresh(); }
+      else if (m.t === "mic") { st.mic = !!m.on; clRefresh(); }
+      else if (m.t === "sp") { st.partial = m.s; mbDraw(st); }
+      else if (m.t === "st") { st.partial = null; st.strokes.push(m.s); if (st.strokes.length > 400) st.strokes.shift(); mbDraw(st); }
+      else if (m.t === "clr") { st.strokes = []; st.partial = null; mbDraw(st); }
+      else if (m.t === "full") { st.strokes = Array.isArray(m.strokes) ? m.strokes.slice(-400) : []; st.partial = null; mbDraw(st); }
+    };
+  }
+  /** O'quvchi ovozi: doska karnayida eshitiladi va efirga ham qo'shiladi (masofadagilar ham eshitsin) */
+  function clAudio(id, stream) {
+    const st = clStudent(id);
+    if (!st.el) { st.el = document.createElement("audio"); st.el.autoplay = true; st.el.muted = true; st.el.hidden = true; document.body.append(st.el); }
+    st.el.srcObject = stream; st.el.play().catch(() => {});
+    try {
+      liveInit();
+      if (st.gain) { try { st.gain.disconnect(); } catch (e) { /* bo'sh */ } }
+      const src = LV.ac.createMediaStreamSource(stream);
+      st.gain = LV.ac.createGain(); st.gain.gain.value = st.allow ? 1 : 0;
+      src.connect(st.gain); st.gain.connect(LV.ac.destination); st.gain.connect(LV.dest);
+      LV.ac.resume().catch(() => {});
+    } catch (e) { st.el.muted = !st.allow; }
+  }
+  function clAllow(st, on) {
+    st.allow = on; if (!on) st.hand = false;
+    if (st.gain) st.gain.gain.value = on ? 1 : 0; else if (st.el) st.el.muted = !on;
+    clSend(st, { t: "mic", allow: on });
+    if (on && LV.ac) LV.ac.resume().catch(() => {});
+    clRefresh();
+  }
+  const clName = (st) => clEsc(st.name || "O‘quvchi " + st.n);
+  function clRows() {
+    const l = clList();
+    if (!l.length) return `<p class="muted">Hali hech kim ulanmadi. O‘quvchilar kirishi bilan shu yerda ko‘rinadi.</p>`;
+    return l.map((st) => `<div class="dkc-row ${st.hand ? "hand" : ""} ${st.allow ? "allow" : ""}" data-id="${st.id}">
+        <span class="nm">${st.hand ? "✋ " : ""}${clName(st)}</span>
+        <span class="mic">${st.allow ? (st.mic ? "🎙 gapirmoqda" : "🎙 ruxsat bor") : "🔇"}</span>
+        <button type="button" class="go ${st.allow ? "stop" : ""}" data-mic>${st.allow ? "🔇 O‘chirish" : "🎙 So‘z berish"}</button>
+      </div>`).join("");
+  }
+  function clRefresh() {
+    const box = $("dkClRows");
+    if (box) {
+      box.innerHTML = clRows();
+      box.querySelectorAll(".dkc-row").forEach((r) => { const st = CL.get(r.dataset.id); r.querySelector("[data-mic]").onclick = () => st && clAllow(st, !st.allow); });
+      const n = $("dkClN"); if (n) n.textContent = clList().length;
+      const hands = clList().filter((s) => s.hand).length, hb = $("dkClHands"); if (hb) hb.textContent = hands ? `✋ ${hands}` : "";
+    }
+    if (MB.open) mbGrid();
+    liveBadge();
+  }
+  function clSection() {
+    return `<div class="dkc">
+        <div class="dkc-h"><b>👥 O‘quvchilar: <span id="dkClN">${clList().length}</span></b><span class="dkc-hands" id="dkClHands"></span>
+          <button type="button" class="go off" id="dkClMute">🔇 Hammasini o‘chirish</button></div>
+        <div class="dkc-rows" id="dkClRows">${clRows()}</div>
+        <div class="dkl-row">
+          <button type="button" class="go ${MB.on ? "stop" : ""}" id="dkMbOn">${MB.on ? "✍️ Kichik doskalarni yopish" : "✍️ Kichik doskalarni berish"}</button>
+          ${MB.on ? `<button type="button" class="go" id="dkMbOpen">🔲 Doskalarni ko‘rish</button>` : ""}
+        </div>
+        <p class="muted">“🎙 So‘z berish” — o‘quvchi telefonida mikrofon tugmasi chiqadi, uning ovozi doskada va efirda eshitiladi. “✍️ Kichik doskalar” — har bir o‘quvchiga yozish uchun kichik doska chiqadi, ularning yozganini shu yerda jonli ko‘rasiz.</p>
+      </div>`;
+  }
+  function clBind() {
+    const on = (id, f) => { const b = $(id); if (b) b.onclick = f; };
+    on("dkClMute", () => { CL.forEach((st) => { if (st.allow) clAllow(st, false); }); status("🔇 Barcha o‘quvchilar mikrofoni o‘chirildi", 2500); });
+    on("dkMbOn", () => { MB.on = !MB.on; clAll({ t: "mb", on: MB.on, task: MB.task }); if (MB.on) mbOpen(); else mbClose(); if (!panel.hidden) livePanel(); });
+    on("dkMbOpen", () => mbOpen());
+    const rows = $("dkClRows"); if (rows) clRefresh();
+  }
+
+  // --- Kichik doskalar ko'rinishi (ustozda) ---
+  function mbPaint(cv, st) {
+    const x = cv.getContext("2d"), w = cv.width, h = cv.height;
+    x.fillStyle = "#0f3a2c"; x.fillRect(0, 0, w, h);
+    const k = Math.min(w, h) / 600;
+    const one = (s) => {
+      if (!s || !s.p || !s.p.length) return;
+      x.save(); x.globalCompositeOperation = s.e ? "destination-out" : "source-over";
+      x.strokeStyle = s.c || "#fff"; x.fillStyle = s.c || "#fff"; x.lineWidth = Math.max(1, (s.w || 4) * k * (s.e ? 4 : 1)); x.lineCap = "round"; x.lineJoin = "round";
+      x.beginPath(); x.moveTo(s.p[0][0] * w, s.p[0][1] * h);
+      if (s.p.length === 1) x.lineTo(s.p[0][0] * w + 0.1, s.p[0][1] * h);
+      for (let i = 1; i < s.p.length; i++) x.lineTo(s.p[i][0] * w, s.p[i][1] * h);
+      x.stroke(); x.restore();
+    };
+    st.strokes.forEach(one); one(st.partial);
+    if (st.strokes.some((s) => s.e)) { // o'chirg'ich fonni ham o'chirmasin
+      x.save(); x.globalCompositeOperation = "destination-over"; x.fillStyle = "#0f3a2c"; x.fillRect(0, 0, w, h); x.restore();
+    }
+  }
+  function mbDraw(st) {
+    if (!MB.open) return;
+    const cv = document.querySelector(`#dkMB canvas[data-id="${st.id}"]`); if (cv) mbPaint(cv, st);
+    if (MB.big === st.id) { const b = $("dkMbBig"); if (b) mbPaint(b, st); }
+  }
+  function mbOverlay() {
+    let el = $("dkMB");
+    if (!el) { el = document.createElement("div"); el.id = "dkMB"; el.className = "dk-mb"; root.append(el); }
+    return el;
+  }
+  function mbGrid() {
+    const el = mbOverlay(), l = clList();
+    if (MB.big) { mbBig(); return; }
+    el.innerHTML = `<div class="dk-mb-head"><b>✍️ O‘quvchilar doskalari · ${l.length}</b>
+        <input id="dkMbTask" maxlength="80" placeholder="Topshiriq (o‘quvchilarga ko‘rinadi), masalan: 3/4 + 1/8 = ?" value="${clEsc(MB.task)}">
+        <button type="button" class="go off" id="dkMbClr">🧹 Hammasini tozalash</button><button type="button" class="x" id="dkMbX" aria-label="Yopish">✕</button></div>
+      <div class="dk-mb-grid">${l.length ? l.map((st) => `<figure data-id="${st.id}" class="${st.hand ? "hand" : ""}"><canvas data-id="${st.id}" width="320" height="200"></canvas><figcaption>${st.hand ? "✋ " : ""}${clName(st)}${st.allow ? " · 🎙" : ""}</figcaption></figure>`).join("") : `<p class="muted">O‘quvchilar ulanishini kuting…</p>`}</div>`;
+    l.forEach((st) => { const cv = el.querySelector(`canvas[data-id="${st.id}"]`); if (cv) mbPaint(cv, st); });
+    el.querySelectorAll("figure").forEach((f) => (f.onclick = () => { MB.big = f.dataset.id; mbBig(); }));
+    $("dkMbX").onclick = mbClose;
+    $("dkMbClr").onclick = () => { CL.forEach((st) => { st.strokes = []; st.partial = null; }); clAll({ t: "mbclr" }); mbGrid(); };
+    const ti = $("dkMbTask"); let tt = 0;
+    ti.oninput = () => { MB.task = ti.value.trim(); clearTimeout(tt); tt = setTimeout(() => clAll({ t: "mb", on: MB.on, task: MB.task }), 400); };
+  }
+  function mbBig() {
+    const st = CL.get(MB.big); if (!st) { MB.big = null; mbGrid(); return; }
+    const el = mbOverlay();
+    el.innerHTML = `<div class="dk-mb-head"><button type="button" class="go off" id="dkMbBack">← Barcha doskalar</button><b>${st.hand ? "✋ " : ""}${clName(st)}</b>
+        <button type="button" class="go ${st.allow ? "stop" : ""}" id="dkMbMic">${st.allow ? "🔇 Mikrofonni o‘chirish" : "🎙 So‘z berish"}</button>
+        <button type="button" class="go off" id="dkMbClr1">🧹 Tozalash</button><button type="button" class="x" id="dkMbX" aria-label="Yopish">✕</button></div>
+      <canvas id="dkMbBig" class="dk-mb-big" width="960" height="600"></canvas>`;
+    mbPaint($("dkMbBig"), st);
+    $("dkMbBack").onclick = () => { MB.big = null; mbGrid(); };
+    $("dkMbMic").onclick = () => { clAllow(st, !st.allow); mbBig(); };
+    $("dkMbClr1").onclick = () => { st.strokes = []; st.partial = null; clSend(st, { t: "mbclr" }); mbBig(); };
+    $("dkMbX").onclick = mbClose;
+  }
+  function mbOpen() { MB.open = true; MB.big = null; panel.hidden = true; mbOverlay().hidden = false; mbGrid(); }
+  function mbClose() { MB.open = false; MB.big = null; const el = $("dkMB"); if (el) el.hidden = true; }
   async function liveMsg(m) {
     try {
       if (m.t === "v-hello" && m.id) {
@@ -491,6 +723,8 @@
         if (p) p.close();
         p = new RTCPeerConnection(ICE); LV.peers.set(m.id, p);
         [curVideo(), LV.auTrack].forEach((t) => p.addTrack(t, LV.stream));
+        clSetupDC(m.id, p.createDataChannel("cls"));
+        p.ontrack = (e) => { if (e.track.kind === "audio") clAudio(m.id, e.streams[0] || new MediaStream([e.track])); };
         p.onicecandidate = (e) => e.candidate && LV.room && LV.room.send({ t: "v-ice", to: m.id, from: "b", c: e.candidate.toJSON() });
         p.onconnectionstatechange = () => {
           if (p.connectionState === "connected") { // ko'p o'quvchi bo'lsa ham tarmoq yetishi uchun tezlikni cheklaymiz
@@ -504,7 +738,7 @@
         LV.room.send({ t: "v-offer", to: m.id, sdp: o.sdp });
       } else if (m.t === "v-answer") { const p = LV.peers.get(m.id); if (p && !p.remoteDescription) { await p.setRemoteDescription({ type: "answer", sdp: m.sdp }); await flushIce(p); } }
       else if (m.t === "v-ice" && m.from === "v") { const p = LV.peers.get(m.id); if (p) await addIce(p, m.c); }
-      else if (m.t === "v-bye") { const p = LV.peers.get(m.id); if (p) { p.close(); LV.peers.delete(m.id); refreshLivePanel(); } }
+      else if (m.t === "v-bye") { const p = LV.peers.get(m.id); if (p) { p.close(); LV.peers.delete(m.id); } clDrop(m.id); refreshLivePanel(); }
     } catch (e) { /* bitta o'quvchi xatosi efirni to'xtatmasin */ }
   }
   async function recToggle() {
@@ -533,6 +767,7 @@
       <div style="margin-top:8px">yoki <b>Doska → 👀 Darsni ko‘rish</b> sahifasida kodni kiritadi:</div><div class="code">${LV.code}</div>
       <div class="muted" id="dkLvN">👥 Ko‘rmoqda: <b>${liveViewers()}</b></div>`
       : `<p>Doskadagi hamma narsa — yozuvlar, 3D shakllar, kamera va <b>sizning ovozingiz</b> — o‘quvchilarga jonli uzatiladi yoki video qilib yozib olinadi. Efir boshlanishi bilan o‘quvchilarning Amaliy sahifasida <b>“🔴 Jonli efir bo‘lyapti”</b> xabari chiqadi — ular kod kiritmasdan kiradi.</p>`}
+      ${LV.on ? clSection() : ""}
       <label class="dkl-title">Dars nomi (o‘quvchilarga ko‘rinadi): <input id="dkLvTitle" maxlength="60" placeholder="Masalan: 8-sinf · Fizika · Om qonuni" value="${LV.title.replace(/"/g, "&quot;")}"></label>
 
       <p class="muted">🎙 Ovoz: <b>${src}</b>. Telefon ulangan bo‘lsa, ovoz telefon mikrofonidan olinadi (ustozga yaqin turadi — aniqroq eshitiladi). Fon kamera bo‘lmasa, kamera tasviri o‘quvchilarga burchakda ko‘rinadi.</p>
@@ -559,6 +794,7 @@
     on("dkLvPh", async () => { await phoneCam(); mark(); });
     on("dkLvShare", async () => { await shareToggle(); livePanel(); });
     on("dkLvView", () => { setView(LV.view === "screen" ? "board" : "screen"); livePanel(); });
+    clBind();
     const ti = $("dkLvTitle"); if (ti) ti.oninput = () => { LV.title = ti.value.trim(); try { localStorage.setItem("sofi_efir_title", LV.title); } catch (e) { /* bo'sh */ } announce(); };
   }
   function refreshLivePanel() { const n = $("dkLvN"); if (n) n.innerHTML = `👥 Ko‘rmoqda: <b>${liveViewers()}</b>`; liveBadge(); }
@@ -748,6 +984,7 @@
         <tr><td>🧊</td><td><b>Shakl qo‘shish</b> — kub, prizma, piramida, shar… ✋ bilan suring, ikki barmoq bilan kattalashtiring va burang.</td></tr>
         <tr><td>📷</td><td><b>Kamera</b> — shu qurilma kamerasi doskada jonli ko‘rinadi.</td></tr>
         <tr><td>📱</td><td><b>Telefon</b> — telefonni kamera qilib ulash: doskada kod chiqadi, telefonda shu kod kiritiladi.</td></tr>
+        <tr><td>👥</td><td><b>O‘quvchilar</b> — efir paytida 📡 panelida kim kirganini ko‘rasiz: ✋ qo‘l ko‘targanlar tepada. <b>“🎙 So‘z berish”</b> — o‘quvchi mikrofonini yoqadi, ovozi doskada va efirda eshitiladi; <b>“🔇”</b> — o‘chirasiz. <b>“✍️ Kichik doskalar”</b> — har bir o‘quvchiga yozish doskasi chiqadi, yozganlarini jonli ko‘rasiz.</td></tr>
         <tr><td>📡</td><td><b>Jonli efir</b> — doska, kamera va <b>ovozingiz</b> o‘quvchilarga jonli uzatiladi: ular telefonda kodni kiritib ko‘radi va eshitadi.</td></tr>
         <tr><td>🎙</td><td><b>Mikrofon</b> — ovoz telefon (ulangan bo‘lsa) yoki doska mikrofonidan olinadi.</td></tr>
         <tr><td>🖥</td><td><b>Ekranni ulashish</b> — Amaliy dars oynasini (yoki butun ekranni) o‘quvchilarga ovoz bilan ko‘rsatish (kompyuterdagi Chrome / Edge).</td></tr>

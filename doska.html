@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b1a14">
   <meta name="description" content="So‘fi Ollohyor — elektron doska: barmoq bilan yozish, jonli kamera va qo‘l ishoralari bilan 3D shakllar">
   <title>Doska | So‘fi Ollohyor</title>
-  <link rel="stylesheet" href="doska.css?v=3">
+  <link rel="stylesheet" href="doska.css?v=7">
 </head>
 <body>
 
@@ -78,7 +78,19 @@
   <input id="dkwCode" inputmode="numeric" maxlength="4" placeholder="Kod" aria-label="Efir kodi">
   <div class="dkp-row"><button id="dkwGo">▶ Ko‘rish</button><button id="dkwSound" class="ghost">🔊 Ovozni yoqish</button><button id="dkwFull" class="ghost">⛶ To‘liq ekran</button></div>
   <div class="dkp-status" id="dkwStatus"></div>
+  <label class="dkw-name">Ismingiz (ustozga ko‘rinadi): <input id="dkwName" maxlength="30" placeholder="Masalan: Ali Valiyev" autocomplete="name"></label>
   <div class="dkw-box" id="dkwBox"><video id="dkwVideo" playsinline autoplay muted></video></div>
+  <div class="dkp-row dkw-act"><button id="dkwHand" class="ghost">✋ Qo‘l ko‘tarish</button></div>
+  <div class="dkw-mic" id="dkwMic" hidden><b>🎙 Ustoz sizga so‘z berdi</b><button id="dkwMicBtn">🎙 Gapirish — mikrofonni yoqish</button></div>
+  <section class="dkw-mb" id="dkwMb" hidden>
+    <div class="dkw-mb-h"><b>✍️ Mening doskam</b><small>Yozganlaringizni ustoz jonli ko‘radi</small></div>
+    <div class="dkw-mb-task" id="dkwMbTask" hidden></div>
+    <div class="dkw-mb-tools" id="dkwMbTools">
+      <button class="on" data-c="#ffffff" style="--c:#ffffff" aria-label="Oq"></button><button data-c="#fde047" style="--c:#fde047" aria-label="Sariq"></button><button data-c="#f87171" style="--c:#f87171" aria-label="Qizil"></button><button data-c="#4ade80" style="--c:#4ade80" aria-label="Yashil"></button><button data-c="#60a5fa" style="--c:#60a5fa" aria-label="Ko‘k"></button>
+      <button data-erase class="t">🧽</button><button data-undo class="t">↶</button><button data-clr class="t">🗑</button>
+    </div>
+    <canvas id="dkwMbCv" class="dkw-mb-cv"></canvas>
+  </section>
   <a href="amaliy.html">← Amaliy darslar</a>
 </div>
 
@@ -86,6 +98,6 @@
 <script src="config.js"></script>
 <script src="lobby.js?v=1"></script>
 <script src="lib/three.min.js"></script>
-<script src="doska.js?v=7"></script>
+<script src="doska.js?v=8"></script>
 </body>
 </html>
