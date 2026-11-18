@@ -116,6 +116,7 @@
     cleanups = [];
     if (root) root.remove();
     root = null;
+    try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* bo'sh */ }
     document.body.classList.remove("g-playing", "zk-open");
   }
   const main = () => $("#zkMain", root);
@@ -180,10 +181,10 @@
       <div class="back"><small>To‘g‘ri javob</small><b>${esc(q.a)}</b>${q.note ? `<p>${esc(q.note)}</p>` : ""}</div>
     </div>`;
 
-  function podium(teams, sub = "") {
+  function podium(teams, sub = "", all = null) {
     const sorted = teams.slice().sort((a, b) => b.score - a.score);
     const top = sorted[0].score;
-    const winners = sorted.filter((t) => t.score === top);
+    const winners = (all || sorted).filter((t) => t.score === top);
     const order = sorted.length === 3 ? [sorted[1], sorted[0], sorted[2]] : [sorted[1], sorted[0]];
     sfx.win();
     confetti();
@@ -225,6 +226,10 @@
             <span class="ic">📺</span><b>Sinfda o‘ynash</b>
             <small>Bitta ekran (proyektor yoki telefon). Guruhlar stol atrofida muhokama qiladi, ustoz ballarni belgilaydi.</small>
           </button>
+          <button class="zk-mode zk-mode-board" data-m="board" type="button">
+            <span class="ic">🖥</span><b>Elektron doska</b>
+            <small>Maktab sinfi uchun: to‘liq ekran, katta yozuv, 6 tagacha guruh. Ballarni doskada barmoq bilan bosib qo‘yasiz, pult/klaviatura ham ishlaydi. Kirish shart emas.</small>
+          </button>
           <button class="zk-mode" data-m="online" type="button">
             <span class="ic">🌐</span><b>Onlayn xona</b>
             <small>Xona hammaga ko‘rinadi, har kim o‘z telefonidan kiradi. Joylar to‘lsa o‘yin o‘zi boshlanadi, guruh stol atrofida muhokama qiladi, natija avtomatik aytiladi.</small>
@@ -233,6 +238,7 @@
       </section>`;
     m.querySelector('[data-m="class"]').onclick = classSetup;
     m.querySelector('[data-m="online"]').onclick = onlineMenu;
+    m.querySelector('[data-m="board"]').onclick = boardSetup;
   }
 
   // =========================================================
@@ -960,9 +966,232 @@
     return { onMsg, onPresence };
   }
 
+  // =========================================================
+  //  ELEKTRON DOSKA (maktab sinfi uchun: katta ekran, sensor, pult)
+  //  Kirishsiz ishlaydi: games.html#zakovat-doska
+  // =========================================================
+  const BOARD_TEAMS = [
+    { id: "a", name: "Burgutlar", emb: "🦅", color: "#38bdf8" },
+    { id: "b", name: "Sherlar", emb: "🦁", color: "#f5c84c" },
+    { id: "c", name: "Qoplonlar", emb: "🐆", color: "#f472b6" },
+    { id: "d", name: "Bo‘rilar", emb: "🐺", color: "#a78bfa" },
+    { id: "e", name: "Lochinlar", emb: "🦉", color: "#4ade80" },
+    { id: "f", name: "Delfinlar", emb: "🐬", color: "#fb923c" }
+  ];
+  const BOARD_KEY = "zk_board_v1";
+  const boardSave = (g) => { try { localStorage.setItem(BOARD_KEY, JSON.stringify(g)); } catch (e) { /* bo'sh */ } };
+  const boardLoad = () => { try { return JSON.parse(localStorage.getItem(BOARD_KEY) || "null"); } catch (e) { return null; } };
+  const boardClear = () => { try { localStorage.removeItem(BOARD_KEY); } catch (e) { /* bo'sh */ } };
+  const fsToggle = () => {
+    const d = document;
+    if (d.fullscreenElement) d.exitFullscreen && d.exitFullscreen();
+    else (d.documentElement.requestFullscreen || d.documentElement.webkitRequestFullscreen || (() => 0)).call(d.documentElement);
+  };
+
+  function boardSetup() {
+    if (!root) openRoot();
+    root.classList.add("board");
+    busy(false);
+    const m = main();
+    const saved = boardLoad();
+    const st = { count: 4, n: 15, cat: "mix", time: 60 };
+    const draw = () => {
+      m.innerHTML = `
+        <section class="zb-setup">
+          <h2>🖥 Elektron doska — sinf o‘yini</h2>
+          <p class="zb-hint">Sinf guruhlarga bo‘linadi. Ustoz (yoki boshlovchi o‘quvchi) doskada savollarni ochadi, vaqtni boshlaydi va to‘g‘ri javob bergan guruhning kartasiga bosib ball qo‘shadi.</p>
+          ${saved && saved.i < saved.qs.length ? `<button class="zb-resume" id="zbResume" type="button">↻ Tugallanmagan o‘yinni davom ettirish — ${saved.i + 1}-savol, ${saved.teams.map((t) => `${t.emb} ${t.score}`).join(" · ")}</button>` : ""}
+          <div class="zb-row"><span>Guruhlar soni</span><div class="zk-seg zb-seg" data-k="count">${[2, 3, 4, 5, 6].map((v) => `<button type="button" data-v="${v}" class="${v === st.count ? "on" : ""}">${v}</button>`).join("")}</div></div>
+          <div class="zb-teams">${BOARD_TEAMS.slice(0, st.count).map((t, i) => `
+            <label class="zb-tname" style="--c:${t.color}"><span>${t.emb}</span><input data-i="${i}" value="${esc(t.name)}" maxlength="18" aria-label="Guruh nomi"></label>`).join("")}</div>
+          <div class="zb-row"><span>Savollar soni</span><div class="zk-seg zb-seg" data-k="n">${[10, 15, 20, 30].map((v) => `<button type="button" data-v="${v}" class="${v === st.n ? "on" : ""}">${v}</button>`).join("")}</div></div>
+          <div class="zb-row"><span>Mavzu</span><div class="zk-seg zb-seg" data-k="cat">${[["mix", "Aralash"], ["Tarix", "📜 Tarix"], ["Mantiq", "🧩 Mantiq"]].map(([v, l]) => `<button type="button" data-v="${v}" class="${v === st.cat ? "on" : ""}">${l}</button>`).join("")}</div></div>
+          <div class="zb-row"><span>Har savolga vaqt</span><div class="zk-seg zb-seg" data-k="time">${[[30, "30 s"], [60, "1 daq"], [90, "1,5 daq"], [120, "2 daq"]].map(([v, l]) => `<button type="button" data-v="${v}" class="${v === st.time ? "on" : ""}">${l}</button>`).join("")}</div></div>
+          <div class="zb-keys">⌨️ Pult/klaviatura: <b>Probel</b> — vaqt ▶/⏸ · <b>A</b> — javobni ochish · <b>→</b> — keyingi · <b>1–6</b> — guruhga +1 · <b>Shift+1–6</b> — −1 · <b>F</b> — to‘liq ekran</div>
+          <button class="zk-btn big zb-go" id="zbGo" type="button">🚀 Boshlash (to‘liq ekran)</button>
+        </section>`;
+      m.querySelectorAll(".zb-seg").forEach((seg) => seg.querySelectorAll("button").forEach((b) => (b.onclick = () => {
+        const k = seg.dataset.k;
+        m.querySelectorAll(".zb-tname input").forEach((inp) => { BOARD_TEAMS[+inp.dataset.i].name = inp.value.trim() || BOARD_TEAMS[+inp.dataset.i].name; });
+        st[k] = k === "cat" ? b.dataset.v : +b.dataset.v;
+        draw();
+      })));
+      const res = $("#zbResume", m);
+      if (res) res.onclick = () => { try { document.fullscreenElement || fsToggle(); } catch (e) { /* bo'sh */ } boardGame(saved); };
+      $("#zbGo", m).onclick = () => {
+        const teams = BOARD_TEAMS.slice(0, st.count).map((t, i) => ({ ...t, name: (m.querySelector(`.zb-tname input[data-i="${i}"]`).value.trim() || t.name).slice(0, 18), score: 0 }));
+        const qs = pickQuestions(st.n, st.cat);
+        try { document.fullscreenElement || fsToggle(); } catch (e) { /* bo'sh */ }
+        boardGame({ teams, qs, i: 0, time: st.time, cat: st.cat });
+      };
+    };
+    draw();
+  }
+
+  function boardGame(g) {
+    root.classList.add("board");
+    busy(true);
+    boardSave(g);
+    let q, left, running, endsAt, opened, lastSec, raf = 0, awarded;
+    const m = main();
+
+    const teamCards = () => g.teams.map((t, k) => `
+      <div class="zb-team ${awarded[t.id] ? "got" : ""}" style="--c:${t.color}" data-t="${t.id}">
+        <button class="zb-plus" type="button" data-d="1" aria-label="${esc(t.name)} +1">
+          <span class="em">${t.emb}</span><b class="nm">${esc(t.name)}</b>
+          <span class="sc">${t.score}</span><small>+1 uchun bosing · ${k + 1}</small>
+        </button>
+        <button class="zb-minus" type="button" data-d="-1" aria-label="${esc(t.name)} −1">−1</button>
+      </div>`).join("");
+
+    const drawTeams = () => {
+      const box = $("#zbTeams", m);
+      box.innerHTML = teamCards();
+      box.querySelectorAll(".zb-team button").forEach((b) => (b.onclick = () => award(b.closest(".zb-team").dataset.t, +b.dataset.d)));
+    };
+    const award = (id, d) => {
+      const t = g.teams.find((x) => x.id === id);
+      if (!t) return;
+      t.score = Math.max(0, t.score + d);
+      if (d > 0) { awarded[id] = (awarded[id] || 0) + 1; sfx.good(); } else { awarded[id] = Math.max(0, (awarded[id] || 0) - 1); sfx.bad(); }
+      drawTeams();
+      const card = $(`.zb-team[data-t="${id}"]`, m);
+      if (card && d > 0) { card.classList.add("pop"); setTimeout(() => card.classList.remove("pop"), 600); }
+      boardSave(g);
+    };
+
+    const setTimerView = () => {
+      const el = $("#zbTimer", m);
+      if (!el) return;
+      const sec = Math.ceil(left / 1000);
+      el.querySelector(".fg").style.strokeDashoffset = String(CIRC * (1 - left / (g.time * 1000)));
+      $("#zbSec", m).textContent = sec;
+      el.classList.toggle("warn", sec <= 20 && sec > 10);
+      el.classList.toggle("danger", sec <= 10 && sec > 0);
+      const pb = $("#zbPlay", m);
+      if (pb) pb.innerHTML = running ? "⏸ To‘xtatish" : left <= 0 ? "⏰ Vaqt tugadi" : left < g.time * 1000 ? "▶ Davom ettirish" : "▶ Vaqtni boshlash";
+      if (pb) pb.disabled = left <= 0;
+      const ph = $("#zbPhase", m);
+      if (ph) ph.textContent = opened ? "🔓 Javob ochildi — to‘g‘ri topganlarga ball bering" : left <= 0 ? "⏰ Vaqt tugadi! Sardorlar javobini ayting" : running ? (sec <= 10 ? "👑 Sardorlar, javobga tayyorlaning!" : "💬 Guruhlarda muhokama") : "📖 Savolni o‘qing";
+    };
+    const loop = () => {
+      if (!root || !running) return;
+      left = Math.max(0, endsAt - Date.now());
+      const sec = Math.ceil(left / 1000);
+      if (sec !== lastSec) { if (sec <= 10 && sec > 0) sfx.tick(); lastSec = sec; }
+      if (left <= 0) { running = false; sfx.gong(); }
+      setTimerView();
+      if (running) raf = requestAnimationFrame(loop);
+    };
+    const play = () => {
+      if (left <= 0) return;
+      if (running) { running = false; cancelAnimationFrame(raf); left = Math.max(0, endsAt - Date.now()); setTimerView(); return; }
+      running = true; endsAt = Date.now() + left; lastSec = -1; raf = requestAnimationFrame(loop);
+    };
+    const openAnswer = () => {
+      if (opened) return;
+      opened = true; running = false; cancelAnimationFrame(raf); setTimerView();
+      const f = $("#zbFlip", m);
+      if (f) f.classList.add("open");
+      const ob = $("#zbOpen", m);
+      if (ob) ob.disabled = true;
+      sfx.open();
+    };
+    const next = () => {
+      running = false; cancelAnimationFrame(raf);
+      g.i++;
+      boardSave(g);
+      if (g.i < g.qs.length) show(); else finish();
+    };
+    const prev = () => {
+      if (g.i === 0) return;
+      running = false; cancelAnimationFrame(raf);
+      g.i--; boardSave(g); show();
+    };
+
+    const show = () => {
+      q = qById(g.qs[g.i]);
+      left = g.time * 1000; running = false; opened = false; lastSec = -1; awarded = {};
+      m.innerHTML = `
+        <section class="zb-stage">
+          <div class="zb-top">
+            <span class="zb-qnum">Savol <b>${g.i + 1}</b> / ${g.qs.length}</span>
+            <span class="zk-cat ${q.cat === "Tarix" ? "t" : "m"}">${q.cat === "Tarix" ? "📜 Tarix" : "🧩 Mantiq"}</span>
+            <div class="zb-prog"><i style="width:${(100 * g.i) / g.qs.length}%"></i></div>
+            <button class="zb-icon" id="zbFs" type="button" title="To‘liq ekran (F)">⛶</button>
+          </div>
+          <div class="zb-center">
+            <div class="zb-qcard"><p class="zb-q">${esc(q.q)}</p></div>
+            <div class="zb-side">
+              <div class="zk-timer zb-timer" id="zbTimer">
+                <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="bg" cx="60" cy="60" r="${R}"/><circle class="fg" cx="60" cy="60" r="${R}" stroke-dasharray="${CIRC}" stroke-dashoffset="0"/></svg>
+                <div class="zk-timer-n"><b id="zbSec">${g.time}</b><small>soniya</small></div>
+              </div>
+              <div class="zb-phase" id="zbPhase">📖 Savolni o‘qing</div>
+            </div>
+          </div>
+          <div class="zk-flip zb-flip" id="zbFlip">
+            <div class="front">🔒 To‘g‘ri javob yashirin — <b>A</b> yoki «Javobni ochish»</div>
+            <div class="back"><small>To‘g‘ri javob</small><b>${esc(q.a)}</b>${q.note ? `<p>${esc(q.note)}</p>` : ""}</div>
+          </div>
+          <div class="zb-teams" id="zbTeams" style="--n:${g.teams.length}"></div>
+          <div class="zb-ctrl">
+            <button class="zb-btn ghost" id="zbPrev" type="button" ${g.i === 0 ? "disabled" : ""}>← Oldingi</button>
+            <button class="zb-btn play" id="zbPlay" type="button">▶ Vaqtni boshlash</button>
+            <button class="zb-btn ghost" id="zbReset" type="button">↺ Vaqtni qayta</button>
+            <button class="zb-btn gold" id="zbOpen" type="button">🔓 Javobni ochish</button>
+            <button class="zb-btn" id="zbNext" type="button">${g.i + 1 < g.qs.length ? "Keyingi →" : "🏆 Natijalar"}</button>
+          </div>
+        </section>`;
+      drawTeams();
+      setTimerView();
+      typeIn(m.querySelector(".zb-q"));
+      $("#zbPlay", m).onclick = play;
+      $("#zbReset", m).onclick = () => { running = false; cancelAnimationFrame(raf); left = g.time * 1000; setTimerView(); };
+      $("#zbOpen", m).onclick = openAnswer;
+      $("#zbNext", m).onclick = next;
+      $("#zbPrev", m).onclick = prev;
+      $("#zbFs", m).onclick = fsToggle;
+      $("#zbFlip", m).onclick = openAnswer;
+    };
+
+    const finish = () => {
+      busy(false);
+      boardClear();
+      const sorted = g.teams.slice().sort((a, b) => b.score - a.score);
+      m.innerHTML = podium(sorted.slice(0, 3), "", sorted) + (sorted.length > 3 ? `
+        <div class="zb-rest">${sorted.slice(3).map((t, k) => `<div style="--c:${t.color}"><i>${k + 4}</i><span>${t.emb} ${esc(t.name)}</span><b>${t.score} ball</b></div>`).join("")}</div>` : "") + `
+        <div class="zk-ctrl center"><button class="zb-btn" id="zbAgain" type="button">↻ Yangi o‘yin</button><button class="zb-btn ghost" id="zbMenu" type="button">Menyu</button></div>`;
+      $("#zbAgain", m).onclick = boardSetup;
+      $("#zbMenu", m).onclick = () => { root.classList.remove("board"); openMenu(); };
+    };
+
+    const onKey = (e) => {
+      if (!root || !root.classList.contains("board") || !$(".zb-stage", root)) return;
+      if (e.target.closest && e.target.closest("input,textarea")) return;
+      const k = e.key;
+      if (k === " " || k === "Spacebar") { e.preventDefault(); play(); }
+      else if (k === "a" || k === "A" || k === "ф" || k === "Ф") openAnswer();
+      else if (k === "ArrowRight" || k === "PageDown" || k === "Enter") { e.preventDefault(); next(); }
+      else if (k === "ArrowLeft" || k === "PageUp") { e.preventDefault(); prev(); }
+      else if (k === "f" || k === "F" || k === "а" || k === "А") fsToggle();
+      else {
+        const code = /^Digit([1-6])$/.exec(e.code || "");
+        if (code) { const t = g.teams[+code[1] - 1]; if (t) award(t.id, e.shiftKey ? -1 : 1); }
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    onClose(() => { document.removeEventListener("keydown", onKey); cancelAnimationFrame(raf); });
+    show();
+  }
+
   // ---------- Kirish nuqtasi ----------
   document.addEventListener("click", (e) => {
+    if (e.target.closest("[data-zakovat-board]")) { e.preventDefault(); boardSetup(); return; }
     if (e.target.closest("[data-zakovat]")) { e.preventDefault(); openMenu(); }
   });
-  window.SofiZakovat = { open: openMenu, check };
+  const fromHash = () => { if (/^#zakovat-doska/.test(location.hash) && !root) boardSetup(); };
+  window.addEventListener("hashchange", fromHash);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fromHash); else setTimeout(fromHash, 0);
+  window.SofiZakovat = { open: openMenu, board: boardSetup, check };
 })();
