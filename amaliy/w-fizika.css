@@ -37,3 +37,10 @@
 .sl-bar small { opacity: .75; }
 .sl-hint { font-size: 13px; opacity: .8; }
 @media (max-width: 560px) { .sl-tip { font-size: 11px; padding: 4px 10px; bottom: 6px; } .sl-f { font-size: 14px; } }
+/* KINO — kinoviy tajribalar sahnasi */
+.kn-stage { position: relative; padding: 0 !important; overflow: hidden; border-radius: 16px; background: #f4f1e8; }
+.kn-cv { display: block; width: 100%; }
+.kn-tip { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); max-width: calc(100% - 24px); padding: 6px 12px; border-radius: 999px; background: rgba(28, 25, 23, .78); color: #fff; font-size: 12.5px; text-align: center; pointer-events: none; }
+.kn-tip[hidden] { display: none; }
+.kn-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+@media (max-width: 560px) { .kn-tip { font-size: 11px; padding: 4px 10px; bottom: 6px; } }
