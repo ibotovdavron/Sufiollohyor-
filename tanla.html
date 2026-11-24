@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#020b09">
+  <meta name="description" content="Doskaga kim chiqadi? — elektron doska kamerasi sinfdagi o‘quvchilar yuzini topib, tasodifiy birini tanlaydi. Kamerasiz — ismlar ro‘yxatidan.">
+  <title>Doskaga kim chiqadi? | So‘fi Ollohyor</title>
+  <link rel="stylesheet" href="style.css?v=15">
+  <script>try{var t=localStorage.getItem("sofi_theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+  <link rel="stylesheet" href="tanla.css?v=1">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topinner">
+    <a class="brand" href="index.html">
+      <img class="brand-image" src="assets/markaz-logo.png" alt="Markaz logotipi">
+      <span class="brand-name">SO‘FI OLLOHYOR<small>O‘QUV MARKAZI</small></span>
+    </a>
+    <div class="social">
+      <a href="amaliy.html">← Amaliy darslar</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap tn" id="tnApp">
+  <section class="tn-head">
+    <div>
+      <span class="tn-kicker">🎯 INTELLEKTUAL TANLOV</span>
+      <h1>Doskaga kim chiqadi?</h1>
+      <p>Doska kamerasi sinfdagi o‘quvchilar yuzini topadi va tasodifiy birini tanlaydi. Kamera bo‘lmasa — ismlar ro‘yxatidan tanlaydi.</p>
+    </div>
+    <div class="tn-tabs" role="tablist">
+      <button type="button" class="on" data-mode="cam">📷 Kamera</button>
+      <button type="button" data-mode="names">📝 Ismlar ro‘yxati</button>
+    </div>
+  </section>
+
+  <section class="tn-main">
+    <div class="tn-stage" id="tnStage">
+      <!-- kamera -->
+      <div class="tn-cam" id="tnCam">
+        <video id="tnVideo" playsinline muted></video>
+        <canvas id="tnOver"></canvas>
+        <div class="tn-badge" id="tnBadge" hidden></div>
+        <div class="tn-empty" id="tnCamEmpty">
+          <div class="tn-empty-ic">📷</div>
+          <b>Kamerani yoqing</b>
+          <p>Doska kamerasi sinfga qaragan bo‘lsin. Keyin “Skanerlash” — sun’iy intellekt yuzlarni topadi.</p>
+          <button type="button" class="tn-btn" id="tnCamOn">📷 Kamerani yoqish</button>
+        </div>
+      </div>
+      <!-- ismlar -->
+      <div class="tn-names" id="tnNames" hidden></div>
+      <button type="button" class="tn-fs" id="tnFs" title="To‘liq ekran">⛶</button>
+    </div>
+
+    <aside class="tn-side">
+      <div class="tn-box">
+        <h3>⚙️ Sozlamalar</h3>
+        <label class="tn-lbl">Tanlangan o‘quvchiga topshiriq</label>
+        <input id="tnTask" value="Doskaga chiqing!" maxlength="80">
+        <label class="tn-chk"><input type="checkbox" id="tnNoRepeat" checked> Chiqqanlar qayta tanlanmasin</label>
+        <label class="tn-chk"><input type="checkbox" id="tnSound" checked> Ovoz (baraban)</label>
+        <div id="tnCamSet">
+          <label class="tn-lbl">Kamera</label>
+          <select id="tnDev"><option value="">Standart kamera</option></select>
+        </div>
+        <div id="tnNameSet" hidden>
+          <label class="tn-lbl">Sinf</label>
+          <div class="tn-row"><select id="tnClass"></select><button type="button" class="tn-mini" id="tnClassNew" title="Yangi sinf">＋</button><button type="button" class="tn-mini" id="tnClassDel" title="Sinfni o‘chirish">🗑</button></div>
+          <label class="tn-lbl">O‘quvchilar (har qatorda bitta ism)</label>
+          <textarea id="tnList" rows="8" placeholder="Aliyev Ali&#10;Karimova Zarina&#10;…"></textarea>
+        </div>
+      </div>
+      <div class="tn-actions">
+        <button type="button" class="tn-btn ghost" id="tnScan">🔍 Skanerlash</button>
+        <button type="button" class="tn-btn big" id="tnPick">🎲 Tanlash</button>
+        <small class="tn-hint" id="tnHint">Klaviatura: Probel — tanlash, S — skanerlash</small>
+      </div>
+      <div class="tn-box">
+        <div class="tn-res-head"><h3>📊 Natijalar</h3><button type="button" class="tn-mini" id="tnResClear" title="Tozalash">🧹</button></div>
+        <div class="tn-score" id="tnScore"></div>
+        <div class="tn-res" id="tnRes"><p class="tn-muted">Hali hech kim tanlanmadi.</p></div>
+      </div>
+    </aside>
+  </section>
+</main>
+
+<div class="tn-modal" id="tnModal" hidden>
+  <div class="tn-card">
+    <div class="tn-card-top"><small>O‘QUVCHI TANLANDI</small><b>Doskaga chaqirildi!</b></div>
+    <div class="tn-face" id="tnFace"></div>
+    <div class="tn-who" id="tnWho"></div>
+    <div class="tn-task" id="tnTaskOut"></div>
+    <div class="tn-card-btns">
+      <button type="button" class="ok" data-r="ok">✅ To‘g‘ri</button>
+      <button type="button" class="bad" data-r="bad">❌ Noto‘g‘ri</button>
+      <button type="button" class="skip" data-r="skip">O‘tkazish</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav" id="bottomNav" aria-label="Asosiy menyu"></nav>
+
+<script src="lib/supabase.js"></script>
+<script src="config.js"></script>
+<script src="data.js?v=15"></script>
+<script src="app.js?v=12"></script>
+<script src="tanla.js?v=1"></script>
+</body>
+</html>
