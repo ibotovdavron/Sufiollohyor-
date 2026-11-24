@@ -143,10 +143,30 @@
   }
 
   // ---------- ismlar ----------
-  let classes = LS.get("tn_classes", { "Mening sinfim": [] }), curClass = LS.get("tn_class", Object.keys(classes)[0]);
-  if (!classes[curClass]) curClass = Object.keys(classes)[0];
-  function fillClasses() { $("#tnClass").innerHTML = Object.keys(classes).map((c) => `<option ${c === curClass ? "selected" : ""}>${esc(c)}</option>`).join(""); $("#tnList").value = (classes[curClass] || []).join("\n"); }
-  const names = () => (classes[curClass] || []).filter(Boolean);
+  // Markaz o'quvchilari (data.js → CENTER_DATA.students) guruhlar bo'yicha; o'qituvchi o'z ro'yxatini ham qo'sha oladi
+  const ROSTER = {};
+  ((window.CENTER_DATA && window.CENTER_DATA.students) || []).forEach((x) => { if (x && x.name && x.group) (ROSTER["g:" + x.group] = ROSTER["g:" + x.group] || []).push(x.name.trim()); });
+  const GKEYS = Object.keys(ROSTER).sort((a, b) => a.localeCompare(b, "uz", { numeric: true }));
+  GKEYS.forEach((k) => ROSTER[k].sort((a, b) => a.localeCompare(b, "uz")));
+  let classes = LS.get("tn_classes", {}), curClass = LS.get("tn_class", "");
+  if (!Object.keys(classes).length && !GKEYS.length) classes = { "Mening sinfim": [] };
+  const isG = (k) => k.startsWith("g:");
+  const own = () => Object.keys(classes).filter((k) => !isG(k));
+  if (!(isG(curClass) ? ROSTER[curClass] : classes[curClass])) curClass = GKEYS[0] || own()[0];
+  const listOf = (k) => (isG(k) ? classes[k] || ROSTER[k] || [] : classes[k] || []);
+  function fillClasses() {
+    $("#tnClass").innerHTML = (GKEYS.length ? `<optgroup label="Markaz o‘quvchilari">${GKEYS.map((k) => `<option value="${esc(k)}" ${k === curClass ? "selected" : ""}>${esc(k.slice(2))} (${ROSTER[k].length})</option>`).join("")}</optgroup>` : "")
+      + (own().length ? `<optgroup label="O‘z ro‘yxatlarim">${own().map((k) => `<option value="${esc(k)}" ${k === curClass ? "selected" : ""}>${esc(k)}</option>`).join("")}</optgroup>` : "");
+    $("#tnList").value = listOf(curClass).join("\n");
+    $("#tnClassDel").title = isG(curClass) ? "Ro‘yxatni asl holiga qaytarish" : "Sinfni o‘chirish";
+    linkTopic();
+  }
+  /** “7-sinf” tanlansa, Amaliy dars mavzulari ham 7-sinfga o'tadi */
+  function linkTopic() {
+    const m = /^g:(\d+)/.exec(curClass) || /^(\d+)/.exec(curClass); if (!m || typeof TP === "undefined") return;
+    if (TP.cls !== m[1]) { TP.cls = m[1]; TP.sub = ""; TP.top = "all"; if (window.AMALIY && window.AMALIY.classes.length && TP.on) fillTopic(); else LS.set("tn_topic", TP); }
+  }
+  const names = () => listOf(curClass).filter(Boolean);
   function drawNames() {
     const n = names(), box = $("#tnNames");
     if (!n.length) { box.innerHTML = `<div class="tn-empty"><div class="tn-empty-ic">📝</div><b>Ro‘yxat bo‘sh</b><p>O‘ng tomondagi maydonga o‘quvchilar ismini yozing (har qatorda bittadan). Ro‘yxat shu kompyuterda saqlanadi.</p></div>`; return; }
@@ -155,7 +175,10 @@
   $("#tnList").oninput = () => { classes[curClass] = $("#tnList").value.split("\n").map((s) => s.trim()).filter(Boolean); LS.set("tn_classes", classes); st.used.clear(); drawNames(); };
   $("#tnClass").onchange = () => { curClass = $("#tnClass").value; LS.set("tn_class", curClass); st.used.clear(); fillClasses(); drawNames(); };
   $("#tnClassNew").onclick = () => { const n = (prompt("Yangi sinf nomi (masalan: 7-A):") || "").trim(); if (!n) return; classes[n] = classes[n] || []; curClass = n; LS.set("tn_classes", classes); LS.set("tn_class", n); fillClasses(); drawNames(); };
-  $("#tnClassDel").onclick = () => { if (Object.keys(classes).length < 2) { toast("Kamida bitta sinf qolishi kerak."); return; } if (!confirm(`“${curClass}” sinfi o‘chirilsinmi?`)) return; delete classes[curClass]; curClass = Object.keys(classes)[0]; LS.set("tn_classes", classes); LS.set("tn_class", curClass); fillClasses(); drawNames(); };
+  $("#tnClassDel").onclick = () => {
+    if (isG(curClass)) { if (!classes[curClass]) { toast("Bu markaz ro‘yxati — o‘zgartirilmagan."); return; } if (!confirm("Ro‘yxat asl (markazdagi) holiga qaytarilsinmi?")) return; delete classes[curClass]; }
+    else { if (!confirm(`“${curClass}” ro‘yxati o‘chirilsinmi?`)) return; delete classes[curClass]; curClass = GKEYS[0] || own()[0] || "Mening sinfim"; if (!GKEYS.length && !own().length) classes[curClass] = []; }
+    LS.set("tn_classes", classes); LS.set("tn_class", curClass); st.used.clear(); fillClasses(); drawNames(); };
 
   // ---------- Amaliy darsdan misol ----------
   const TP = LS.get("tn_topic", { on: false, cls: "", sub: "", top: "all", kind: "mix" });

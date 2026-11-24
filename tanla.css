@@ -116,3 +116,15 @@
   .tn-prob { border-left: 0; border-top: 1px solid #e2e8f0; }
   .tn-prob-opts { grid-template-columns: 1fr; }
 }
+
+/* Kasrlar ([[a/b]]) — amaliy.css dagi kabi */
+.fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; margin: 0 2px; line-height: 1.1; font-size: 0.92em; }
+.fr i { font-style: normal; padding: 0 3px; }
+.fr i:first-child { border-bottom: 2px solid currentColor; }
+.tn-prob-q .fr { font-size: 0.85em; }
+.tn-edit { margin-top: 8px; } .tn-edit summary { cursor: pointer; font-weight: 700; font-size: 13px; opacity: .85; }
+.tn-left { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.tn-actions-main { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }
+.tn-actions-main #tnScan { flex: 1 1 160px; } .tn-actions-main #tnScan[hidden] { display: none; }
+.tn-actions-main #tnPick { flex: 3 1 260px; }
+.tn-actions-main .tn-hint { flex-basis: 100%; }

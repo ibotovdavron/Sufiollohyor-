@@ -8,7 +8,7 @@
   <title>Doskaga kim chiqadi? | So‘fi Ollohyor</title>
   <link rel="stylesheet" href="style.css?v=15">
   <script>try{var t=localStorage.getItem("sofi_theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
-  <link rel="stylesheet" href="tanla.css?v=2">
+  <link rel="stylesheet" href="tanla.css?v=4">
 </head>
 <body>
 
@@ -38,6 +38,7 @@
   </section>
 
   <section class="tn-main">
+    <div class="tn-left">
     <div class="tn-stage" id="tnStage">
       <!-- kamera -->
       <div class="tn-cam" id="tnCam">
@@ -55,8 +56,22 @@
       <div class="tn-names" id="tnNames" hidden></div>
       <button type="button" class="tn-fs" id="tnFs" title="To‘liq ekran">⛶</button>
     </div>
+      <div class="tn-actions tn-actions-main">
+        <button type="button" class="tn-btn ghost" id="tnScan">🔍 Skanerlash</button>
+        <button type="button" class="tn-btn big" id="tnPick">🎲 Tanlash</button>
+        <small class="tn-hint" id="tnHint">Klaviatura: Probel — tanlash, S — skanerlash</small>
+      </div>
+    </div>
 
     <aside class="tn-side">
+      <div class="tn-box" id="tnNameSet" hidden>
+        <h3>👥 Sinf</h3>
+        <div class="tn-row"><select id="tnClass" aria-label="Sinf"></select><button type="button" class="tn-mini" id="tnClassNew" title="Yangi ro‘yxat">＋</button><button type="button" class="tn-mini" id="tnClassDel" title="O‘chirish">🗑</button></div>
+        <details class="tn-edit"><summary>✏️ Ro‘yxatni tahrirlash</summary>
+          <label class="tn-lbl">O‘quvchilar (har qatorda bitta ism)</label>
+          <textarea id="tnList" rows="8" placeholder="Aliyev Ali&#10;Karimova Zarina&#10;…"></textarea>
+        </details>
+      </div>
       <div class="tn-box tn-topic">
         <label class="tn-chk tn-chk-big"><input type="checkbox" id="tnTopicOn"> 📚 Tanlangan o‘quvchiga Amaliy darsdan misol berish</label>
         <div id="tnTopicSet" hidden>
@@ -76,18 +91,9 @@
           <label class="tn-lbl">Kamera</label>
           <select id="tnDev"><option value="">Standart kamera</option></select>
         </div>
-        <div id="tnNameSet" hidden>
-          <label class="tn-lbl">Sinf</label>
-          <div class="tn-row"><select id="tnClass"></select><button type="button" class="tn-mini" id="tnClassNew" title="Yangi sinf">＋</button><button type="button" class="tn-mini" id="tnClassDel" title="Sinfni o‘chirish">🗑</button></div>
-          <label class="tn-lbl">O‘quvchilar (har qatorda bitta ism)</label>
-          <textarea id="tnList" rows="8" placeholder="Aliyev Ali&#10;Karimova Zarina&#10;…"></textarea>
-        </div>
+
       </div>
-      <div class="tn-actions">
-        <button type="button" class="tn-btn ghost" id="tnScan">🔍 Skanerlash</button>
-        <button type="button" class="tn-btn big" id="tnPick">🎲 Tanlash</button>
-        <small class="tn-hint" id="tnHint">Klaviatura: Probel — tanlash, S — skanerlash</small>
-      </div>
+
       <div class="tn-box">
         <div class="tn-res-head"><h3>📊 Natijalar</h3><button type="button" class="tn-mini" id="tnResClear" title="Tozalash">🧹</button></div>
         <div class="tn-score" id="tnScore"></div>
@@ -136,6 +142,6 @@
 <script src="config.js"></script>
 <script src="data.js?v=15"></script>
 <script src="app.js?v=12"></script>
-<script src="tanla.js?v=2"></script>
+<script src="tanla.js?v=4"></script>
 </body>
 </html>
