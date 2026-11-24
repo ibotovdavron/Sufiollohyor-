@@ -104,7 +104,7 @@ body.home-page {
 .h-subjects .subject { border-color: rgba(245, 200, 76, 0.2); }
 
 /* Platforma */
-.h-platform { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.h-platform { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
 .h-platform a { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 6px; padding: 22px 18px; border-radius: 24px; border: 1px solid color-mix(in srgb, var(--c) 40%, transparent); background: linear-gradient(160deg, color-mix(in srgb, var(--c) 18%, hsl(calc(var(--th) + -0.7deg) calc(70% * var(--ts)) calc(var(--tl0) + var(--tlk) * 3.9%))), hsl(calc(var(--th) + -0.7deg) calc(70% * var(--ts)) calc(var(--tl0) + var(--tlk) * 3.9%)) 70%); transition: transform 0.3s, box-shadow 0.3s; }
 .h-platform a:hover { transform: translateY(-6px); box-shadow: 0 20px 50px color-mix(in srgb, var(--c) 30%, transparent); }
 .h-platform span { font-size: 40px; transition: transform 0.4s cubic-bezier(0.2, 1.6, 0.4, 1); }
@@ -133,6 +133,7 @@ body.home-page {
   .h-lead { margin: 0 auto; }
   .h-actions { justify-content: center; }
   .h-why, .h-platform { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .h-platform a:last-child { grid-column: 1 / -1; }
   .h-leader { grid-template-columns: 1fr; text-align: center; }
   .h-leader-text blockquote { border-left: 0; padding-left: 0; }
   .h-path { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 26px; }
