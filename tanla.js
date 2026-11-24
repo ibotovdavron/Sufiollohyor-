@@ -157,6 +157,107 @@
   $("#tnClassNew").onclick = () => { const n = (prompt("Yangi sinf nomi (masalan: 7-A):") || "").trim(); if (!n) return; classes[n] = classes[n] || []; curClass = n; LS.set("tn_classes", classes); LS.set("tn_class", n); fillClasses(); drawNames(); };
   $("#tnClassDel").onclick = () => { if (Object.keys(classes).length < 2) { toast("Kamida bitta sinf qolishi kerak."); return; } if (!confirm(`“${curClass}” sinfi o‘chirilsinmi?`)) return; delete classes[curClass]; curClass = Object.keys(classes)[0]; LS.set("tn_classes", classes); LS.set("tn_class", curClass); fillClasses(); drawNames(); };
 
+  // ---------- Amaliy darsdan misol ----------
+  const TP = LS.get("tn_topic", { on: false, cls: "", sub: "", top: "all", kind: "mix" });
+  let amaliyP = null, probUsed = new Set(), curProb = null;
+  const rich = (t) => (window.AK && window.AK.rich ? window.AK.rich(t) : esc(t));
+  /** amaliy.html dagi ma'lumot fayllarini (kit.js … ctest.js) shu sahifaga ketma-ket yuklaydi */
+  const loadAmaliy = () => amaliyP || (amaliyP = (async () => {
+    if (window.AMALIY && window.AMALIY.classes && window.AMALIY.classes.length) return window.AMALIY;
+    const html = await (await fetch("amaliy.html", { cache: "no-cache" })).text();
+    const all = [...html.matchAll(/<script src="(amaliy\/[^"]+)"/g)].map((m) => m[1]);
+    const a = all.findIndex((x) => x.startsWith("amaliy/kit.js"));
+    const list = all.slice(a).filter((x) => !/amaliy\/(app|sirli|ctest-ui)\.js/.test(x));
+    for (const src of list) {
+      await new Promise((res) => { const el = document.createElement("script"); el.src = src; el.onload = res; el.onerror = res; document.head.append(el); });
+    }
+    return window.AMALIY;
+  })().catch((e) => { amaliyP = null; throw e; }));
+  const subjOf = () => { const D = window.AMALIY; const c = D && D.classes.find((x) => x.id === TP.cls); return { c, s: c && c.subjects.find((x) => x.id === TP.sub) }; };
+  function fillTopic() {
+    const D = window.AMALIY; if (!D) return;
+    const cls = D.classes.filter((c) => c.subjects.some((s_) => s_.topics.some((t) => (t.examples || []).length || (t.quiz || []).length)));
+    if (!cls.find((c) => c.id === TP.cls)) TP.cls = (cls.find((c) => c.id === "6") || cls[0]).id;
+    $("#tnTCls").innerHTML = cls.map((c) => `<option value="${esc(c.id)}" ${c.id === TP.cls ? "selected" : ""}>${esc(c.name)}</option>`).join("");
+    const c = cls.find((x) => x.id === TP.cls), subs = c.subjects.filter((s_) => s_.topics.some((t) => (t.examples || []).length || (t.quiz || []).length));
+    if (!subs.find((x) => x.id === TP.sub)) TP.sub = (subs.find((x) => /matem|algebra/.test(x.id)) || subs[0]).id;
+    $("#tnTSub").innerHTML = subs.map((x) => `<option value="${esc(x.id)}" ${x.id === TP.sub ? "selected" : ""}>${esc((x.icon || "") + " " + x.name)}</option>`).join("");
+    const sub = subs.find((x) => x.id === TP.sub), secs = [...new Set(sub.topics.map((t) => t.sec || "Mavzular"))];
+    let opts = `<option value="all">🎲 Butun fan — aralash</option>`;
+    secs.forEach((sc) => { opts += `<optgroup label="${esc(sc)}"><option value="sec:${esc(sc)}">🎲 ${esc(sc)} — aralash</option>` + sub.topics.filter((t) => (t.sec || "Mavzular") === sc && ((t.examples || []).length || (t.quiz || []).length)).map((t) => `<option value="${esc(t.id)}">${esc(t.title)}</option>`).join("") + `</optgroup>`; });
+    $("#tnTTop").innerHTML = opts;
+    if (![...$("#tnTTop").options].some((o) => o.value === TP.top)) TP.top = "all";
+    $("#tnTTop").value = TP.top;
+    document.querySelectorAll("#tnTKind button").forEach((b) => b.classList.toggle("on", b.dataset.k === TP.kind));
+    const n = pool().length; $("#tnTInfo").textContent = n ? `Misollar bazasi: ${n} ta (masala va test)` : "Bu tanlovda misol yo‘q — boshqa mavzuni tanlang.";
+    LS.set("tn_topic", TP); probUsed.clear();
+  }
+  function pool() {
+    const { s: sub } = subjOf(); if (!sub) return [];
+    const tops = sub.topics.filter((t) => TP.top === "all" || (TP.top.startsWith("sec:") ? (t.sec || "Mavzular") === TP.top.slice(4) : t.id === TP.top));
+    const out = [];
+    tops.forEach((t) => {
+      if (TP.kind !== "quiz") (t.examples || []).forEach((e, i) => out.push({ key: `${t.id}#e${i}`, kind: "ex", t, q: e.q, steps: e.steps || [], a: e.a }));
+      if (TP.kind !== "ex") (t.quiz || []).forEach((e, i) => out.push({ key: `${t.id}#q${i}`, kind: "quiz", t, q: e.q, o: e.o, e: e.e }));
+    });
+    return out;
+  }
+  function nextProb() {
+    const P = pool(); if (!P.length) return null;
+    let free = P.filter((x) => !probUsed.has(x.key)); if (!free.length) { probUsed.clear(); free = P; }
+    const x = free[(Math.random() * free.length) | 0]; probUsed.add(x.key);
+    if (x.kind === "quiz") x.opts = x.o.map((o, i) => ({ o, ok: i === 0 })).sort(() => Math.random() - 0.5);
+    return x;
+  }
+  function renderProb() {
+    const x = curProb, box = $("#tnProb");
+    if (!x) { box.hidden = true; $("#tnModal").classList.remove("wide"); return; }
+    box.hidden = false; $("#tnModal").classList.add("wide");
+    $("#tnProbTopic").textContent = `📚 ${x.t.title}`;
+    $("#tnProbQ").innerHTML = rich(x.q);
+    $("#tnProbOpts").innerHTML = x.kind === "quiz" ? x.opts.map((o) => `<li>${rich(o.o)}</li>`).join("") : "";
+    $("#tnProbOpts").hidden = x.kind !== "quiz";
+    $("#tnProbAns").hidden = true; $("#tnShowAns").disabled = false;
+    padClear(); setTimeout(padSize, 30);
+  }
+  $("#tnShowAns").onclick = () => {
+    const x = curProb; if (!x) return;
+    const a = $("#tnProbAns");
+    if (x.kind === "ex") a.innerHTML = (x.steps.length ? `<ol>${x.steps.map((st_) => `<li>${rich(st_)}</li>`).join("")}</ol>` : "") + `<b>Javob: ${rich(x.a)}</b>`;
+    else { $("#tnProbOpts").querySelectorAll("li").forEach((li, i) => li.classList.toggle("ok", x.opts[i].ok)); a.innerHTML = `<b>To‘g‘ri javob: ${rich(x.o[0])}</b>${x.e ? `<br><small>${rich(x.e)}</small>` : ""}`; }
+    a.hidden = false; $("#tnShowAns").disabled = true;
+  };
+  $("#tnNewProb").onclick = () => { curProb = nextProb(); renderProb(); };
+  async function topicOn(on) {
+    TP.on = on; LS.set("tn_topic", TP); $("#tnTopicSet").hidden = !on;
+    if (!on) return;
+    $("#tnTInfo").textContent = "⏳ Amaliy dars mavzulari yuklanmoqda…";
+    try { await loadAmaliy(); fillTopic(); } catch (e) { $("#tnTInfo").textContent = "Mavzularni yuklab bo‘lmadi. Internetni tekshiring."; }
+  }
+  $("#tnTopicOn").checked = !!TP.on; $("#tnTopicOn").onchange = (e) => topicOn(e.target.checked);
+  $("#tnTCls").onchange = () => { TP.cls = $("#tnTCls").value; TP.sub = ""; TP.top = "all"; fillTopic(); };
+  $("#tnTSub").onchange = () => { TP.sub = $("#tnTSub").value; TP.top = "all"; fillTopic(); };
+  $("#tnTTop").onchange = () => { TP.top = $("#tnTTop").value; fillTopic(); };
+  document.querySelectorAll("#tnTKind button").forEach((b) => (b.onclick = () => { TP.kind = b.dataset.k; fillTopic(); }));
+  if (TP.on) topicOn(true);
+
+  // ---------- yechish uchun chizish maydoni ----------
+  const pad = $("#tnPad"), px = pad.getContext("2d"); let pen = "#0f172a", drawing = false, lastP = null, strokes = [];
+  function padSize() { const r = pad.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1); if (!r.width) return; pad.width = Math.round(r.width * d); pad.height = Math.round(r.height * d); px.setTransform(d, 0, 0, d, 0, 0); redraw(); }
+  function redraw() { px.clearRect(0, 0, pad.width, pad.height); strokes.forEach(drawStroke); }
+  function drawStroke(sk) { px.lineCap = "round"; px.lineJoin = "round"; px.globalCompositeOperation = sk.c === "erase" ? "destination-out" : "source-over"; px.strokeStyle = sk.c === "erase" ? "#000" : sk.c; px.lineWidth = sk.c === "erase" ? 26 : 3.5;
+    px.beginPath(); sk.p.forEach(([x, y], i) => (i ? px.lineTo(x, y) : px.moveTo(x, y))); if (sk.p.length === 1) px.lineTo(sk.p[0][0] + 0.1, sk.p[0][1]); px.stroke(); px.globalCompositeOperation = "source-over"; }
+  function padClear() { strokes = []; px.clearRect(0, 0, pad.width, pad.height); }
+  const ppos = (e) => { const r = pad.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  pad.addEventListener("pointerdown", (e) => { drawing = true; pad.setPointerCapture(e.pointerId); strokes.push({ c: pen, p: [ppos(e)] }); drawStroke(strokes[strokes.length - 1]); });
+  pad.addEventListener("pointermove", (e) => { if (!drawing) return; const sk = strokes[strokes.length - 1]; sk.p.push(ppos(e)); px.lineCap = "round"; drawStroke({ c: sk.c, p: sk.p.slice(-2) }); });
+  ["pointerup", "pointercancel"].forEach((ev) => pad.addEventListener(ev, () => (drawing = false)));
+  document.querySelectorAll(".tn-pad-tools button").forEach((b) => (b.onclick = () => {
+    if (b.dataset.c === "clear") { padClear(); return; }
+    pen = b.dataset.c; document.querySelectorAll(".tn-pad-tools button").forEach((x) => x.classList.toggle("on", x === b));
+  }));
+  window.addEventListener("resize", () => { if (!$("#tnModal").hidden && curProb) padSize(); });
+
   // ---------- tanlash ----------
   async function pick() {
     if (st.picking) return;
@@ -185,21 +286,23 @@
     if (st.mode === "cam") { $("#tnFace").innerHTML = `<img src="${st.faces[i].thumb}" alt="Tanlangan o‘quvchi">`; $("#tnWho").textContent = `${i + 1}-o‘quvchi`; }
     else { const n = names()[i]; $("#tnFace").innerHTML = `<span class="tn-initial">${esc((n || "?").trim().charAt(0).toUpperCase())}</span>`; $("#tnWho").textContent = n; }
     $("#tnTaskOut").textContent = task;
-    $("#tnModal").hidden = false; fanfare(); confetti();
+    curProb = TP.on && window.AMALIY ? nextProb() : null;
+    $("#tnModal").hidden = false; renderProb(); fanfare(); confetti();
   }
   $("#tnModal").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-r]"); if (!b) return;
     const i = st.cur, r = b.dataset.r;
     if (r !== "skip") st.used.add(i);
     if (r === "skip") st.used.delete(i);
-    st.results.unshift({ r, who: st.mode === "cam" ? `${i + 1}-o‘quvchi` : names()[i], img: st.mode === "cam" ? st.faces[i].thumb : null, t: new Date().toLocaleTimeString("uz", { hour: "2-digit", minute: "2-digit" }) });
+    st.results.unshift({ r, who: st.mode === "cam" ? `${i + 1}-o‘quvchi` : names()[i], img: st.mode === "cam" ? st.faces[i].thumb : null, t: new Date().toLocaleTimeString("uz", { hour: "2-digit", minute: "2-digit" }), topic: curProb ? curProb.t.title : "" });
+    curProb = null;
     if (r === "ok") { beep(1046, 0.2, "triangle", 0.08); } else if (r === "bad") beep(180, 0.3, "sawtooth", 0.05);
     $("#tnModal").hidden = true; st.hi = -1; st.cur = null; badge(); drawRes(); if (st.mode === "names") drawNames();
   });
   function drawRes() {
     const ok = st.results.filter((x) => x.r === "ok").length, bad = st.results.filter((x) => x.r === "bad").length, sk = st.results.filter((x) => x.r === "skip").length;
     $("#tnScore").innerHTML = `<span class="ok">✅ ${ok}</span><span class="bad">❌ ${bad}</span><span>⏭ ${sk}</span>`;
-    $("#tnRes").innerHTML = st.results.length ? st.results.map((x) => `<div class="tn-ri ${x.r}">${x.img ? `<img src="${x.img}" alt="">` : `<span class="tn-ri-av">${esc((x.who || "?").charAt(0))}</span>`}<b>${esc(x.who || "")}</b><em>${x.r === "ok" ? "✅ To‘g‘ri" : x.r === "bad" ? "❌ Noto‘g‘ri" : "⏭ O‘tkazildi"}</em><small>${x.t}</small></div>`).join("") : `<p class="tn-muted">Hali hech kim tanlanmadi.</p>`;
+    $("#tnRes").innerHTML = st.results.length ? st.results.map((x) => `<div class="tn-ri ${x.r}">${x.img ? `<img src="${x.img}" alt="">` : `<span class="tn-ri-av">${esc((x.who || "?").charAt(0))}</span>`}<b>${esc(x.who || "")}</b><em>${x.r === "ok" ? "✅ To‘g‘ri" : x.r === "bad" ? "❌ Noto‘g‘ri" : "⏭ O‘tkazildi"}${x.topic ? ` · ${esc(x.topic)}` : ""}</em><small>${x.t}</small></div>`).join("") : `<p class="tn-muted">Hali hech kim tanlanmadi.</p>`;
   }
   $("#tnResClear").onclick = () => { if (st.results.length && !confirm("Natijalar tozalansinmi?")) return; st.results = []; st.used.clear(); badge(); drawRes(); if (st.mode === "names") drawNames(); };
   $("#tnPick").onclick = pick;

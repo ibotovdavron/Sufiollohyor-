@@ -8,7 +8,7 @@
   <title>Doskaga kim chiqadi? | So‘fi Ollohyor</title>
   <link rel="stylesheet" href="style.css?v=15">
   <script>try{var t=localStorage.getItem("sofi_theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
-  <link rel="stylesheet" href="tanla.css?v=1">
+  <link rel="stylesheet" href="tanla.css?v=2">
 </head>
 <body>
 
@@ -57,6 +57,15 @@
     </div>
 
     <aside class="tn-side">
+      <div class="tn-box tn-topic">
+        <label class="tn-chk tn-chk-big"><input type="checkbox" id="tnTopicOn"> 📚 Tanlangan o‘quvchiga Amaliy darsdan misol berish</label>
+        <div id="tnTopicSet" hidden>
+          <div class="tn-row"><select id="tnTCls" aria-label="Sinf"></select><select id="tnTSub" aria-label="Fan"></select></div>
+          <select id="tnTTop" aria-label="Mavzu"></select>
+          <div class="tn-seg" id="tnTKind"><button type="button" data-k="mix" class="on">Aralash</button><button type="button" data-k="ex">Masala</button><button type="button" data-k="quiz">Test</button></div>
+          <small class="tn-hint" id="tnTInfo"></small>
+        </div>
+      </div>
       <div class="tn-box">
         <h3>⚙️ Sozlamalar</h3>
         <label class="tn-lbl">Tanlangan o‘quvchiga topshiriq</label>
@@ -94,6 +103,25 @@
     <div class="tn-face" id="tnFace"></div>
     <div class="tn-who" id="tnWho"></div>
     <div class="tn-task" id="tnTaskOut"></div>
+    <div class="tn-prob" id="tnProb" hidden>
+      <div class="tn-prob-head"><span id="tnProbTopic"></span></div>
+      <div class="tn-prob-q" id="tnProbQ"></div>
+      <ol class="tn-prob-opts" id="tnProbOpts"></ol>
+      <div class="tn-prob-ans" id="tnProbAns" hidden></div>
+      <div class="tn-pad">
+        <div class="tn-pad-tools">
+          <b>🖊 Doskada yeching:</b>
+          <button type="button" data-c="#0f172a" class="on" title="Qora"><i style="background:#0f172a"></i></button>
+          <button type="button" data-c="#2563eb" title="Ko‘k"><i style="background:#2563eb"></i></button>
+          <button type="button" data-c="#dc2626" title="Qizil"><i style="background:#dc2626"></i></button>
+          <button type="button" data-c="#16a34a" title="Yashil"><i style="background:#16a34a"></i></button>
+          <button type="button" data-c="erase" title="O‘chirg‘ich">🧽</button>
+          <button type="button" data-c="clear" title="Hammasini tozalash">🗑</button>
+        </div>
+        <canvas id="tnPad"></canvas>
+      </div>
+      <div class="tn-prob-btns"><button type="button" id="tnShowAns">👁 Javobni ko‘rsatish</button><button type="button" id="tnNewProb">🔄 Boshqa misol</button></div>
+    </div>
     <div class="tn-card-btns">
       <button type="button" class="ok" data-r="ok">✅ To‘g‘ri</button>
       <button type="button" class="bad" data-r="bad">❌ Noto‘g‘ri</button>
@@ -108,6 +136,6 @@
 <script src="config.js"></script>
 <script src="data.js?v=15"></script>
 <script src="app.js?v=12"></script>
-<script src="tanla.js?v=1"></script>
+<script src="tanla.js?v=2"></script>
 </body>
 </html>

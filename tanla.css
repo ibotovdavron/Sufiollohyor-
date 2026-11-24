@@ -72,3 +72,47 @@
 .tn-toast { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 4200; max-width: min(560px, calc(100% - 32px)); padding: 12px 18px; border-radius: 14px; background: #0f172a; color: #fff; font-weight: 600; box-shadow: 0 12px 30px rgba(0, 0, 0, .4); text-align: center; }
 
 @media (max-width: 900px) { .tn-main { grid-template-columns: 1fr; } .tn-stage { min-height: 260px; } .tn-names, .tn-names .tn-empty { min-height: 260px; } }
+
+/* ---------- Amaliy darsdan misol ---------- */
+.tn-chk-big { margin-top: 0; font-weight: 800; font-size: 15px; }
+.tn-topic select { margin-top: 8px; }
+.tn-topic .tn-row select { margin-top: 8px; }
+.tn-seg { display: flex; gap: 4px; margin-top: 8px; padding: 4px; border-radius: 12px; border: 1px solid var(--line); }
+.tn-seg button { flex: 1; padding: 7px 6px; border: 0; border-radius: 9px; background: transparent; color: var(--white); font-weight: 700; cursor: pointer; }
+.tn-seg button.on { background: #2563eb; color: #fff; }
+.tn-topic .tn-hint { display: block; margin-top: 6px; text-align: left; }
+
+.tn-modal.wide .tn-card { width: min(1180px, 100%); max-height: calc(100vh - 32px); overflow: auto; display: grid; grid-template-columns: 300px 1fr; grid-template-rows: auto auto auto auto 1fr; align-content: start; text-align: left; }
+.tn-modal.wide .tn-card-top { grid-column: 1 / -1; }
+.tn-modal.wide .tn-face { width: 150px; height: 150px; margin: 18px auto 8px; grid-column: 1; }
+.tn-modal.wide .tn-who, .tn-modal.wide .tn-task { grid-column: 1; text-align: center; }
+.tn-modal.wide .tn-prob { grid-column: 2; grid-row: 2 / span 5; }
+.tn-modal.wide .tn-card-btns { grid-column: 1; flex-direction: column; align-self: start; }
+.tn-modal.wide .tn-who { margin-top: 0; }
+.tn-prob { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px 18px; border-left: 1px solid #e2e8f0; min-width: 0; }
+.tn-prob-head span { display: inline-block; padding: 5px 12px; border-radius: 999px; background: #eff6ff; color: #1d4ed8; font-weight: 800; font-size: 13px; }
+.tn-prob-q { font-size: clamp(20px, 2.2vw, 28px); font-weight: 800; line-height: 1.35; color: #0f172a; }
+.tn-prob-opts { margin: 0; padding-left: 26px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 18px; font-size: 18px; list-style: upper-alpha; }
+.tn-prob-opts[hidden] { display: none; }
+.tn-prob-opts li { padding: 6px 10px; border-radius: 10px; background: #f8fafc; }
+.tn-prob-opts li.ok { background: #dcfce7; color: #166534; font-weight: 800; }
+.tn-prob-ans { padding: 10px 14px; border-radius: 14px; background: #fefce8; border: 1px solid #fde68a; color: #713f12; font-size: 16px; }
+.tn-prob-ans ol { margin: 0 0 6px; padding-left: 20px; }
+.tn-pad { display: flex; flex-direction: column; flex: 1; min-height: 260px; border: 2px dashed #cbd5e1; border-radius: 16px; overflow: hidden; background: #fff; }
+.tn-pad-tools { display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: #f1f5f9; color: #334155; font-size: 14px; flex-wrap: wrap; }
+.tn-pad-tools b { margin-right: auto; }
+.tn-pad-tools button { width: 34px; height: 34px; border-radius: 10px; border: 2px solid transparent; background: #fff; cursor: pointer; display: grid; place-items: center; font-size: 16px; }
+.tn-pad-tools button i { width: 18px; height: 18px; border-radius: 50%; }
+.tn-pad-tools button.on { border-color: #2563eb; }
+.tn-pad canvas { flex: 1; width: 100%; min-height: 220px; touch-action: none; cursor: crosshair; background-image: linear-gradient(#eef2f7 1px, transparent 1px), linear-gradient(90deg, #eef2f7 1px, transparent 1px); background-size: 28px 28px; }
+.tn-prob-btns { display: flex; gap: 8px; }
+.tn-prob-btns button { flex: 1; padding: 10px; border-radius: 12px; border: 1px solid #cbd5e1; background: #fff; color: #0f172a; font-weight: 800; cursor: pointer; }
+.tn-prob-btns button:disabled { opacity: .5; }
+.tn-modal.wide .tn-card-btns button { padding: 14px; font-size: 16px; }
+@media (max-width: 860px) {
+  .tn-modal.wide .tn-card { grid-template-columns: 1fr; }
+  .tn-modal.wide .tn-card > * { grid-column: 1 !important; grid-row: auto !important; }
+  .tn-modal.wide .tn-card-btns { flex-direction: row; }
+  .tn-prob { border-left: 0; border-top: 1px solid #e2e8f0; }
+  .tn-prob-opts { grid-template-columns: 1fr; }
+}

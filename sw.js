@@ -1,7 +1,7 @@
 /* So‘fi Ollohyor ilovasi: oflayn ishlash uchun kesh.
    Sahifalar — avval internetdan (yangi bo‘lsin), bo‘lmasa keshdan.
    Rasm, CSS, JS — keshdan tez beriladi va orqada yangilanadi. */
-const CACHE = "sofi-v99";
+const CACHE = "sofi-v100";
 const LIB = "sofi-lib-v1"; // o'zgarmaydigan katta fayllar (qo'l tanish modeli, three.js) — sayt yangilanganda o'chmaydi
 const CORE = [
   "./", "index.html", "kurslar.html", "competitions.html", "jadidlar.html", "ranking.html",
