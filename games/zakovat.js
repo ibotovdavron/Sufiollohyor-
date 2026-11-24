@@ -51,6 +51,7 @@
     const padded = " " + ans;
     return q.ok.some((ok) => {
       const o = norm(ok);
+      if (/^[0-9. ]+$/.test(o)) return (" " + ans + " ").includes(" " + o + " "); // sonlar aniq mos kelishi kerak (3 ≠ 30)
       if (padded.includes(" " + o)) return true;
       if (o.length >= 5 && !o.includes(" ")) return ans.split(" ").some((w) => lev(w, o) <= 1);
       return false;
@@ -66,6 +67,9 @@
     return out;
   }
   const qById = (id) => ({ ...BANK[id], id });
+  const CATS = { Tarix: ["📜 Tarix", "t"], Mantiq: ["🧩 Mantiq", "m"], "Matematika 6": ["🧮 Matematika · 6-sinf", "x"] };
+  const catTag = (q) => { const c = CATS[q.cat] || ["🧩 " + q.cat, "m"]; return `<span class="zk-cat ${c[1]}">${c[0]}</span>`; };
+  const CAT_OPTS = [["mix", "Aralash"], ["Tarix", "📜 Tarix"], ["Mantiq", "🧩 Mantiq"], ["Matematika 6", "🧮 Matematika 6-sinf (1–2-chorak)"]];
 
   function confetti(n = 120) {
     const box = document.createElement("div");
@@ -172,7 +176,7 @@
       </div>`).join("")}</div>`;
 
   const questionCard = (q, i, total) => `
-    <div class="zk-qhead"><span class="zk-qnum">Savol <b>${i + 1}</b> / ${total}</span><span class="zk-cat ${q.cat === "Tarix" ? "t" : "m"}">${q.cat === "Tarix" ? "📜 Tarix" : "🧩 Mantiq"}</span></div>
+    <div class="zk-qhead"><span class="zk-qnum">Savol <b>${i + 1}</b> / ${total}</span>${catTag(q)}</div>
     <div class="zk-qcard"><p class="zk-q">${esc(q.q)}</p></div>`;
 
   const answerFlip = (q, open) => `
@@ -268,7 +272,7 @@
           </div>
           <div class="zk-row">
             <span>Mavzu:</span>
-            <div class="zk-seg" id="zkCat">${[["mix", "Aralash"], ["Tarix", "📜 Tarix"], ["Mantiq", "🧩 Mantiq"]].map(([v, l]) => `<button type="button" data-v="${v}" class="${v === "mix" ? "on" : ""}">${l}</button>`).join("")}</div>
+            <div class="zk-seg" id="zkCat">${CAT_OPTS.map(([v, l]) => `<button type="button" data-v="${v}" class="${v === "mix" ? "on" : ""}">${l}</button>`).join("")}</div>
           </div>
           <button class="zk-btn big" id="zkGo" type="button">🚀 O‘yinni boshlash</button>
           ${datalist}
@@ -466,7 +470,7 @@
             <div class="zk-seg" id="zkSize">${[2, 3, 4].map((n) => `<button type="button" data-n="${n}" class="${n === 4 ? "on" : ""}">${n} kishi</button>`).join("")}</div>
             <label class="zk-lbl">Savollar</label>
             <div class="zk-seg" id="zkN">${[6, 10, 15].map((n) => `<button type="button" data-v="${n}" class="${n === 10 ? "on" : ""}">${n} ta</button>`).join("")}</div>
-            <div class="zk-seg" id="zkCat">${[["mix", "Aralash"], ["Tarix", "Tarix"], ["Mantiq", "Mantiq"]].map(([v, l]) => `<button type="button" data-v="${v}" class="${v === "mix" ? "on" : ""}">${l}</button>`).join("")}</div>
+            <div class="zk-seg" id="zkCat">${CAT_OPTS.map(([v, l]) => `<button type="button" data-v="${v}" class="${v === "mix" ? "on" : ""}">${l}</button>`).join("")}</div>
             <button class="zk-btn" id="zkHost" type="button">🎙️ Xona ochish</button>
           </div>
           <div class="zk-om-card">
@@ -1005,7 +1009,7 @@
           <div class="zb-teams">${BOARD_TEAMS.slice(0, st.count).map((t, i) => `
             <label class="zb-tname" style="--c:${t.color}"><span>${t.emb}</span><input data-i="${i}" value="${esc(t.name)}" maxlength="18" aria-label="Guruh nomi"></label>`).join("")}</div>
           <div class="zb-row"><span>Savollar soni</span><div class="zk-seg zb-seg" data-k="n">${[10, 15, 20, 30].map((v) => `<button type="button" data-v="${v}" class="${v === st.n ? "on" : ""}">${v}</button>`).join("")}</div></div>
-          <div class="zb-row"><span>Mavzu</span><div class="zk-seg zb-seg" data-k="cat">${[["mix", "Aralash"], ["Tarix", "📜 Tarix"], ["Mantiq", "🧩 Mantiq"]].map(([v, l]) => `<button type="button" data-v="${v}" class="${v === st.cat ? "on" : ""}">${l}</button>`).join("")}</div></div>
+          <div class="zb-row"><span>Mavzu</span><div class="zk-seg zb-seg" data-k="cat">${CAT_OPTS.map(([v, l]) => `<button type="button" data-v="${v}" class="${v === st.cat ? "on" : ""}">${l}</button>`).join("")}</div></div>
           <div class="zb-row"><span>Har savolga vaqt</span><div class="zk-seg zb-seg" data-k="time">${[[30, "30 s"], [60, "1 daq"], [90, "1,5 daq"], [120, "2 daq"]].map(([v, l]) => `<button type="button" data-v="${v}" class="${v === st.time ? "on" : ""}">${l}</button>`).join("")}</div></div>
           <div class="zb-keys">⌨️ Pult/klaviatura: <b>Probel</b> — vaqt ▶/⏸ · <b>A</b> — javobni ochish · <b>→</b> — keyingi · <b>1–6</b> — guruhga +1 · <b>Shift+1–6</b> — −1 · <b>F</b> — to‘liq ekran</div>
           <button class="zk-btn big zb-go" id="zbGo" type="button">🚀 Boshlash (to‘liq ekran)</button>
@@ -1116,7 +1120,7 @@
         <section class="zb-stage">
           <div class="zb-top">
             <span class="zb-qnum">Savol <b>${g.i + 1}</b> / ${g.qs.length}</span>
-            <span class="zk-cat ${q.cat === "Tarix" ? "t" : "m"}">${q.cat === "Tarix" ? "📜 Tarix" : "🧩 Mantiq"}</span>
+            ${catTag(q)}
             <div class="zb-prog"><i style="width:${(100 * g.i) / g.qs.length}%"></i></div>
             <button class="zb-icon" id="zbFs" type="button" title="To‘liq ekran (F)">⛶</button>
           </div>

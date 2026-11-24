@@ -437,3 +437,4 @@ body.zk-open .ch-fab, body.zk-open .ch-panel { display: none !important; }
   .zb-center { grid-template-columns: 1fr; }
   #zbTeams { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
 }
+.zk-cat.x { background: rgba(34, 227, 160, .14); color: #a7f3d0; border: 1px solid rgba(34, 227, 160, .4); }
