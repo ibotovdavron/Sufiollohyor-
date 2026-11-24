@@ -29,64 +29,73 @@
   const SORT_ORG = sort("🗂 Organik birikmalar sinflari", ["Uglevodorod", "Spirt", "Aldegid / keton", "Karbon kislota", "Murakkab efir"], [["CH4", 0], ["C2H4", 0], ["C2H2", 0], ["C6H6", 0], ["C2H5OH", 1], ["CH3OH", 1], ["C3H5(OH)3", 1], ["HCHO", 2], ["CH3CHO", 2], ["CH3COCH3", 2], ["HCOOH", 3], ["CH3COOH", 3], ["CH3COOC2H5", 4], ["HCOOCH3", 4]].map(([t, c]) => [f(t), c]));
   const SORT_ELY = sort("🗂 Elektrolit yoki noelektrolit?", ["Kuchli elektrolit", "Kuchsiz elektrolit", "Noelektrolit"], [["NaCl", 0], ["HCl", 0], ["NaOH", 0], ["H2SO4", 0], ["KNO3", 0], ["CH3COOH", 1], ["NH4OH", 1], ["H2S", 1], ["H2CO3", 1], ["C12H22O11", 2], ["C2H5OH", 2], ["O2", 2], ["C6H12O6", 2]].map(([t, c]) => [f(t), c]));
 
+  // ---------- 7-sinf (yangi reja) saralash o'yinlari ----------
+  const SORT_VAR = sort("🗂 Shakarning erish tezligi tajribasi: o‘zgaruvchini aniqlang", ["Mustaqil", "Bog‘liq", "Nazorat"], [["Suv harorati", 0], ["Erish vaqti", 1], ["Shakar massasi", 2], ["Suv hajmi", 2], ["Aralashtirish tezligi", 2], ["Stakan turi", 2]]);
+  const SORT_VAR_PAKET = sort("🗂 Paket mustahkamligi tajribasi: o‘zgaruvchini aniqlang", ["Mustaqil", "Bog‘liq", "Nazorat"], [["Paket materiali", 0], ["Yirtilgandagi yuk massasi", 1], ["Paket o‘lchami", 2], ["Har safar qo‘shiladigan yuk (100 g)", 2], ["Osish usuli", 2]]);
+  const SORT_HOLAT = sort("🗂 Qaysi agregat holat?", ["Qattiq", "Suyuq", "Gaz"], [["Muz", 0], ["Suv", 1], ["Bug‘", 2], ["Tuz", 0], ["Sut", 1], ["Kislorod", 2], ["Temir", 0], ["Simob", 1], ["Karbonat angidrid", 2], ["Shakar", 0], ["Benzin", 1], ["Havo", 2]]);
+  const SORT_JARAYON = sort("🗂 Qaysi jarayon?", ["Erish", "Qaynash / bug‘lanish", "Kondensatsiya", "Sublimatsiya", "Qotish"], [["Muzqaymoq oftobda", 0], ["Choynakda suv", 1], ["Sovuq oynada tomchilar", 2], ["Yod qizdirilganda binafsha bug‘", 3], ["Ko‘lmak qishda", 4], ["Ho‘l kir quriydi", 1], ["Shudring", 2], ["Quruq muz “tutun” chiqaradi", 3], ["Erigan sham qotadi", 4], ["Sariyog‘ skovorodkada", 0]]);
+  const SORT_METALL = sort("🗂 Metall yoki metallmas?", ["Metall", "Metallmas"], [["Temir (Fe)", 0], ["Oltingugurt (S)", 1], ["Mis (Cu)", 0], ["Kislorod (O)", 1], ["Alyuminiy (Al)", 0], ["Uglerod (C)", 1], ["Simob (Hg)", 0], ["Brom (Br)", 1], ["Natriy (Na)", 0], ["Azot (N)", 1], ["Oltin (Au)", 0], ["Yod (I)", 1]]);
+  const SORT_NOM = sort("🗂 Birikma nomi qanday tugaydi?", ["…oksid", "…xlorid", "…sulfat", "…karbonat"], [["CaO", 0], ["NaCl", 1], ["CuSO4", 2], ["CaCO3", 3], ["CO2", 0], ["KCl", 1], ["Na2SO4", 2], ["K2CO3", 3], ["Fe2O3", 0], ["FeCl3", 1], ["ZnSO4", 2], ["MgCO3", 3]]);
+  const SORT_XOSSA = sort("🗂 Fizik yoki kimyoviy xossa?", ["Fizik xossa", "Kimyoviy xossa"], [["Zichligi 7,9 g/sm³", 0], ["Havoda zanglaydi", 1], ["100 °C da qaynaydi", 0], ["Yonadi", 1], ["Suvda eriydi", 0], ["Kislota bilan gaz chiqaradi", 1], ["Elektr o‘tkazadi", 0], ["Kislorod bilan birikadi", 1], ["Sariq rangli", 0], ["Qizdirilsa parchalanadi", 1]]);
+  const SORT_MAT1 = sort("🗂 Buyum qaysi materialdan?", ["Metall / qotishma", "Shisha", "Keramika"], [["Qoshiq", 0], ["Deraza oynasi", 1], ["Piyola (chinni)", 2], ["Qozon", 0], ["Ko‘zoynak linzasi", 1], ["G‘isht", 2], ["Kalit", 0], ["Banka", 1], ["Lagan (Rishton)", 2], ["Mix", 0], ["Lampochka kolbasi", 1], ["Plitka", 2]]);
+  const SORT_MAT2 = sort("🗂 Plastmassa, tola yoki kompozit?", ["Plastmassa", "Tola", "Kompozit"], [["Polietilen paket", 0], ["Paxta", 1], ["Temir-beton", 2], ["PET butilka", 0], ["Ipak", 1], ["Shisha tola", 2], ["PVX quvur", 0], ["Jun", 1], ["DSP (qipiq plita)", 2], ["Polistirol idish", 0], ["Neylon", 1], ["Uglerod tolali velosiped ramkasi", 2]]);
+  const SORT_ISHLATISH = sort("🗂 Material qaysi xossasi uchun tanlangan?", ["Elektr o‘tkazuvchanlik", "Shaffoflik", "Issiqqa chidamlilik", "Yengillik va mustahkamlik"], [["Mis sim", 0], ["Deraza shishasi", 1], ["Chinni choynak", 2], ["Duralyuminiy samolyot", 3], ["Alyuminiy elektr kabeli", 0], ["Ko‘zoynak", 1], ["Pech g‘ishti", 2], ["Uglerod tolali velosiped", 3]]);
+  const SORT_3 = sort("🗂 Oddiy modda, murakkab modda yoki aralashma?", ["Oddiy modda", "Murakkab modda", "Aralashma"], [["Oltin", 0], ["Suv (distillangan)", 1], ["Havo", 2], ["Kislorod", 0], ["Osh tuzi", 1], ["Dengiz suvi", 2], ["Mis", 0], ["Bo‘r (CaCO3)", 1], ["Sut", 2], ["Olmos", 0], ["Shakar", 1], ["Granit", 2]]);
+  const SORT_ERI = sort("🗂 Qayerda yaxshi eriydi?", ["Suvda", "Benzin / spirtda"], [["Osh tuzi", 0], ["O‘simlik moyi", 1], ["Shakar", 0], ["Yod", 1], ["Mis kuporosi", 0], ["Parafin (sham)", 1], ["Ichimlik sodasi", 0], ["Mashina moyi", 1]]);
+
   // ---------- tenglamalar to'plamlari ----------
   const REDOX = [[["Cu", "HNO3"], ["Cu(NO3)2", "NO", "H2O"]], [["KMnO4", "HCl"], ["KCl", "MnCl2", "Cl2", "H2O"]], [["MnO2", "HCl"], ["MnCl2", "Cl2", "H2O"]], [["Zn", "H2SO4"], ["ZnSO4", "H2S", "H2O"]], [["NH3", "O2"], ["NO", "H2O"]], [["Al", "CuCl2"], ["AlCl3", "Cu"]], [["H2S", "O2"], ["SO2", "H2O"]], [["Fe2O3", "H2"], ["Fe", "H2O"]], [["KClO3", "S"], ["KCl", "SO2"]]];
   const METAL = [[["Fe2O3", "CO"], ["Fe", "CO2"]], [["Fe3O4", "CO"], ["Fe", "CO2"]], [["FeO", "C"], ["Fe", "CO"]], [["C", "O2"], ["CO2"]], [["CO2", "C"], ["CO"]], [["Fe2O3", "Al"], ["Al2O3", "Fe"]], [["FeS2", "O2"], ["Fe2O3", "SO2"]]];
   const ORGB = [[["CH4", "O2"], ["CO2", "H2O"]], [["C2H6", "O2"], ["CO2", "H2O"]], [["C2H4", "O2"], ["CO2", "H2O"]], [["C2H2", "O2"], ["CO2", "H2O"]], [["C6H6", "O2"], ["CO2", "H2O"]], [["C2H5OH", "O2"], ["CO2", "H2O"]], [["C6H12O6", "O2"], ["CO2", "H2O"]], [["CaC2", "H2O"], ["Ca(OH)2", "C2H2"]]];
 
   const MAP = {
-    // ======================= 7-sinf =======================
-    "kimyo-fani": [lab1("🧪 Kimyo — bu o‘zgarishlar! Tajribalarni ko‘ring", "mg-hcl", "fe-cuso4", "agcl", "starch-i2", "soda-vinegar", "fe3-scn")],
-    "modda-xossa": [SORT_JISM, ST],
-    "xavfsizlik": [SORT_RULES, zones],
-    "lab-jihoz": [EQUIP, zones],
-    "sof-aralashma": [SORT_SOF, sep("salt", "magnet", "funnel", "distill")],
-    "tuz-tozalash": [sep("salt"), sol(0)],
-    "agregat": [ST],
-    "hodisalar": [SORT_HOD, lab("mg-hcl", "cuoh2", "soda-vinegar", "fe3-scn")],
-    "kundalik-kimyo": [lab("soda-vinegar", "soap-hard", "boil-hard", "starch-i2", "saponif"), ph],
-    "atom-tarix": [atom(1), decay],
-    "atom-tuzilish": [atom(6)],
-    "element-belgi": [P],
-    "ar": [atom(17), molar(["H2O", "CO2", "NaCl", "O2"])],
-    "izotop": [atom(1), decay],
-    "formula-valent": [OX("Fe2O3"), molar(["H2O", "Al2O3", "Fe2O3", "P2O5"])],
-    "molekula-mr": [molar()],
-    "oddiy-murakkab": [SORT_ODDIY],
-    "mol": [molar(["H2O", "CO2", "O2", "NaCl", "C6H12O6"], { m: 18 }), GAS],
-    "valent-mashq": [OX("Al2O3"), bal([[["Al", "O2"], ["Al2O3"]], [["P", "O2"], ["P2O5"]], [["Fe", "Cl2"], ["FeCl3"]], [["N2", "H2"], ["NH3"]], [["Ca", "O2"], ["CaO"]]])],
-    "formula-hisob": [molar(["H2SO4", "CaCO3", "Fe2O3", "CuSO4·5H2O", "NH4NO3"])],
-    "tenglama": [{ type: "balance" }, lab("mg-hcl", "cuoh2", "caco3-hcl")],
-    "tavsif": [P, atom(11)],
-    "oilalar": [P, flame(["Li", "Na", "K"]), lab("na-h2o", "cl2-ki")],
-    "davriy-jadval": [P],
-    "havo": [comp("air"), GAS],
-    "havo-iflos": [comp("air"), ph],
-    "kislorod": [comp("air", "crust", "body"), lab("h2o2-mno2")],
-    "kislorod-fizik": [lab("h2o2-mno2", "h2o2-only"), GAS],
-    "kislorod-kimyo": [lab("h2o2-mno2"), bal([[["C", "O2"], ["CO2"]], [["S", "O2"], ["SO2"]], [["P", "O2"], ["P2O5"]], [["Fe", "O2"], ["Fe3O4"]], [["Mg", "O2"], ["MgO"]], [["CH4", "O2"], ["CO2", "H2O"]]])],
-    "yonish": [zones, lab("h2o2-mno2", "caco3-hcl")],
-    "alanga": [zones, flame()],
-    "ozon": [comp("air"), bal([[["O2"], ["O3"]], [["O3"], ["O2"]]])],
-    "o2-bio": [comp("body", "air")],
-    "oksidlar": [SORT_OKSID, lab("cuo-h2so4", "zno-hcl", "zno-naoh")],
-    "vodorod": [lab("zn-hcl", "mg-hcl", "fe-hcl", "cu-hcl"), ACT],
-    "vodorod-xossa": [lab("zn-hcl"), GAS, bal([[["H2", "O2"], ["H2O"]], [["CuO", "H2"], ["Cu", "H2O"]], [["N2", "H2"], ["NH3"]], [["H2", "Cl2"], ["HCl"]]])],
-    "kislotalar": [ph, lab("php-hcl", "zn-hcl", "caco3-hcl", "cuo-h2so4")],
-    "kislota-amaliy": [lab("zn-hcl", "mg-hcl", "fe-hcl", "cu-hcl", "cuo-h2so4", "php-hcl"), ACT],
-    "kislotali-yomgir": [ph, lab("caco3-hcl", "fe-hcl")],
-    "suv-tarkib": [{ type: "electrolysis", title: "💧 Suvning elektrolizi — Na₂SO₄ eritmasini tanlang" }, molar(["H2O", "H2O2"])],
-    "suv-aylanish": [ST],
-    "suv-kimyo": [lab("na-h2o", "ca-h2o", "cuo-h2so4")],
-    "neytrallanish": [TIT, lab("neutral", "php-naoh", "cuoh2-hcl")],
-    "suv-tozalash": [sep("salt", "distill"), lab("soap-hard", "boil-hard")],
-    "organizm-element": [comp("body")],
-    "oqsil-yog": [lab("biuret", "xanto", "starch-i2", "saponif"), comp("food")],
-    "vitamin": [comp("food", "body"), ph],
-    "mineral": [comp("crust", "sea", "body")],
-    "geologik": [comp("crust"), lab("caco3-hcl", "h2sio3")],
-    "qazilma": [comp("crust"), ACT],
-    "ekologiya": [comp("air"), ph, COR],
+    // ======================= 7-sinf (yangi reja) =======================
+    "k7-fan": [lab1("🧪 Kimyo — bu o‘zgarishlar! Tajribalarni ko‘ring", "mg-hcl", "fe-cuso4", "agcl", "starch-i2", "soda-vinegar", "fe3-scn"), SORT_HOD],
+    "k7-metod": [SORT_VAR, RATE],
+    "k7-xavfsizlik": [SORT_RULES, zones],
+    "k7-jihoz": [EQUIP],
+    "k7-bunzen": [zones, flame()],
+    "k7-tuzilish": [ST],
+    "k7-agregat-taqqos": [ST, SORT_HOLAT],
+    "k7-holat": [ST, SORT_JARAYON],
+    "k7-element": [P, comp("crust", "body", "air")],
+    "k7-atom-molekula": [atom(8), molar(["H2O", "CO2", "O2", "NH3", "CH4"])],
+    "k7-metall": [SORT_METALL, P, COND],
+    "k7-davriy": [P, SORT_METALL],
+    "k7-murakkab": [SORT_ODDIY],
+    "k7-nomlash": [SORT_NOM, OX("CuSO4")],
+    "k7-formula": [molar(["H2O", "H2SO4", "Ca(OH)2", "Al2(SO4)3", "NH3"])],
+    "k7-model": [atom(6), molar(["CH4", "H2O", "CO2", "NH3"])],
+    "k7-mm-xossa": [sep("magnet"), lab("fe-cuso4", "agcl")],
+    "k7-parchalanish": [lab("h2o2-mno2", "h2o2-only"), { type: "electrolysis", title: "💧 Suvning parchalanishi — Na₂SO₄ eritmasini tanlang" }],
+    "k7-olinish": [lab("cuoh2", "fe-cuso4", "caco3-ppt"), bal([[["Mg", "O2"], ["MgO"]], [["Fe", "S"], ["FeS"]], [["C", "O2"], ["CO2"]], [["CaO", "H2O"], ["Ca(OH)2"]], [["Na", "Cl2"], ["NaCl"]]])],
+    "k7-fizik-xossa": [SORT_XOSSA, ST],
+    "k7-paket": [SORT_VAR_PAKET],
+    "k7-metall-fizik": [COND, SORT_METALL],
+    "k7-metall-amaliy": [COND, SORT_METALL],
+    "k7-kundalik1": [SORT_MAT1],
+    "k7-kundalik2": [SORT_MAT2],
+    "k7-xossa-ishlatish": [SORT_ISHLATISH],
+    "k7-loyiha-mahsulot": [SORT_ISHLATISH, SORT_MAT2],
+    "k7-kislota": [ph, lab("php-hcl", "zn-hcl")],
+    "k7-kislota-xossa": [lab("php-hcl", "zn-hcl", "caco3-hcl", "cuo-h2so4", "neutral"), ph],
+    "k7-kislota-metall": [lab1("🧪 Kislota + metallar: qaysi biri tezroq?", "mg-hcl", "zn-hcl", "fe-hcl", "cu-hcl"), ACT],
+    "k7-kislota-karbonat": [lab("caco3-hcl", "na2co3-hcl", "soda-vinegar", "limewater")],
+    "k7-asos": [lab("php-naoh", "cuoh2"), ph],
+    "k7-universal": [ph],
+    "k7-indikator": [ph, lab("php-naoh", "php-hcl")],
+    "k7-ph": [ph],
+    "k7-tabiiy-indikator": [ph],
+    "k7-neytral": [TIT, lab("neutral", "cuoh2-hcl")],
+    "k7-neytral-amaliy": [TIT, lab("neutral", "php-naoh")],
+    "k7-aralashma": [SORT_SOF, sep("magnet", "funnel")],
+    "k7-farqlash": [SORT_3],
+    "k7-filtr": [sep("salt", "magnet", "funnel")],
+    "k7-distill": [sep("distill")],
+    "k7-eritma": [sol(0), sol(2)],
+    "k7-eruvchanlik": [sol(0)],
+    "k7-harorat": [sol(0)],
+    "k7-tabiat": [SORT_ERI, sol(0)],
     // ======================= 8-sinf =======================
     "dastlabki": [{ type: "balance" }, molar()],
     "sinflar": [SORT_SINF, ph],

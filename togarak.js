@@ -13,7 +13,7 @@
       "Havo bo‘lmasa, hamma jism bir xil tushadi. Qog‘ozni havo qarshiligi ushlab turadi."],
     ["kim", "Nega karam suvi rangini o‘zgartiradi?", "Kislota va ishqorlar, pH indikator",
       "Qizil karam qaynatmasini (ustoz tayyorlaydi) 5 ta stakanga quying: sirka, limon, soda, sovun eritmasi va toza suv qo‘shing. Ranglarni pH shkalasi bilan solishtiring.",
-      "qizil karam, sirka, limon, soda, sovun, 5 ta shaffof stakan", "7/kimyo/kundalik-kimyo",
+      "qizil karam, sirka, limon, soda, sovun, 5 ta shaffof stakan", "7/kimyo/k7-tabiiy-indikator",
       "Karam bo‘yog‘i (antotsian) kislotada qizaradi, ishqorda ko‘k-yashil bo‘ladi."],
     ["bio", "Nega piyoz “g‘ishtchalardan” qurilgan?", "Hujayra tuzilishi",
       "Piyozning yupqa ichki po‘stini oling, bir tomchi yod bilan bo‘yang. Telefon kamerasiga tomchi suv (linza) qo‘yib kattalashtiring yoki mikroskopda ko‘ring.",
