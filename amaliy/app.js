@@ -237,6 +237,7 @@
         <span class="am-today-go">Ochish →</span></a>` : ""}
 
       <a class="am-doska" href="doska.html"><span class="am-doska-ic">🖊️</span><span><b>Elektron doska</b><em>Barmoq bilan yozing, telefon kamerasini ulang, 3D shakllar chiqaring, ovozli jonli efir va dars yozuvi</em></span><span class="am-today-go">Ochish →</span></a>
+      <a class="am-doska am-sert" href="sertifikat.html"><span class="am-doska-ic">📜</span><span><b>Sertifikat matematika</b><em>Milliy sertifikat imtihoni simulyatori: 45 topshiriq, 150 daqiqa, javoblar varaqasi, 75 ballik natija va daraja (A+ … C)</em></span><span class="am-today-go">Boshlash →</span></a>
       <a class="am-doska am-pick" href="tanla.html"><span class="am-doska-ic">🎯</span><span><b>Doskaga kim chiqadi?</b><em>Doska kamerasi sinfdagi yuzlarni topadi va tasodifiy o‘quvchini tanlaydi. Kamerasiz — ismlar ro‘yxatidan</em></span><span class="am-today-go">Ochish →</span></a>
       <a class="am-doska am-watch" href="doska.html?watch="><span class="am-doska-ic">📡</span><span><b>Jonli darsni ko‘rish</b><em>Ustoz efir boshlasa — shu yerda “🔴 Jonli efir” chiqadi: doska, ekran, kamera va ovoz jonli keladi</em></span><span class="am-today-go">Kirish →</span></a>
 
