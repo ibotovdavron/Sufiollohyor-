@@ -9,6 +9,9 @@
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const GRADES = [[70, "A+"], [65, "A"], [60, "B+"], [55, "B"], [50, "C+"], [46, "C"]];
   const grade = (b) => (GRADES.find((g) => b >= g[0]) || [0, "—"])[1];
+  const pct = (b) => Math.min(100, Math.round((b / 65) * 10000) / 100);
+  const fmtN = (v) => String(v).replace(".", ",");
+  const me = () => { try { const m = window.SofiAuth && window.SofiAuth.me(); if (m && m.name) return m.name; } catch (e) { /* bo'sh */ } return LS.get("sofi_ms_name", ""); };
   // Xom ball: 1–35 — 1 ball, 36–45 — har bir qism (a, b) 1 ball → maks 55; 75 ballik shkalaga o'tkaziladi
   const RAW_MAX = 32 + 3 + 20;
   let ex = null, tick = 0;
@@ -32,7 +35,8 @@
           <tr><th>33–35-topshiriqlar</th><td>Moslashtirish — bitta shartga 3 ta savol, javoblar A–F dan tanlanadi</td></tr>
           <tr><th>36–45-topshiriqlar</th><td>Ochiq (yozma javobli) — har birida <b>a)</b> va <b>b)</b> qismlar; faqat yakuniy javob baholanadi</td></tr>
           <tr><th>Maksimal ball</th><td><b>75 ball</b></td></tr>
-          <tr><th>Darajalar</th><td>A+ — 70 va undan yuqori · A — 65 · B+ — 60 · B — 55 · C+ — 50 · C — 46 (sertifikat 46 balldan beriladi)</td></tr>
+          <tr><th>Darajalar</th><td><table class="ms-gtab"><tr><td><b>A+</b></td><td>70 va undan yuqori</td></tr><tr><td><b>A</b></td><td>65 – 69,9</td></tr><tr><td><b>B+</b></td><td>60 – 64,9</td></tr><tr><td><b>B</b></td><td>55 – 59,9</td></tr><tr><td><b>C+</b></td><td>50 – 54,9</td></tr><tr><td><b>C</b></td><td>46 – 49,9</td></tr><tr><td>—</td><td>46 dan kam — sertifikat berilmaydi</td></tr></table></td></tr>
+          <tr><th>Foiz ko‘rsatkichi</th><td>Ball 65 ga nisbatan hisoblanadi (65 va undan yuqori — 100 %). Masalan, 51,03 ball → 78,51 % (C+).</td></tr>
         </table>
         <ul class="ms-list">
           <li>Kalkulyator, telefon va ma’lumotnomalardan foydalanish taqiqlanadi.</li>
@@ -118,12 +122,32 @@
     const hist = LS.get(HIST, []); hist.unshift({ seed: ex.seed, ball, g, date: new Date().toLocaleString("uz", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) }); LS.set(HIST, hist.slice(0, 30));
     LS.del(KEY);
     const used = Math.min(DUR, Date.now() - ex.start);
+    const name = me(), ok46 = ball >= 46, today = new Date().toLocaleDateString("ru-RU");
+    const cert = ok46 ? `
+        <div class="ms-cert" id="msCert">
+          <div class="ms-cert-wm">MASHQ</div>
+          <div class="ms-cert-org">SO‘FI OLLOHYOR O‘QUV MARKAZI · MILLIY SERTIFIKAT SIMULYATORI</div>
+          <div class="ms-cert-title">MASHQ IMTIHONI NATIJASI<br><small>(Milliy sertifikat · Matematika formati bo‘yicha)</small></div>
+          <table class="ms-cert-t">
+            <tr><td>F.I.Sh.:</td><td><input id="msName" value="${esc(name)}" placeholder="Ism familiyangizni yozing"></td></tr>
+            <tr><td>Fan:</td><td><b>Matematika</b></td></tr>
+            <tr><td>Variant:</td><td><b>${ex.seed}</b></td></tr>
+            <tr><td>Umumiy to‘plagan bali:</td><td><b>${fmtN(ball)}</b></td></tr>
+            <tr><td>Foiz ko‘rsatkichi:</td><td><b>${fmtN(pct(ball))} %</b></td></tr>
+            <tr><td>Daraja:</td><td><b class="ms-cert-g">${g}</b></td></tr>
+            <tr><td>Sana:</td><td><b>${today}</b></td></tr>
+          </table>
+          <div class="ms-cert-note">⚠ Bu mashq natijasi — rasmiy sertifikat emas. Rasmiy sertifikat faqat Bilim va malakalarni baholash agentligi imtihonida beriladi.</div>
+        </div>` : `
+        <div class="ms-fail"><div class="ms-fail-ic">📉</div><b>Ball sertifikatga yetmadi</b><p>Sizning natijangiz: <b>${fmtN(ball)} ball</b> (${fmtN(pct(ball))} %). Sertifikat (C daraja) uchun kamida <b>46 ball</b> kerak — yana <b>${fmtN(Math.round((46 - ball) * 100) / 100)} ball</b> yetmadi.</p><p class="muted">Pastdagi tahlilni ko‘rib, xato qilgan mavzularni takrorlang va yangi variantda qayta urinib ko‘ring.</p></div>`;
     app.innerHTML = `
       <section class="ms-res">
+        ${cert}
         <div class="ms-res-card">
           <small>MILLIY SERTIFIKAT · MATEMATIKA · ${ex.seed}-variant</small>
           <div class="ms-grade g-${g.replace("+", "p")}">${g}</div>
-          <div class="ms-ball"><b>${String(ball).replace(".", ",")}</b> / 75 ball</div>
+          <div class="ms-ball"><b>${fmtN(ball)}</b> / 75 ball · <b class="ms-pc">${fmtN(pct(ball))} %</b></div>
+          <div class="ms-scale">${[["C", 46], ["C+", 50], ["B", 55], ["B+", 60], ["A", 65], ["A+", 70]].map(([l, v]) => `<span class="${ball >= v ? "on" : ""}"><b>${l}</b>${v}</span>`).join("")}</div>
           <p>${g === "—" ? "Sertifikat uchun kamida 46 ball kerak. Tahlilni ko‘rib, xatolar ustida ishlang!" : g === "A+" ? "Ajoyib! Eng yuqori daraja. 🏆" : `Daraja: ${g}. Keyingi daraja uchun yana ozgina!`}</p>
           <div class="ms-secs"><span>Yopiq testlar: <b>${sec.mc}/32</b></span><span>Moslashtirish: <b>${sec.match}/3</b></span><span>Ochiq (a, b): <b>${sec.open}/20</b></span><span>Sarflangan vaqt: <b>${fmt(used)}</b></span></div>
           <div class="ms-row"><button class="ms-btn" id="msHome">↺ Yangi imtihon</button><button class="ms-btn ghost" onclick="window.print()">🖨 Chop etish</button></div>
@@ -134,6 +158,7 @@
           : `<div class="ms-rv ${r.parts.every((p) => p.ok) ? "ok" : r.parts.some((p) => p.ok) ? "half" : "bad"}"><div class="ms-rv-h"><b>${r.q.n}.</b> ${r.parts.map((p, i) => `${"ab"[i]}) ${p.ok ? "✅" : "❌"} siz: <b>${esc(p.yours)}</b>, to‘g‘ri: <b>${p.right}</b>`).join(" · ")}</div><div class="ms-rv-q">${r.q.q} ${r.q.parts.map((p, i) => `<br>${"ab"[i]}) ${p.q}`).join("")}</div><div class="ms-rv-s">💡 ${r.q.sol}</div></div>`).join("")}</div>
       </section>`;
     document.getElementById("msHome").onclick = home;
+    const nm = document.getElementById("msName"); if (nm) nm.oninput = () => LS.set("sofi_ms_name", nm.value);
     window.scrollTo(0, 0);
   }
 

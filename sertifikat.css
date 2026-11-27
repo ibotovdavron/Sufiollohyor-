@@ -92,3 +92,21 @@ body.ms-on .bottom-nav { display: none !important; }
   .ms-tt { flex-basis: 100%; font-size: 12px; }
   .ms-timer { margin-left: 0; }
 }
+.ms-gtab { border-collapse: collapse; } .ms-gtab td { padding: 2px 12px 2px 0; border: 0; }
+.ms-scale { display: flex; justify-content: center; gap: 6px; margin: 10px 0; flex-wrap: wrap; }
+.ms-scale span { display: grid; min-width: 46px; padding: 6px 8px; border-radius: 10px; border: 1px solid var(--line); font-size: 12px; opacity: .6; }
+.ms-scale span b { font-size: 16px; } .ms-scale span.on { opacity: 1; background: rgba(34, 197, 94, .18); border-color: #22c55e; }
+.ms-cert { position: relative; overflow: hidden; max-width: 760px; margin: 0 auto 20px; padding: 34px 38px; border-radius: 6px; color: #1f2937; text-align: center; font-family: "Times New Roman", Georgia, serif;
+  background: repeating-linear-gradient(45deg, rgba(180, 140, 60, .08) 0 6px, transparent 6px 12px), linear-gradient(160deg, #fdf6e3, #f3e3b8); border: 10px double #b8913f; box-shadow: 0 20px 50px rgba(0, 0, 0, .35); }
+.ms-cert-wm { position: absolute; inset: 0; display: grid; place-items: center; font: 900 120px system-ui; color: rgba(184, 145, 63, .13); transform: rotate(-22deg); pointer-events: none; letter-spacing: .1em; }
+.ms-cert-org { position: relative; font: 800 13px system-ui; letter-spacing: .06em; color: #7c5a12; padding-bottom: 10px; border-bottom: 2px solid #1f2937; }
+.ms-cert-title { position: relative; margin: 16px 0; font-weight: 900; font-size: 22px; letter-spacing: .03em; } .ms-cert-title small { font-size: 13px; font-weight: 400; }
+.ms-cert-t { position: relative; width: 100%; border-collapse: collapse; text-align: left; font-size: 17px; }
+.ms-cert-t td { padding: 8px 6px; border-bottom: 1px solid rgba(31, 41, 55, .15); } .ms-cert-t td:first-child { width: 48%; }
+.ms-cert-t input { width: 100%; padding: 4px 6px; border: 0; border-bottom: 1.5px dashed #7c5a12; background: transparent; font: 700 17px "Times New Roman", serif; color: #111827; }
+.ms-cert-g { font-size: 22px; color: #15803d; }
+.ms-cert-note { position: relative; margin-top: 16px; font: 12px system-ui; color: #92400e; }
+.ms-fail { max-width: 640px; margin: 0 auto 20px; padding: 24px; border-radius: 20px; text-align: center; border: 2px dashed #ef4444; background: rgba(239, 68, 68, .08); }
+.ms-fail-ic { font-size: 48px; } .ms-fail > b { display: block; font-size: 24px; color: #f87171; margin: 6px 0; }
+@media (max-width: 560px) { .ms-cert { padding: 22px 16px; } .ms-cert-t { font-size: 15px; } .ms-cert-wm { font-size: 70px; } }
+@media print { .ms-cert { box-shadow: none; } }
