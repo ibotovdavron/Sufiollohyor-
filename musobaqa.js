@@ -293,7 +293,7 @@
         const dirty = box.querySelectorAll(".sm-s.dirty").length;
         const empty = st.players.filter((p) => p.total == null).length;
         if (!confirm(`Natijalar e’lon qilinsinmi?${dirty ? `\n⚠️ ${dirty} ta qatorda saqlanmagan o‘zgarish bor (💾 bosilmagan).` : ""}${empty ? `\n${empty} ta ishtirokchining natijasi kiritilmagan — ular “qatnashmadi” deb ko‘rinadi.` : ""}\nA+ / A / B+ olganlarga yulduzlar beriladi. Keyin natijani o‘zgartirib bo‘lmaydi.`)) return;
-        const n = await API.rpc("sm_admin_finish", { p_pin: pin, p_event: ev.id }); msg(`✅ Natijalar e’lon qilindi. ${n} ta o‘quvchiga yulduz berildi`, true);
+        const n = await API.rpc("sm_admin_finish", { p_pin: pin, p_event: ev.id }); msg("✅ Natijalar e’lon qilindi. (Yulduz berish hozircha to‘xtatilgan.)", true); void n;
       } else if (a === "new") {
         if (!confirm("Yangi musobaqa ochilsinmi? Joriysi tarixda qoladi.")) return;
         await API.rpc("sm_admin_new", { p_pin: pin, p_title: val("title") || "So‘fi Ollohyor musobaqasi" }); msg("✅ Yangi musobaqa ochildi", true);

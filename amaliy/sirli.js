@@ -21,6 +21,7 @@
     return client;
   }
   /** Yulduzni markaz reytingiga yozish. Natija: { ok, n } yoki { ok:false, why } */
+  const STARS_OFF = true; // yulduz berish to‘xtatilgan (bazada ham bloklangan)
   async function sendStars(key, stars) {
     const u = me(), c = db();
     if (!u) return { ok: false, why: "login" };
@@ -206,7 +207,8 @@
       return "";
     };
     const done = (html, res) => { box.innerHTML = intro + `<div class="am-sirli-res">${html}${res ? syncLine(res) : ""}</div>` + totalLine(); bindLogin(); };
-    const resultHTML = (res) => {
+    const resultHTML = (res) => STARS_OFF ? resultHTML0(res).replace(/ ?[+−]\d ⭐/g, "") + `<p class="muted">⏸ Yulduz berish hozircha to‘xtatilgan — javobingiz faqat o‘zingiz uchun.</p>` : resultHTML0(res);
+    const resultHTML0 = (res) => {
       if (res.kind === "found") return `<b class="good">🎉 Topdingiz! +${res.stars} ⭐</b><p>Qiyinlik: <span class="am-stars">${starStr(res.stars)}</span> (${LV[res.stars]}).</p><p>✅ To‘g‘risi: ${rich(esc(p.right))}</p>`;
       if (res.kind === "missed") return `<b class="bad">😕 Afsus, xato boshqa joyda edi.</b><p>❌ Xato gap: ${rich(esc(p.answer))}</p><p>✅ To‘g‘risi: ${rich(esc(p.right))}</p><p>Qiyinlik: <span class="am-stars">${starStr(p.stars)}</span></p>`;
       if (res.kind === "skipped") return `<b class="bad">🙈 Bu mavzuda xato bor edi!${res.stars < 0 ? " −1 ⭐" : ""}</b><p>❌ Xato gap: ${rich(esc(p.answer))}</p><p>✅ To‘g‘risi: ${rich(esc(p.right))}</p><p>Qiyinlik: <span class="am-stars">${starStr(p.stars)}</span> — keyingi safar diqqatliroq bo‘ling 😉</p>`;
@@ -214,7 +216,7 @@
       return `<b class="bad">🙁 Bu mavzuda xato yo‘q edi! −1 ⭐</b><p>Hamma ma’lumot to‘g‘ri edi. Shoshilmang — “xato bor” deyishdan oldin darsni yaxshilab tekshiring.</p>`;
     };
     const push = async (res) => {
-      if (!res.stars || !me()) return;
+      if (STARS_OFF || !res.stars || !me()) return;
       const r = await sendStars(p.key, res.stars);
       if (!r.ok) res.sync = "pending";
       else res.sync = r.n === 0 ? (res.stars > 0 && !res.sync ? "cap" : "dup") : "ok", res.sent = r.n;

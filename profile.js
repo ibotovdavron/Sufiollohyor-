@@ -313,6 +313,7 @@
     gameTestPanel(me); classTestsPanel();
     $("#pfGive").onclick = async () => {
       const msg = $("#pfMsg");
+      msg.textContent = "⛔ Yulduz berish hozircha to‘xtatilgan."; return;
       if (!picked.size) { msg.textContent = "Avval o‘quvchini tanlang."; return; }
       const why = $("#pfWhyTxt").value.trim() || reason;
       if (!confirm(`${picked.size} ta o‘quvchiga ${amount > 0 ? "+" : ""}${amount} ⭐ (${why}). Tasdiqlaysizmi?`)) return;
